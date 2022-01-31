@@ -27,6 +27,9 @@
     <ClInclude Include="imgui\imgui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mumble_link.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="timer.cpp">

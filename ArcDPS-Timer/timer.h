@@ -12,3 +12,4 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 void timer_start();
 void timer_stop();
 void timer_prepare();
+void timer_reset();

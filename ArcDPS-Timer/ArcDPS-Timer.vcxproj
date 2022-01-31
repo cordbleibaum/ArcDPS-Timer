@@ -159,6 +159,7 @@
     <ClInclude Include="arcdps.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="json.hpp" />
+    <ClInclude Include="mumble_link.h" />
     <ClInclude Include="timer.h" />
   </ItemGroup>
   <ItemGroup>

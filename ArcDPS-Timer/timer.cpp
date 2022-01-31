@@ -4,10 +4,12 @@
 #include <fstream>
 #include <filesystem>
 #include <chrono>
+#include <cmath>
 
 #include "json.hpp"
 using json = nlohmann::json;
 
+#include "mumble_link.h"
 
 arcdps_exports arc_exports;
 char* arc_version;
@@ -26,12 +28,9 @@ std::chrono::system_clock::time_point start_time;
 std::chrono::system_clock::time_point current_time;
 double delta = 0;
 
-
-void log_file(char* str) {
-	size_t(*log)(char*) = (size_t(*)(char*))filelog;
-	if (log) (*log)(str);
-	return;
-}
+HANDLE hMumbleLink;
+LinkedMem *pMumbleLink;
+float lastPosition[3];
 
 void log_arc(char* str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
@@ -71,6 +70,18 @@ arcdps_exports* mod_init() {
 	timer_running = false;
 	timer_prepared = false;
 
+	hMumbleLink = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(LinkedMem), L"MumbleLink");
+	if (hMumbleLink == NULL)
+	{
+		log_arc((char*)"Could not create mumble link file mapping object\n");
+	}
+	else {
+		pMumbleLink = (LinkedMem*)MapViewOfFile(hMumbleLink, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(LinkedMem));
+		if (pMumbleLink == NULL) {
+			log_arc((char*)"Failed to open mumble link file\n");
+		}
+	}
+
 	memset(&arc_exports, 0, sizeof(arcdps_exports));
 	arc_exports.sig = 0x1A0;
 	arc_exports.imguivers = IMGUI_VERSION_NUM;
@@ -81,8 +92,7 @@ arcdps_exports* mod_init() {
 	arc_exports.options_windows = mod_windows;
 	arc_exports.imgui = mod_imgui;
 	arc_exports.combat = mod_combat;
-	log_arc((char*)"combatdemo: done mod_init");
-	log_file((char*)"combatdemo: done mod init");
+	log_arc((char*)"timer: done mod_init");
 	return &arc_exports;
 }
 
@@ -92,6 +102,9 @@ uintptr_t mod_release() {
 	config["windowBorder"] = windowBorder;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
+
+	UnmapViewOfFile(pMumbleLink);
+	CloseHandle(hMumbleLink);
 
 	return 0;
 }
@@ -108,11 +121,23 @@ uintptr_t mod_windows(const char* windowname) {
 	return 0;
 }
 
+bool checkDelta(float a, float b, float delta) {
+	return std::abs(a - b) > delta;
+}
+
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (!not_charsel_or_loading) return 0;
 
 	if (timer_running) {
 		current_time = std::chrono::system_clock::now();
+	}
+	else if (timer_prepared) {
+		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 1) ||
+			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 1) ||
+			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 1)) {
+			timer_start();
+			log_arc((char*)"timer: starting on movement");
+		}
 	}
 
 	if (showTimer) {
@@ -132,24 +157,28 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		int milliseconds = (int) (duration * 100);
 		ImGui::Text("%02d:%02d.%02d", minutes, seconds, milliseconds);
 
-		if (ImGui::Button("Prepare", ImVec2(100, 20))) {
+		if (ImGui::Button("Prepare", ImVec2(190, 20))) {
 			timer_prepare();
 		}
 
-		if (ImGui::Button("Start")) {
+		if (ImGui::Button("Start", ImVec2(60, 20))) {
 			timer_start();
 		}
 		
-		ImGui::SameLine();
+		ImGui::SameLine(0, 5);
 		
-		if (ImGui::Button("Stop")) {
+		if (ImGui::Button("Stop", ImVec2(60, 20))) {
 			timer_stop();
+		}
+
+		ImGui::SameLine(0, 5);
+
+		if (ImGui::Button("Reset", ImVec2(60, 20))) {
+			timer_reset();
 		}
 
 		ImGui::End();
 	}
-
-
 
 	return 0;
 }
@@ -169,16 +198,36 @@ void timer_stop() {
 void timer_prepare() {
 	timer_running = false;
 	timer_prepared = true;
+	lastPosition[0] = pMumbleLink->fAvatarPosition[0];
+	lastPosition[1] = pMumbleLink->fAvatarPosition[1];
+	lastPosition[2] = pMumbleLink->fAvatarPosition[2];
 }
 
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t id, uint64_t revision) {
-	if (!timer_prepared) return 0;
 	if (!ev) return 0;
 
 	if (ev->is_activation) {
-		timer_start();
-		delta = 2;
+		std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
+		double duration = duration_dbl.count() + delta;
+
+		if (timer_prepared) {
+			timer_start();
+			delta = 3;
+			log_arc((char*)"timer: starting on skill");
+		}
+		else if (timer_running && duration < 3) {
+			delta = 3;
+			start_time = std::chrono::system_clock::now();
+			log_arc((char*)"timer: retiming on skill");
+		}
 	}
 
 	return 0;
+}
+
+void timer_reset() {
+	timer_prepared = false;
+	timer_running = false;
+	start_time = std::chrono::system_clock::now();
+	current_time = std::chrono::system_clock::now();
 }
