@@ -157,15 +157,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="arcdps.h" />
-    <ClInclude Include="imgui.h" />
+    <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="timer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="imgui.cpp" />
-    <ClCompile Include="imgui_draw.cpp" />
-    <ClCompile Include="imgui_tables.cpp" />
-    <ClCompile Include="imgui_widgets.cpp" />
+    <ClCompile Include="imgui\imgui.cpp" />
+    <ClCompile Include="imgui\imgui_draw.cpp" />
+    <ClCompile Include="imgui\imgui_tables.cpp" />
+    <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
