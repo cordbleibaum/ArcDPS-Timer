@@ -24,6 +24,7 @@ bool timer_running = true;
 bool timer_prepared = true;
 std::chrono::system_clock::time_point start_time;
 std::chrono::system_clock::time_point current_time;
+double delta = 0;
 
 
 void log_file(char* str) {
@@ -79,6 +80,7 @@ arcdps_exports* mod_init() {
 	arc_exports.options_end = mod_options;
 	arc_exports.options_windows = mod_windows;
 	arc_exports.imgui = mod_imgui;
+	arc_exports.combat = mod_combat;
 	log_arc((char*)"combatdemo: done mod_init");
 	log_file((char*)"combatdemo: done mod init");
 	return &arc_exports;
@@ -122,7 +124,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		ImGui::Begin("Timer", &showTimer, flags);
 
 		std::chrono::duration<double> duration_dbl = current_time - start_time;
-		double duration = duration_dbl.count();
+		double duration = duration_dbl.count() + delta;
 		int minutes = (int) duration / 60;
 		duration -= minutes * 60;
 		int seconds = (int) duration;
@@ -156,6 +158,7 @@ void timer_start() {
 	timer_running = true;
 	timer_prepared = false;
 	start_time = std::chrono::system_clock::now();
+	delta = 0;
 }
 
 void timer_stop() {
@@ -166,4 +169,16 @@ void timer_stop() {
 void timer_prepare() {
 	timer_running = false;
 	timer_prepared = true;
+}
+
+uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t id, uint64_t revision) {
+	if (!timer_prepared) return 0;
+	if (!ev) return 0;
+
+	if (ev->is_activation) {
+		timer_start();
+		delta = 2;
+	}
+
+	return 0;
 }
