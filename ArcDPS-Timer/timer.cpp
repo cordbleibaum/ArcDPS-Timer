@@ -5,9 +5,9 @@
 #include <filesystem>
 #include <chrono>
 #include <cmath>
+#include <format>
 
 #include <cpr/cpr.h>
-
 
 #include "imgui_stdlib.h"
 
@@ -43,6 +43,9 @@ std::string server;
 std::string group;
 std::chrono::system_clock::time_point last_update;
 constexpr int sync_interval = 3;
+
+// TODO ensure utc
+
 
 void log_arc(char* str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
@@ -242,7 +245,11 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 }
 
 void request_start() {
+	json request;
+	request["delta"] = delta;
+	request["time"] = std::format("{:%FT%T}", start_time);
 
+	cpr::Post(cpr::Url{ server + "groups/" + group + "/start" }, cpr::Body{ request.dump() });
 }
 
 void timer_start(double new_delta) {
@@ -255,7 +262,10 @@ void timer_start(double new_delta) {
 }
 
 void request_stop() {
+	json request;
+	request["time"] = std::format("{:%FT%TZ}", current_time);
 
+	cpr::Post(cpr::Url{ server + "groups/" + group + "/stop" }, cpr::Body{ request.dump() });
 }
 
 
@@ -298,7 +308,7 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 }
 
 void request_reset() {
-
+	cpr::Get(cpr::Url{ server + "groups/" + group + "/reset" });
 }
 
 void timer_reset() {

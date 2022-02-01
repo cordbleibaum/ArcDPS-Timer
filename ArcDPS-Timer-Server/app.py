@@ -25,6 +25,10 @@ class TimingStartModel(BaseModel):
     time: datetime.datetime
 
 
+class TimingStopModel(BaseModel):
+    time: datetime.datetime
+
+
 app = FastAPI()
 app.add_event_handler("startup", connect_db)
 app.add_event_handler("shutdown", close_db)
@@ -49,14 +53,15 @@ async def read_group(group_id):
 async def start_timer(group_id, start: TimingStartModel):
     db = await get_db()
     group = await db.groups.find_one({'_id': group_id})
-    if group is not None:
-        if group.start_time - datetime.timedelta(seconds=group.delta) > start.time - datetime.timedelta(seconds=group.delta) :
-            group.start_time = start.time
-            group.delta = start.delta
-            group.status = 'running'
+    if group:
+        is_newer = (group['start_time'] - datetime.timedelta(seconds=group['delta'])) < (start.time - datetime.timedelta(seconds=start.delta))
+        if is_newer or group['status'] != 'running':
+            group['start_time'] = start.time
+            group['delta'] = start.delta
+            group['status'] = 'running'
             await db.groups.replace_one({'_id': group_id}, group)
     else:
-        await db.insert_one({
+        await db.groups.insert_one({
             '_id': group_id,
             'status': 'running',
             'start_time': start.time,
@@ -66,14 +71,26 @@ async def start_timer(group_id, start: TimingStartModel):
 
 
 @app.post("/groups/{group_id}/stop")
-async def stop_timer():
+async def stop_timer(group_id, stop: TimingStopModel):
     db = await get_db()
     group = await db.groups.find_one({'_id': group_id})
-    return {}
+    if group and group.status == 'running':
+        group['status'] = 'stopped'
+        group['stop_time'] = stop.time
+        await db.groups.replace_one({'_id': group_id}, group)
+    elif group and group.status == 'running':
+        is_older = group['stop_time'] > stop.time
+        if is_older:
+            group['stop_time'] = stop.time
+            await db.groups.replace_one({'_id': group_id}, group)
+    return {'status': 'success'}
 
 
-@app.post("/groups/{group_id}/reset")
-async def reset_timer():
+@app.get("/groups/{group_id}/reset")
+async def reset_timer(group_id):
     db = await get_db()
     group = await db.groups.find_one({'_id': group_id})
-    return {}
+    if group:
+        group['status'] = 'resetted'
+        await db.groups.replace_one({'_id': group_id}, group)
+    return {'status': 'success'}
