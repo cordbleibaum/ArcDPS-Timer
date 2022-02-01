@@ -148,6 +148,8 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 		ImGui::Begin("Timer", &showTimer, flags);
 
+		ImGui::Dummy(ImVec2(0.0f, 3.0f));
+
 		std::chrono::duration<double> duration_dbl = current_time - start_time;
 		double duration = duration_dbl.count() + delta;
 		int minutes = (int) duration / 60;
@@ -155,7 +157,13 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		int seconds = (int) duration;
 		duration -= seconds;
 		int milliseconds = (int) (duration * 100);
+
+		auto windowWidth = ImGui::GetWindowSize().x;
+		auto textWidth = ImGui::CalcTextSize("00:00.00").x;
+		ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
 		ImGui::Text("%02d:%02d.%02d", minutes, seconds, milliseconds);
+
+		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
 		if (ImGui::Button("Prepare", ImVec2(190, 20))) {
 			timer_prepare();
