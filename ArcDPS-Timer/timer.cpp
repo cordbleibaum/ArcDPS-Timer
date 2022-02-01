@@ -6,6 +6,11 @@
 #include <chrono>
 #include <cmath>
 
+#include <cpr/cpr.h>
+
+
+#include "imgui_stdlib.h"
+
 #include "json.hpp"
 using json = nlohmann::json;
 
@@ -20,7 +25,8 @@ void* arclog;
 bool showTimer = false;
 bool windowBorder = true;
 
-std::string config_file = "timer_config.json";
+std::string config_file = "addons/arcdps/timer.json";
+constexpr int version = 1;
 
 bool timer_running = true;
 bool timer_prepared = true;
@@ -31,6 +37,9 @@ double delta = 0;
 HANDLE hMumbleLink;
 LinkedMem *pMumbleLink;
 float lastPosition[3];
+
+std::string server;
+std::string group;
 
 void log_arc(char* str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
@@ -52,18 +61,47 @@ extern "C" __declspec(dllexport) void* get_release_addr() {
 	return mod_release;
 }
 
+std::string gen_random_string(const int len) {
+	static const char alphanum[] =
+		"0123456789"
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"abcdefghijklmnopqrstuvwxyz";
+	std::string tmp_s;
+	tmp_s.reserve(len);
+
+	for (int i = 0; i < len; ++i) {
+		tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
+	}
+
+	return tmp_s;
+}
+
+
+void generate_config(json* config) {
+	(*config)["version"] = version;
+	(*config)["showTimer"] = true;
+	(*config)["windowBorder"] = true;
+	(*config)["server"] = "127.0.0.1:5000";
+	(*config)["group"] = gen_random_string(10);
+}
+
+
 arcdps_exports* mod_init() {
 	json config;
 	if (std::filesystem::exists(config_file)) {
 		std::ifstream i(config_file);
 		i >> config;
+		if (config["version"] < version) {
+			generate_config(&config);
+		}
 	}
 	else {
-		config["showTimer"] = true;
-		config["windowBorder"] = true;
+		generate_config(&config);
 	}
 	showTimer = config["showTimer"];
 	windowBorder = config["windowBorder"];
+	server = config["server"];
+	group = config["group"];
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -100,6 +138,9 @@ uintptr_t mod_release() {
 	json config;
 	config["showTimer"] = showTimer;
 	config["windowBorder"] = windowBorder;
+	config["server"] = server;
+	config["group"] = group;
+	config["version"] = version;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -110,7 +151,9 @@ uintptr_t mod_release() {
 }
 
 uintptr_t mod_options() {
-	ImGui::Checkbox("Timer Window Border", &windowBorder);
+	ImGui::Checkbox("Window Border", &windowBorder);
+	ImGui::InputText("Server", &server);
+	ImGui::InputText("Group", &group);
 	return 0;
 }
 
