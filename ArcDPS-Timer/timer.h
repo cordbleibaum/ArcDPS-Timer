@@ -13,3 +13,5 @@ void timer_start();
 void timer_stop();
 void timer_prepare();
 void timer_reset();
+
+void sync_timer();

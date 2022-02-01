@@ -16,6 +16,8 @@ using json = nlohmann::json;
 
 #include "mumble_link.h"
 
+enum class TimerStatus { stopped, prepared, running };
+
 arcdps_exports arc_exports;
 char* arc_version;
 
@@ -26,10 +28,9 @@ bool showTimer = false;
 bool windowBorder = true;
 
 std::string config_file = "addons/arcdps/timer.json";
-constexpr int version = 1;
+constexpr int version = 2;
 
-bool timer_running = true;
-bool timer_prepared = true;
+TimerStatus status;
 std::chrono::system_clock::time_point start_time;
 std::chrono::system_clock::time_point current_time;
 double delta = 0;
@@ -40,6 +41,8 @@ float lastPosition[3];
 
 std::string server;
 std::string group;
+std::chrono::system_clock::time_point last_update;
+constexpr int sync_interval = 3;
 
 void log_arc(char* str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
@@ -76,12 +79,11 @@ std::string gen_random_string(const int len) {
 	return tmp_s;
 }
 
-
 void generate_config(json* config) {
 	(*config)["version"] = version;
 	(*config)["showTimer"] = true;
-	(*config)["windowBorder"] = true;
-	(*config)["server"] = "127.0.0.1:5000";
+	(*config)["windowBorder"] = false;
+	(*config)["server"] = "http:/127.0.0.1:5000/";
 	(*config)["group"] = gen_random_string(10);
 }
 
@@ -105,8 +107,7 @@ arcdps_exports* mod_init() {
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
-	timer_running = false;
-	timer_prepared = false;
+	status = TimerStatus::stopped;
 
 	hMumbleLink = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(LinkedMem), L"MumbleLink");
 	if (hMumbleLink == NULL)
@@ -171,16 +172,23 @@ bool checkDelta(float a, float b, float delta) {
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (!not_charsel_or_loading) return 0;
 
-	if (timer_running) {
+	if (status == TimerStatus::running) {
 		current_time = std::chrono::system_clock::now();
 	}
-	else if (timer_prepared) {
+	else if (status == TimerStatus::prepared) {
 		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 1) ||
 			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 1) ||
 			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 1)) {
 			timer_start();
 			log_arc((char*)"timer: starting on movement");
 		}
+	}
+
+	if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - last_update).count() > sync_interval) {
+		last_update = std::chrono::system_clock::now();
+		sync_timer();
+		std::thread sync_thread(sync_timer);
+		sync_thread.detach();
 	}
 
 	if (showTimer) {
@@ -235,20 +243,17 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 }
 
 void timer_start() {
-	timer_running = true;
-	timer_prepared = false;
+	status = TimerStatus::running;
 	start_time = std::chrono::system_clock::now();
 	delta = 0;
 }
 
 void timer_stop() {
-	timer_running = false;
-	timer_prepared = false;
+	status = TimerStatus::stopped;
 }
 
 void timer_prepare() {
-	timer_running = false;
-	timer_prepared = true;
+	status = TimerStatus::prepared;
 	lastPosition[0] = pMumbleLink->fAvatarPosition[0];
 	lastPosition[1] = pMumbleLink->fAvatarPosition[1];
 	lastPosition[2] = pMumbleLink->fAvatarPosition[2];
@@ -261,12 +266,12 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 		std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
 		double duration = duration_dbl.count() + delta;
 
-		if (timer_prepared) {
+		if (status == TimerStatus::prepared) {
 			timer_start();
 			delta = 3;
 			log_arc((char*)"timer: starting on skill");
 		}
-		else if (timer_running && duration < 3) {
+		else if (status == TimerStatus::running && duration < 3) {
 			delta = 3;
 			start_time = std::chrono::system_clock::now();
 			log_arc((char*)"timer: retiming on skill");
@@ -277,8 +282,16 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 }
 
 void timer_reset() {
-	timer_prepared = false;
-	timer_running = false;
+	status = TimerStatus::stopped;
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
+}
+
+void sync_timer() {
+	cpr::Response r = cpr::Get(cpr::Url{server+"groups/"+group});
+
+	if (r.status_code != 200) {
+		log_arc((char*)"Failed to sync with server");
+		return;
+	}
 }
