@@ -179,14 +179,13 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 1) ||
 			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 1) ||
 			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 1)) {
-			timer_start();
+			timer_start(0);
 			log_arc((char*)"timer: starting on movement");
 		}
 	}
 
 	if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - last_update).count() > sync_interval) {
 		last_update = std::chrono::system_clock::now();
-		sync_timer();
 		std::thread sync_thread(sync_timer);
 		sync_thread.detach();
 	}
@@ -221,7 +220,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 
 		if (ImGui::Button("Start", ImVec2(60, 20))) {
-			timer_start();
+			timer_start(0);
 		}
 		
 		ImGui::SameLine(0, 5);
@@ -242,14 +241,29 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	return 0;
 }
 
-void timer_start() {
+void request_start() {
+
+}
+
+void timer_start(double new_delta) {
 	status = TimerStatus::running;
 	start_time = std::chrono::system_clock::now();
-	delta = 0;
+	delta = new_delta;
+
+	std::thread request_thread(request_start);
+	request_thread.detach();
 }
+
+void request_stop() {
+
+}
+
 
 void timer_stop() {
 	status = TimerStatus::stopped;
+
+	std::thread request_thread(request_stop);
+	request_thread.detach();
 }
 
 void timer_prepare() {
@@ -267,24 +281,33 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 		double duration = duration_dbl.count() + delta;
 
 		if (status == TimerStatus::prepared) {
-			timer_start();
-			delta = 3;
+			timer_start(3);
 			log_arc((char*)"timer: starting on skill");
 		}
 		else if (status == TimerStatus::running && duration < 3) {
 			delta = 3;
 			start_time = std::chrono::system_clock::now();
 			log_arc((char*)"timer: retiming on skill");
+
+			std::thread request_thread(request_start);
+			request_thread.detach();
 		}
 	}
 
 	return 0;
 }
 
+void request_reset() {
+
+}
+
 void timer_reset() {
 	status = TimerStatus::stopped;
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
+
+	std::thread request_thread(request_reset);
+	request_thread.detach();
 }
 
 void sync_timer() {

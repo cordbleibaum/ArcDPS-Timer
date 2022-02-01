@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 
+
 db_client: AsyncIOMotorClient = None
 
 async def get_db():
@@ -36,7 +37,7 @@ async def root():
 @app.get("/groups/{group_id}")
 async def read_group(group_id):
     db = await get_db()
-    group = await db.test_collection.find_one({'_id': group_id});
+    group = await db.groups.find_one({'_id': group_id})
 
     if group is not None:
         return group
@@ -45,24 +46,34 @@ async def read_group(group_id):
 
 
 @app.post("/groups/{group_id}/start")
-async def start_timer(start: TimingStartModel):
+async def start_timer(group_id, start: TimingStartModel):
     db = await get_db()
-    return start
-
-
-@app.post("/groups/{group_id}/retime")
-async def retime_timer(retime: TimingStartModel):
-    db = await get_db()
-    return retime
+    group = await db.groups.find_one({'_id': group_id})
+    if group is not None:
+        if group.start_time - datetime.timedelta(seconds=group.delta) > start.time - datetime.timedelta(seconds=group.delta) :
+            group.start_time = start.time
+            group.delta = start.delta
+            group.status = 'running'
+            await db.groups.replace_one({'_id': group_id}, group)
+    else:
+        await db.insert_one({
+            '_id': group_id,
+            'status': 'running',
+            'start_time': start.time,
+            'delta': start.delta
+        })
+    return {'status': 'success'}
 
 
 @app.post("/groups/{group_id}/stop")
 async def stop_timer():
     db = await get_db()
+    group = await db.groups.find_one({'_id': group_id})
     return {}
 
 
 @app.post("/groups/{group_id}/reset")
 async def reset_timer():
     db = await get_db()
+    group = await db.groups.find_one({'_id': group_id})
     return {}
