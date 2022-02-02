@@ -272,21 +272,19 @@ void timer_start(double new_delta) {
 	request_thread.detach();
 }
 
-void request_stop() {
-	json request;
-	request["time"] = std::format("{:%FT%T}", current_time);
-
-	cpr::Post(
-		cpr::Url{ server + "groups/" + group + "/stop" }, 
-		cpr::Body{ request.dump() },
-		cpr::Header{ {"Content-Type", "application/json"} }
-	);
-}
-
 void timer_stop() {
 	status = TimerStatus::stopped;
 
-	std::thread request_thread(request_stop);
+	std::thread request_thread([&]() {
+		json request;
+		request["time"] = std::format("{:%FT%T}", current_time);
+
+		cpr::Post(
+			cpr::Url{ server + "groups/" + group + "/stop" },
+			cpr::Body{ request.dump() },
+			cpr::Header{ {"Content-Type", "application/json"} }
+		);
+	});
 	request_thread.detach();
 }
 
@@ -321,16 +319,14 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 	return 0;
 }
 
-void request_reset() {
-	cpr::Get(cpr::Url{ server + "groups/" + group + "/reset" });
-}
-
 void timer_reset() {
 	status = TimerStatus::stopped;
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
 
-	std::thread request_thread(request_reset);
+	std::thread request_thread([&]() {
+		cpr::Get(cpr::Url{ server + "groups/" + group + "/reset" });
+	});
 	request_thread.detach();
 }
 
@@ -338,7 +334,7 @@ std::chrono::system_clock::time_point parse_time(const std::string& source)
 {
 	auto in = std::istringstream(source);
 	auto tp = std::chrono::sys_seconds{};
-	in >> std::chrono::parse(std::string("%FT%TZ"), tp);
+	in >> std::chrono::parse(std::string("%FT%T"), tp);
 	return std::chrono::system_clock::from_time_t(std::chrono::system_clock::to_time_t(tp));
 }
 
@@ -357,7 +353,7 @@ void sync_timer() {
 	{
 		if (data["status"] == "running") {
 			status = TimerStatus::running;
-			current_time = parse_time(data["start_time"]);
+			start_time = parse_time(data["start_time"]);
 		}
 		else if (data["status"] == "stopped") {
 			status = TimerStatus::stopped;
