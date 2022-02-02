@@ -221,7 +221,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
-		if (ImGui::Button("Prepare", ImVec2(190, ImGui::GetFontSize()*1.5f)) {
+		if (ImGui::Button("Prepare", ImVec2(190, ImGui::GetFontSize()*1.5f))) {
 			timer_prepare();
 		}
 
