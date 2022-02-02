@@ -176,6 +176,17 @@ bool checkDelta(float a, float b, float delta) {
 	return std::abs(a - b) > delta;
 }
 
+template<typename ... Args>
+std::string string_format(const std::string& format, Args ... args)
+{
+	int size_s = std::snprintf(nullptr, 0, format.c_str(), args ...) + 1;
+	if (size_s <= 0) { throw std::runtime_error("Error during formatting."); }
+	auto size = static_cast<size_t>(size_s);
+	auto buf = std::make_unique<char[]>(size);
+	std::snprintf(buf.get(), size, format.c_str(), args ...);
+	return std::string(buf.get(), buf.get() + size - 1);
+}
+
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (!not_charsel_or_loading) return 0;
 
@@ -214,7 +225,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		int seconds = (int) duration;
 		duration -= seconds;
 		int milliseconds = (int) (duration * 100);
-		std::string time_string = std::format("%02d:%02d.%02d", minutes, seconds, milliseconds);
+		std::string time_string = string_format("%02d:%02d.%02d", minutes, seconds, milliseconds);
 
 		auto windowWidth = ImGui::GetWindowSize().x;
 		auto textWidth = ImGui::CalcTextSize(time_string.c_str()).x;
