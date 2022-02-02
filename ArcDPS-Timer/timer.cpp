@@ -213,28 +213,31 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 		auto windowWidth = ImGui::GetWindowSize().x;
 		auto textWidth = ImGui::CalcTextSize("00:00.00").x;
+
+
+
 		ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
 		ImGui::Text("%02d:%02d.%02d", minutes, seconds, milliseconds);
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
-		if (ImGui::Button("Prepare", ImVec2(190, 20))) {
+		if (ImGui::Button("Prepare", ImVec2(190, ImGui::GetFontSize()*1.5f)) {
 			timer_prepare();
 		}
 
-		if (ImGui::Button("Start", ImVec2(60, 20))) {
+		if (ImGui::Button("Start", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 			timer_start(0);
 		}
 		
 		ImGui::SameLine(0, 5);
 		
-		if (ImGui::Button("Stop", ImVec2(60, 20))) {
+		if (ImGui::Button("Stop", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 			timer_stop();
 		}
 
 		ImGui::SameLine(0, 5);
 
-		if (ImGui::Button("Reset", ImVec2(60, 20))) {
+		if (ImGui::Button("Reset", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 			timer_reset();
 		}
 
