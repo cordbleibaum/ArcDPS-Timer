@@ -74,11 +74,11 @@ async def start_timer(group_id, start: TimingStartModel):
 async def stop_timer(group_id, stop: TimingStopModel):
     db = await get_db()
     group = await db.groups.find_one({'_id': group_id})
-    if group and group.status == 'running':
+    if group and group['status'] == 'running':
         group['status'] = 'stopped'
         group['stop_time'] = stop.time
         await db.groups.replace_one({'_id': group_id}, group)
-    elif group and group.status == 'running':
+    elif group and group['status'] == 'running':
         is_older = group['stop_time'] > stop.time
         if is_older:
             group['stop_time'] = stop.time

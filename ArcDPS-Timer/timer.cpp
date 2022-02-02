@@ -252,7 +252,11 @@ void request_start() {
 	request["delta"] = delta;
 	request["time"] = std::format("{:%FT%T}", start_time);
 
-	cpr::Post(cpr::Url{ server + "groups/" + group + "/start" }, cpr::Body{ request.dump() });
+	cpr::Post(
+		cpr::Url{ server + "groups/" + group + "/start" }, 
+		cpr::Body{ request.dump() },
+		cpr::Header{ {"Content-Type", "application/json"} }
+	);
 }
 
 void timer_start(double new_delta) {
@@ -266,11 +270,14 @@ void timer_start(double new_delta) {
 
 void request_stop() {
 	json request;
-	request["time"] = std::format("{:%FT%TZ}", current_time);
+	request["time"] = std::format("{:%FT%T}", current_time);
 
-	cpr::Post(cpr::Url{ server + "groups/" + group + "/stop" }, cpr::Body{ request.dump() });
+	cpr::Post(
+		cpr::Url{ server + "groups/" + group + "/stop" }, 
+		cpr::Body{ request.dump() },
+		cpr::Header{ {"Content-Type", "application/json"} }
+	);
 }
-
 
 void timer_stop() {
 	status = TimerStatus::stopped;
@@ -323,11 +330,39 @@ void timer_reset() {
 	request_thread.detach();
 }
 
+std::chrono::system_clock::time_point parse_time(const std::string& source)
+{
+	auto in = std::istringstream(source);
+	auto tp = std::chrono::sys_seconds{};
+	in >> std::chrono::parse(std::string("%FT%TZ"), tp);
+	return std::chrono::system_clock::from_time_t(std::chrono::system_clock::to_time_t(tp));
+}
+
 void sync_timer() {
 	cpr::Response r = cpr::Get(cpr::Url{server+"groups/"+group});
 
 	if (r.status_code != 200) {
 		log_arc((char*)"Failed to sync with server");
 		return;
+	}
+
+	auto data = json::parse(r.text);
+
+	auto statusIter = data.find("status");
+	if (statusIter != data.end())
+	{
+		if (data["status"] == "running") {
+			status = TimerStatus::running;
+			current_time = parse_time(data["start_time"]);
+		}
+		else if (data["status"] == "stopped") {
+			status = TimerStatus::stopped;
+			current_time = parse_time(data["stop_time"]);
+		}
+		else if (data["status"] == "resetted") {
+			status = TimerStatus::stopped;
+			start_time = std::chrono::system_clock::now();
+			current_time = std::chrono::system_clock::now();
+		}
 	}
 }
