@@ -28,7 +28,7 @@ bool showTimer = false;
 bool windowBorder = true;
 
 std::string config_file = "addons/arcdps/timer.json";
-constexpr int version = 2;
+constexpr int version = 3;
 
 TimerStatus status;
 std::chrono::system_clock::time_point start_time;
@@ -42,7 +42,7 @@ float lastPosition[3];
 std::string server;
 std::string group;
 std::chrono::system_clock::time_point last_update;
-constexpr int sync_interval = 3;
+int sync_interval = 3;
 
 // TODO ensure utc
 
@@ -88,6 +88,7 @@ void generate_config(json* config) {
 	(*config)["windowBorder"] = false;
 	(*config)["server"] = "http:/127.0.0.1:5000/";
 	(*config)["group"] = gen_random_string(10);
+	(*config)["sync_interval"] = 1;
 }
 
 
@@ -107,6 +108,7 @@ arcdps_exports* mod_init() {
 	windowBorder = config["windowBorder"];
 	server = config["server"];
 	group = config["group"];
+	sync_interval = config["sync_interval"];
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -145,6 +147,7 @@ uintptr_t mod_release() {
 	config["server"] = server;
 	config["group"] = group;
 	config["version"] = version;
+	config["sync_interval"] = sync_interval;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -158,6 +161,7 @@ uintptr_t mod_options() {
 	ImGui::Checkbox("Window Border", &windowBorder);
 	ImGui::InputText("Server", &server);
 	ImGui::InputText("Group", &group);
+	ImGui::InputInt("Sync Interval", &sync_interval);
 	return 0;
 }
 
