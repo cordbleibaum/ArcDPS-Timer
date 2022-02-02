@@ -214,14 +214,13 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		int seconds = (int) duration;
 		duration -= seconds;
 		int milliseconds = (int) (duration * 100);
+		std::string time_string = std::format("%02d:%02d.%02d", minutes, seconds, milliseconds);
 
 		auto windowWidth = ImGui::GetWindowSize().x;
-		auto textWidth = ImGui::CalcTextSize("00:00.00").x;
-
-
+		auto textWidth = ImGui::CalcTextSize(time_string.c_str()).x;
 
 		ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-		ImGui::Text("%02d:%02d.%02d", minutes, seconds, milliseconds);
+		ImGui::Text(time_string.c_str());
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
