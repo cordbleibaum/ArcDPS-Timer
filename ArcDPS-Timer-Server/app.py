@@ -47,43 +47,40 @@ async def read_group(group_id):
 @app.post("/groups/{group_id}/start")
 async def start_timer(group_id, start: TimingInfoModel):
     db = await get_db()
-    group = await db.groups.find_one({'_id': group_id})
-    if group:
-        is_newer = group['start_time'] < start.time
-        if is_newer or group['status'] != 'running':
-            group['start_time'] = start.time
-            group['status'] = 'running'
-            await db.groups.replace_one({'_id': group_id}, group)
-    else:
-        await db.groups.insert_one({
+    await db.groups.update_one({'_id': group_id}, {
+        '$set': {
             '_id': group_id,
             'status': 'running',
-            'start_time': start.time,
-        })
+        },
+        '$max': {
+            'start_time': start.time
+        }
+    }, True);
     return {'status': 'success'}
 
 
 @app.post("/groups/{group_id}/stop")
 async def stop_timer(group_id, stop: TimingInfoModel):
     db = await get_db()
-    group = await db.groups.find_one({'_id': group_id})
-    if group and group['status'] == 'running':
-        group['status'] = 'stopped'
-        group['stop_time'] = stop.time
-        await db.groups.replace_one({'_id': group_id}, group)
-    elif group and group['status'] == 'running':
-        is_older = group['stop_time'] > stop.time
-        if is_older:
-            group['stop_time'] = stop.time
-            await db.groups.replace_one({'_id': group_id}, group)
+    await db.groups.update_one({'_id': group_id}, {
+        '$set': {
+            '_id': group_id,
+            'status': 'stopped',
+        },
+        '$min': {
+            'stop_time': stop.time
+        }
+    });
     return {'status': 'success'}
 
 
 @app.get("/groups/{group_id}/reset")
 async def reset_timer(group_id):
     db = await get_db()
-    group = await db.groups.find_one({'_id': group_id})
-    if group:
-        group['status'] = 'resetted'
-        await db.groups.replace_one({'_id': group_id}, group)
+    await db.groups.update_one({'_id': group_id}, {
+        '$set': {
+            '_id': group_id,
+            'status': 'resetted',
+        }
+    });
     return {'status': 'success'}
