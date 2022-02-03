@@ -39,10 +39,13 @@ LinkedMem *pMumbleLink;
 float lastPosition[3];
 
 std::string server;
+std::string selfAccountName;
 std::string group_code;
 std::set<std::string> group_players;
 std::chrono::system_clock::time_point last_update;
 int sync_interval = 3;
+
+std::mutex goupcode_mutex;
 
 // TODO ensure utc
 
@@ -291,12 +294,20 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 				}
 
 				if (src->prof) {
+					std::scoped_lock<std::mutex> guard(goupcode_mutex);
+					if (selfAccountName.empty() && dst->self) {
+						selfAccountName = username;
+					}
+
 					group_players.insert(username);
 					calculate_groupcode();
 				}
 				else {
-					group_players.erase(username);
-					calculate_groupcode();
+					if (username != selfAccountName) {
+						std::scoped_lock<std::mutex> guard(goupcode_mutex);
+						group_players.erase(username);
+						calculate_groupcode();
+					}
 				}
 			}
 		}
@@ -335,7 +346,15 @@ std::chrono::system_clock::time_point parse_time(const std::string& source)
 }
 
 void sync_timer() {
-	auto response = cpr::Get(cpr::Url{server+"groups/"+group_code});
+	cpr::Response response;
+	{
+		std::scoped_lock<std::mutex> guard(goupcode_mutex);
+		if (group_code == "") {
+			calculate_groupcode();
+		}
+
+		response = cpr::Get(cpr::Url{ server + "groups/" + group_code });
+	}
 
 	if (response.status_code != 200) {
 		log_arc("Failed to sync with server");
