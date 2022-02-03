@@ -19,9 +19,6 @@ using json = nlohmann::json;
 enum class TimerStatus { stopped, prepared, running };
 
 arcdps_exports arc_exports;
-char* arc_version;
-
-void* filelog;
 void* arclog;
 
 bool showTimer = false;
@@ -33,7 +30,6 @@ constexpr int version = 3;
 TimerStatus status;
 std::chrono::system_clock::time_point start_time;
 std::chrono::system_clock::time_point current_time;
-double delta = 0;
 
 HANDLE hMumbleLink;
 LinkedMem *pMumbleLink;
@@ -46,16 +42,13 @@ int sync_interval = 3;
 
 // TODO ensure utc
 
-
-void log_arc(char* str) {
+void log_arc(std::string str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
-	if (log) (*log)(str);
+	if (log) (*log)(str.data());
 	return;
 }
 
 extern "C" __declspec(dllexport) void* get_init_addr(char *arcversion, ImGuiContext *imguictx, void *id3dptr, HANDLE arcdll, void *mallocfn, void *freefn, uint32_t d3dversion) {
-	arc_version = arcversion;
-	filelog = (void*)GetProcAddress((HMODULE)arcdll, "e3");
 	arclog = (void*)GetProcAddress((HMODULE)arcdll, "e8");
 	ImGui::SetCurrentContext((ImGuiContext*)imguictx);
 	ImGui::SetAllocatorFunctions((void* (*)(size_t, void*))mallocfn, (void (*)(void*, void*))freefn);
@@ -63,7 +56,6 @@ extern "C" __declspec(dllexport) void* get_init_addr(char *arcversion, ImGuiCont
 }
 
 extern "C" __declspec(dllexport) void* get_release_addr() {
-	arc_version = 0;
 	return mod_release;
 }
 
@@ -82,7 +74,7 @@ std::string gen_random_string(const int len) {
 	return tmp_s;
 }
 
-void generate_config(json* config) {
+void generate_config(json *config) {
 	(*config)["version"] = version;
 	(*config)["showTimer"] = true;
 	(*config)["windowBorder"] = false;
@@ -117,12 +109,12 @@ arcdps_exports* mod_init() {
 	hMumbleLink = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(LinkedMem), L"MumbleLink");
 	if (hMumbleLink == NULL)
 	{
-		log_arc((char*)"Could not create mumble link file mapping object\n");
+		log_arc("Could not create mumble link file mapping object\n");
 	}
 	else {
 		pMumbleLink = (LinkedMem*)MapViewOfFile(hMumbleLink, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(LinkedMem));
 		if (pMumbleLink == NULL) {
-			log_arc((char*)"Failed to open mumble link file\n");
+			log_arc("Failed to open mumble link file\n");
 		}
 	}
 
@@ -136,7 +128,7 @@ arcdps_exports* mod_init() {
 	arc_exports.options_windows = mod_windows;
 	arc_exports.imgui = mod_imgui;
 	arc_exports.combat = mod_combat;
-	log_arc((char*)"timer: done mod_init");
+	log_arc("timer: done mod_init");
 	return &arc_exports;
 }
 
@@ -198,7 +190,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 1) ||
 			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 1)) {
 			timer_start(0);
-			log_arc((char*)"timer: starting on movement");
+			log_arc("timer: starting on movement");
 		}
 	}
 
@@ -219,7 +211,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
 		std::chrono::duration<double> duration_dbl = current_time - start_time;
-		double duration = duration_dbl.count() + delta;
+		double duration = duration_dbl.count();
 		int minutes = (int) duration / 60;
 		duration -= minutes * 60;
 		int seconds = (int) duration;
@@ -261,24 +253,20 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	return 0;
 }
 
-void request_start() {
-	json request;
-	request["delta"] = delta;
-	request["time"] = std::format("{:%FT%T}", start_time);
-
-	cpr::Post(
-		cpr::Url{ server + "groups/" + group + "/start" }, 
-		cpr::Body{ request.dump() },
-		cpr::Header{ {"Content-Type", "application/json"} }
-	);
-}
-
-void timer_start(double new_delta) {
+void timer_start(int delta) {
 	status = TimerStatus::running;
-	start_time = std::chrono::system_clock::now();
-	delta = new_delta;
+	start_time = std::chrono::system_clock::now() - std::chrono::seconds(delta);
 
-	std::thread request_thread(request_start);
+	std::thread request_thread([&]() {
+		json request;
+		request["time"] = std::format("{:%FT%T}", start_time);
+
+		cpr::Post(
+			cpr::Url{ server + "groups/" + group + "/start" },
+			cpr::Body{ request.dump() },
+			cpr::Header{ {"Content-Type", "application/json"} }
+		);
+	});
 	request_thread.detach();
 }
 
@@ -310,19 +298,10 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 
 	if (ev->is_activation) {
 		std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
-		double duration = duration_dbl.count() + delta;
+		double duration = duration_dbl.count();
 
-		if (status == TimerStatus::prepared) {
+		if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
 			timer_start(3);
-			log_arc((char*)"timer: starting on skill");
-		}
-		else if (status == TimerStatus::running && duration < 3) {
-			delta = 3;
-			start_time = std::chrono::system_clock::now();
-			log_arc((char*)"timer: retiming on skill");
-
-			std::thread request_thread(request_start);
-			request_thread.detach();
 		}
 	}
 
@@ -349,17 +328,15 @@ std::chrono::system_clock::time_point parse_time(const std::string& source)
 }
 
 void sync_timer() {
-	cpr::Response r = cpr::Get(cpr::Url{server+"groups/"+group});
+	auto r = cpr::Get(cpr::Url{server+"groups/"+group});
 
 	if (r.status_code != 200) {
-		log_arc((char*)"Failed to sync with server");
+		log_arc("Failed to sync with server");
 		return;
 	}
 
 	auto data = json::parse(r.text);
-
-	auto statusIter = data.find("status");
-	if (statusIter != data.end())
+	if (data.find("status") != data.end())
 	{
 		if (data["status"] == "running") {
 			status = TimerStatus::running;

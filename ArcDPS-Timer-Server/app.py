@@ -20,12 +20,7 @@ async def close_db():
     db_client.close()
 
 
-class TimingStartModel(BaseModel):
-    delta: float
-    time: datetime.datetime
-
-
-class TimingStopModel(BaseModel):
+class TimingInfoModel(BaseModel):
     time: datetime.datetime
 
 
@@ -50,14 +45,13 @@ async def read_group(group_id):
 
 
 @app.post("/groups/{group_id}/start")
-async def start_timer(group_id, start: TimingStartModel):
+async def start_timer(group_id, start: TimingInfoModel):
     db = await get_db()
     group = await db.groups.find_one({'_id': group_id})
     if group:
-        is_newer = (group['start_time'] - datetime.timedelta(seconds=group['delta'])) < (start.time - datetime.timedelta(seconds=start.delta))
+        is_newer = group['start_time'] < start.time
         if is_newer or group['status'] != 'running':
             group['start_time'] = start.time
-            group['delta'] = start.delta
             group['status'] = 'running'
             await db.groups.replace_one({'_id': group_id}, group)
     else:
@@ -65,13 +59,12 @@ async def start_timer(group_id, start: TimingStartModel):
             '_id': group_id,
             'status': 'running',
             'start_time': start.time,
-            'delta': start.delta
         })
     return {'status': 'success'}
 
 
 @app.post("/groups/{group_id}/stop")
-async def stop_timer(group_id, stop: TimingStopModel):
+async def stop_timer(group_id, stop: TimingInfoModel):
     db = await get_db()
     group = await db.groups.find_one({'_id': group_id})
     if group and group['status'] == 'running':
