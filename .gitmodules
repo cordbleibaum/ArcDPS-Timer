@@ -1,3 +1,6 @@
 [submodule "ArcDPS-Timer/imgui"]
 	path = ArcDPS-Timer/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "ArcDPS-Timer/hash-library"]
+	path = ArcDPS-Timer/hash-library
+	url = https://github.com/stbrumme/hash-library.git

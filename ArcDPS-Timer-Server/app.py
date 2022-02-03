@@ -47,30 +47,35 @@ async def read_group(group_id):
 @app.post("/groups/{group_id}/start")
 async def start_timer(group_id, start: TimingInfoModel):
     db = await get_db()
-    await db.groups.update_one({'_id': group_id}, {
-        '$set': {
+    group = await db.groups.find_one({'_id': group_id})
+    if group:
+        is_newer = group['start_time'] < start.time
+        if is_newer or group['status'] != 'running':
+            group['start_time'] = start.time
+            group['status'] = 'running'
+            await db.groups.replace_one({'_id': group_id}, group)
+    else:
+        await db.groups.insert_one({
             '_id': group_id,
             'status': 'running',
-        },
-        '$max': {
-            'start_time': start.time
-        }
-    }, True);
+            'start_time': start.time,
+        })
     return {'status': 'success'}
 
 
 @app.post("/groups/{group_id}/stop")
 async def stop_timer(group_id, stop: TimingInfoModel):
     db = await get_db()
-    await db.groups.update_one({'_id': group_id}, {
-        '$set': {
-            '_id': group_id,
-            'status': 'stopped',
-        },
-        '$min': {
-            'stop_time': stop.time
-        }
-    });
+    group = await db.groups.find_one({'_id': group_id})
+    if group and group['status'] == 'running':
+        group['status'] = 'stopped'
+        group['stop_time'] = stop.time
+        await db.groups.replace_one({'_id': group_id}, group)
+    elif group and group['status'] == 'running':
+        is_older = group['stop_time'] > stop.time
+        if is_older:
+            group['stop_time'] = stop.time
+            await db.groups.replace_one({'_id': group_id}, group)
     return {'status': 'success'}
 
 
