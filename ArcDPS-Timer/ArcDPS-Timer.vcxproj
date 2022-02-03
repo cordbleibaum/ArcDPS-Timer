@@ -159,6 +159,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="arcdps.h" />
+    <ClInclude Include="hash-library\crc32.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui_stdlib.h" />
     <ClInclude Include="json.hpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="hash-library\crc32.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="imgui\imgui_tables.cpp" />

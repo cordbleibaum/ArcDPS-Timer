@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cmath>
 #include <format>
+#include <set>
 
 #include <cpr/cpr.h>
 
@@ -15,6 +16,8 @@
 using json = nlohmann::json;
 
 #include "mumble_link.h"
+
+#include "hash-library/crc32.h"
 
 enum class TimerStatus { stopped, prepared, running };
 
@@ -36,7 +39,8 @@ LinkedMem *pMumbleLink;
 float lastPosition[3];
 
 std::string server;
-std::string group;
+std::string group_code;
+std::set<std::string> group_players;
 std::chrono::system_clock::time_point last_update;
 int sync_interval = 3;
 
@@ -57,21 +61,6 @@ extern "C" __declspec(dllexport) void* get_init_addr(char *arcversion, ImGuiCont
 
 extern "C" __declspec(dllexport) void* get_release_addr() {
 	return mod_release;
-}
-
-std::string gen_random_string(const int len) {
-	static const char alphanum[] =
-		"0123456789"
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		"abcdefghijklmnopqrstuvwxyz";
-	std::string tmp_s;
-	tmp_s.reserve(len);
-
-	for (int i = 0; i < len; ++i) {
-		tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
-	}
-
-	return tmp_s;
 }
 
 arcdps_exports* mod_init() {
@@ -97,7 +86,6 @@ arcdps_exports* mod_init() {
 	showTimer = config.value("showTimer", true);
 	windowBorder = config.value("windowBorder", false);
 	server = config.value("server", "http:/127.0.0.1:5000/");
-	group = config.value("group", gen_random_string(10));
 	sync_interval = config.value("sync_interval", 1);
 
 	start_time = std::chrono::system_clock::now();
@@ -126,7 +114,6 @@ uintptr_t mod_release() {
 	config["showTimer"] = showTimer;
 	config["windowBorder"] = windowBorder;
 	config["server"] = server;
-	config["group"] = group;
 	config["version"] = version;
 	config["sync_interval"] = sync_interval;
 	std::ofstream o(config_file);
@@ -141,7 +128,6 @@ uintptr_t mod_release() {
 uintptr_t mod_options() {
 	ImGui::Checkbox("Window Border", &windowBorder);
 	ImGui::InputText("Server", &server);
-	ImGui::InputText("Group", &group);
 	ImGui::InputInt("Sync Interval", &sync_interval);
 	return 0;
 }
@@ -251,7 +237,7 @@ void timer_start(int delta) {
 		request["time"] = std::format("{:%FT%T}", start_time);
 
 		cpr::Post(
-			cpr::Url{ server + "groups/" + group + "/start" },
+			cpr::Url{ server + "groups/" + group_code + "/start" },
 			cpr::Body{ request.dump() },
 			cpr::Header{ {"Content-Type", "application/json"} }
 		);
@@ -267,7 +253,7 @@ void timer_stop() {
 		request["time"] = std::format("{:%FT%T}", current_time);
 
 		cpr::Post(
-			cpr::Url{ server + "groups/" + group + "/stop" },
+			cpr::Url{ server + "groups/" + group_code + "/stop" },
 			cpr::Body{ request.dump() },
 			cpr::Header{ {"Content-Type", "application/json"} }
 		);
@@ -282,15 +268,47 @@ void timer_prepare() {
 	lastPosition[2] = pMumbleLink->fAvatarPosition[2];
 }
 
+void calculate_groupcode() {
+	std::string playersConcat = "";
+
+	for (auto it = group_players.begin(); it != group_players.end(); ++it) {
+		playersConcat = playersConcat + (*it);
+	}
+
+	CRC32 crc32;
+	group_code = crc32(playersConcat);
+
+	log_arc("New Group_Code: " + group_code);
+}
+
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t id, uint64_t revision) {
-	if (!ev) return 0;
+	if (!ev) {
+		if (!src->elite) {
+			if (src->name != nullptr && src->name[0] != '\0' && dst->name != nullptr && dst->name[0] != '\0') {
+				std::string username(dst->name);
+				if (username.at(0) == ':') {
+					username.erase(0, 1);
+				}
 
-	if (ev->is_activation) {
-		std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
-		double duration = duration_dbl.count();
+				if (src->prof) {
+					group_players.insert(username);
+					calculate_groupcode();
+				}
+				else {
+					group_players.erase(username);
+					calculate_groupcode();
+				}
+			}
+		}
+	}
+	else {
+		if (ev->is_activation) {
+			std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
+			double duration = duration_dbl.count();
 
-		if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
-			timer_start(3);
+			if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
+				timer_start(3);
+			}
 		}
 	}
 
@@ -303,7 +321,7 @@ void timer_reset() {
 	current_time = std::chrono::system_clock::now();
 
 	std::thread request_thread([&]() {
-		cpr::Get(cpr::Url{ server + "groups/" + group + "/reset" });
+		cpr::Get(cpr::Url{ server + "groups/" + group_code + "/reset" });
 	});
 	request_thread.detach();
 }
@@ -317,7 +335,7 @@ std::chrono::system_clock::time_point parse_time(const std::string& source)
 }
 
 void sync_timer() {
-	auto response = cpr::Get(cpr::Url{server+"groups/"+group});
+	auto response = cpr::Get(cpr::Url{server+"groups/"+group_code});
 
 	if (response.status_code != 200) {
 		log_arc("Failed to sync with server");
