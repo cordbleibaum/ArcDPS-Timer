@@ -315,9 +315,9 @@ std::chrono::system_clock::time_point parse_time(const std::string& source)
 }
 
 void sync_timer() {
-	auto r = cpr::Get(cpr::Url{server+"groups/"+group});
+	auto response = cpr::Get(cpr::Url{server+"groups/"+group});
 
-	if (r.status_code != 200) {
+	if (response.status_code != 200) {
 		log_arc("Failed to sync with server");
 		return;
 	}
