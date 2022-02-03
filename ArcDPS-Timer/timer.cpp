@@ -238,7 +238,7 @@ void timer_start(int delta) {
 
 	std::thread request_thread([&]() {
 		json request;
-		request["time"] = std::format("{:%FT%T}", start_time);
+		request["time"] = std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(start_time));
 
 		cpr::Post(
 			cpr::Url{ server + "groups/" + group_code + "/start" },
@@ -254,7 +254,7 @@ void timer_stop() {
 
 	std::thread request_thread([&]() {
 		json request;
-		request["time"] = std::format("{:%FT%T}", current_time);
+		request["time"] = std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(current_time));
 
 		cpr::Post(
 			cpr::Url{ server + "groups/" + group_code + "/stop" },
@@ -375,11 +375,15 @@ void sync_timer() {
 			start_time = parse_time(data["start_time"]);
 		}
 		else if (data["status"] == "stopped") {
-			status = TimerStatus::stopped;
+			if (status != TimerStatus::prepared) {
+				status = TimerStatus::stopped;
+			}
 			current_time = parse_time(data["stop_time"]);
 		}
 		else if (data["status"] == "resetted") {
-			status = TimerStatus::stopped;
+			if (status != TimerStatus::prepared) {
+				status = TimerStatus::stopped;
+			}
 			start_time = std::chrono::system_clock::now();
 			current_time = std::chrono::system_clock::now();
 		}
