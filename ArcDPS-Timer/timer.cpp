@@ -75,10 +75,21 @@ std::string gen_random_string(const int len) {
 }
 
 arcdps_exports* mod_init() {
+	memset(&arc_exports, 0, sizeof(arcdps_exports));
+	arc_exports.sig = 0x1A0;
+	arc_exports.imguivers = IMGUI_VERSION_NUM;
+	arc_exports.size = sizeof(arcdps_exports);
+	arc_exports.out_name = "Timer";
+	arc_exports.out_build = "0.1";
+	arc_exports.options_end = mod_options;
+	arc_exports.options_windows = mod_windows;
+	arc_exports.imgui = mod_imgui;
+	arc_exports.combat = mod_combat;
+
 	json config;
 	if (std::filesystem::exists(config_file)) {
-		std::ifstream i(config_file);
-		i >> config;
+		std::ifstream input(config_file);
+		input >> config;
 		if (config["version"] < version) {
 			config.clear();
 		}
@@ -94,27 +105,18 @@ arcdps_exports* mod_init() {
 	status = TimerStatus::stopped;
 
 	hMumbleLink = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(LinkedMem), L"MumbleLink");
-	if (hMumbleLink == NULL)
-	{
+	if (hMumbleLink == NULL) {
 		log_arc("Could not create mumble link file mapping object\n");
+		arc_exports.sig = 0;
 	}
 	else {
-		pMumbleLink = (LinkedMem*)MapViewOfFile(hMumbleLink, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(LinkedMem));
+		pMumbleLink = (LinkedMem*) MapViewOfFile(hMumbleLink, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(LinkedMem));
 		if (pMumbleLink == NULL) {
 			log_arc("Failed to open mumble link file\n");
+			arc_exports.sig = 0;
 		}
 	}
 
-	memset(&arc_exports, 0, sizeof(arcdps_exports));
-	arc_exports.sig = 0x1A0;
-	arc_exports.imguivers = IMGUI_VERSION_NUM;
-	arc_exports.size = sizeof(arcdps_exports);
-	arc_exports.out_name = "Timer";
-	arc_exports.out_build = "0.1";
-	arc_exports.options_end = mod_options;
-	arc_exports.options_windows = mod_windows;
-	arc_exports.imgui = mod_imgui;
-	arc_exports.combat = mod_combat;
 	log_arc("timer: done mod_init");
 	return &arc_exports;
 }
@@ -322,9 +324,8 @@ void sync_timer() {
 		return;
 	}
 
-	auto data = json::parse(r.text);
-	if (data.find("status") != data.end())
-	{
+	auto data = json::parse(response.text);
+	if (data.find("status") != data.end()) {
 		if (data["status"] == "running") {
 			status = TimerStatus::running;
 			start_time = parse_time(data["start_time"]);
