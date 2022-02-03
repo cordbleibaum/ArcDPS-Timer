@@ -7,6 +7,7 @@
 #include <cmath>
 #include <format>
 #include <set>
+#include <regex>
 
 #include <cpr/cpr.h>
 
@@ -280,8 +281,6 @@ void calculate_groupcode() {
 
 	CRC32 crc32;
 	group_code = crc32(playersConcat);
-
-	log_arc("New Group_Code: " + group_code);
 }
 
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t id, uint64_t revision) {
@@ -356,6 +355,10 @@ void sync_timer() {
 		groupcode_copy = group_code;
 	}
 
+	std::regex empty_group("^0+$");
+	if (std::regex_match(groupcode_copy, empty_group)) {
+		return;
+	}
 
 	auto response = cpr::Get(cpr::Url{ server + "groups/" + groupcode_copy });
 
