@@ -74,33 +74,20 @@ std::string gen_random_string(const int len) {
 	return tmp_s;
 }
 
-void generate_config(json *config) {
-	(*config)["version"] = version;
-	(*config)["showTimer"] = true;
-	(*config)["windowBorder"] = false;
-	(*config)["server"] = "http:/127.0.0.1:5000/";
-	(*config)["group"] = gen_random_string(10);
-	(*config)["sync_interval"] = 1;
-}
-
-
 arcdps_exports* mod_init() {
 	json config;
 	if (std::filesystem::exists(config_file)) {
 		std::ifstream i(config_file);
 		i >> config;
 		if (config["version"] < version) {
-			generate_config(&config);
+			config.clear();
 		}
 	}
-	else {
-		generate_config(&config);
-	}
-	showTimer = config["showTimer"];
-	windowBorder = config["windowBorder"];
-	server = config["server"];
-	group = config["group"];
-	sync_interval = config["sync_interval"];
+	showTimer = config.value("showTimer", true);
+	windowBorder = config.value("windowBorder", false);
+	server = config.value("server", "http:/127.0.0.1:5000/");
+	group = config.value("group", gen_random_string(10));
+	sync_interval = config.value("sync_interval", 1);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
