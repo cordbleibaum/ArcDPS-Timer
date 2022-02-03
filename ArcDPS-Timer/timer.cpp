@@ -45,7 +45,7 @@ std::set<std::string> group_players;
 std::chrono::system_clock::time_point last_update;
 int sync_interval = 3;
 
-std::mutex goupcode_mutex;
+std::mutex groupcode_mutex;
 
 // TODO ensure utc
 
@@ -294,7 +294,7 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 				}
 
 				if (src->prof) {
-					std::scoped_lock<std::mutex> guard(goupcode_mutex);
+					std::scoped_lock<std::mutex> guard(groupcode_mutex);
 					if (selfAccountName.empty() && dst->self) {
 						selfAccountName = username;
 					}
@@ -304,7 +304,7 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 				}
 				else {
 					if (username != selfAccountName) {
-						std::scoped_lock<std::mutex> guard(goupcode_mutex);
+						std::scoped_lock<std::mutex> guard(groupcode_mutex);
 						group_players.erase(username);
 						calculate_groupcode();
 					}
@@ -346,15 +346,19 @@ std::chrono::system_clock::time_point parse_time(const std::string& source)
 }
 
 void sync_timer() {
-	cpr::Response response;
+	std::string groupcode_copy = "";
+	
 	{
-		std::scoped_lock<std::mutex> guard(goupcode_mutex);
+		std::scoped_lock<std::mutex> guard(groupcode_mutex);
 		if (group_code == "") {
 			calculate_groupcode();
 		}
-
-		response = cpr::Get(cpr::Url{ server + "groups/" + group_code });
+		groupcode_copy = group_code;
 	}
+
+
+	auto response = cpr::Get(cpr::Url{ server + "groups/" + groupcode_copy });
+
 
 	if (response.status_code != 200) {
 		log_arc("Failed to sync with server");
