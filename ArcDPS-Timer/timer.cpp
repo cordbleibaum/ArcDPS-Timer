@@ -89,7 +89,7 @@ arcdps_exports* mod_init() {
 	}
 	showTimer = config.value("showTimer", true);
 	windowBorder = config.value("windowBorder", false);
-	server = config.value("server", "http:/127.0.0.1:5000/");
+	server = config.value("server", "http://164.92.229.177:5001/");
 	sync_interval = config.value("sync_interval", 1);
 
 	start_time = std::chrono::system_clock::now();
