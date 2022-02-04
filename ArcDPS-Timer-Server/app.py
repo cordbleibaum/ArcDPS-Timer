@@ -13,7 +13,7 @@ async def get_db():
 
 async def connect_db():
     global db_client
-    db_client = AsyncIOMotorClient("mongodb://localhost:27017/")
+    db_client = AsyncIOMotorClient(os.environ['MONGODB'])
 
 
 async def close_db():
