@@ -29,7 +29,7 @@ bool showTimer = false;
 bool windowBorder = true;
 
 std::string config_file = "addons/arcdps/timer.json";
-constexpr int version = 3;
+constexpr int version = 4;
 
 TimerStatus status;
 std::chrono::system_clock::time_point start_time;
@@ -44,7 +44,7 @@ std::string selfAccountName;
 std::string group_code;
 std::set<std::string> group_players;
 std::chrono::system_clock::time_point last_update;
-int sync_interval = 3;
+int sync_interval;
 
 std::mutex groupcode_mutex;
 

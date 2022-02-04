@@ -11,4 +11,4 @@ services:
    ports:
      - 5001:5001
    environment:
-     - MONGODB=mongodb://localhost:27017/
+     - MONGODB=mongodb://mongodb:27017/
