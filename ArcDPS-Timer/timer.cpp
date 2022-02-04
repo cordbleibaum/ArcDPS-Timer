@@ -338,10 +338,9 @@ void timer_reset() {
 
 std::chrono::system_clock::time_point parse_time(const std::string& source)
 {
-	auto in = std::istringstream(source);
-	auto tp = std::chrono::sys_seconds{};
-	in >> std::chrono::parse(std::string("%FT%T"), tp);
-	return std::chrono::system_clock::from_time_t(std::chrono::system_clock::to_time_t(tp));
+	std::chrono::sys_time<std::chrono::microseconds> timePoint;
+	std::istringstream(source) >> std::chrono::parse(std::string("%FT%T"), timePoint);
+	return timePoint;
 }
 
 void sync_timer() {
