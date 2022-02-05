@@ -80,6 +80,7 @@ arcdps_exports* mod_init() {
 	arc_exports.combat = mod_combat;
 
 	json config;
+	config["filler"] = "empty";
 	if (std::filesystem::exists(config_file)) {
 		std::ifstream input(config_file);
 		input >> config;
