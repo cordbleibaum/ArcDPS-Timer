@@ -281,6 +281,11 @@ void timer_prepare() {
 	lastPosition[0] = pMumbleLink->fAvatarPosition[0];
 	lastPosition[1] = pMumbleLink->fAvatarPosition[1];
 	lastPosition[2] = pMumbleLink->fAvatarPosition[2];
+
+	std::thread request_thread([&]() {
+		cpr::Get(cpr::Url{ server + "groups/" + group_code + "/prepare" });
+		});
+	request_thread.detach();
 }
 
 void calculate_groupcode() {
@@ -400,6 +405,16 @@ void sync_timer() {
 			}
 			start_time = std::chrono::system_clock::now();
 			current_time = std::chrono::system_clock::now();
+		}
+		else if (data["status"] == "prepared") {
+			if (status != TimerStatus::running) {
+				status = TimerStatus::prepared;
+				start_time = std::chrono::system_clock::now();
+				current_time = std::chrono::system_clock::now();
+				lastPosition[0] = pMumbleLink->fAvatarPosition[0];
+				lastPosition[1] = pMumbleLink->fAvatarPosition[1];
+				lastPosition[2] = pMumbleLink->fAvatarPosition[2];
+			}
 		}
 	}
 }
