@@ -34,7 +34,7 @@ struct LinkedMem {
     float fCameraFront[3];
     float fCameraTop[3];
     wchar_t identity[256];
-    MumbleContext context_len; // Despite the actual context containing more data, this value is always 48. See "context" section below.
+    uint32_t context_len; // Despite the actual context containing more data, this value is always 48. See "context" section below.
     unsigned char context[256];
     wchar_t description[2048];
 };

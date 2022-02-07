@@ -38,6 +38,7 @@ std::chrono::system_clock::time_point current_time;
 HANDLE hMumbleLink;
 LinkedMem *pMumbleLink;
 float lastPosition[3];
+uint32_t lastMapID = 0;
 
 std::string server;
 std::string selfAccountName;
@@ -192,6 +193,15 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 			log_arc("timer: starting on movement");
 		}
 	}
+	else {
+		if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
+			lastMapID = ((MumbleContext*)pMumbleLink->context)->mapId;
+			if (autoPrepare) {
+				timer_prepare();
+			}
+		}
+	}
+
 
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_update).count() > sync_interval) {
 		last_update = std::chrono::system_clock::now();
