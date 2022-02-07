@@ -53,6 +53,7 @@ bool groupWidePrepare;
 bool autoPrepare;
 bool offline;
 bool outOfDate = false;
+bool autoPrepareOnlyInstancedContent;
 
 void log_arc(std::string str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
@@ -99,6 +100,8 @@ arcdps_exports* mod_init() {
 	groupWidePrepare = config.value("groupWidePrepare", true);
 	autoPrepare = config.value("autoPrepare", true);
 	offline = config.value("offline", false);
+	autoPrepareOnlyInstancedContent = config.value("autoPrepareOnlyInstancedContent", true);
+
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -138,6 +141,7 @@ uintptr_t mod_release() {
 	config["groupWidePrepare"] = groupWidePrepare;
 	config["autoPrepare"] = autoPrepare;
 	config["offline"] = offline;
+	config["autoPrepareOnlyInstancedContent"] = autoPrepareOnlyInstancedContent;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -195,9 +199,18 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 			log_arc("timer: starting on movement");
 		}
 	}
-	else if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
+		
+	if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
 		lastMapID = ((MumbleContext*)pMumbleLink->context)->mapId;
-		if (autoPrepare) {
+
+		bool doAutoPrepare = autoPrepare;
+		if (autoPrepareOnlyInstancedContent) {
+			auto mapRequest = cpr::Get(cpr::Url{ "https://api.guildwars2.com/v2/maps/" + lastMapID });
+			auto mapData = json::parse(mapRequest.text);
+			doAutoPrepare &= mapData["type"] == "Instance";
+		}
+
+		if (doAutoPrepare && status == TimerStatus::stopped) {
 			timer_prepare();
 		}
 	}
