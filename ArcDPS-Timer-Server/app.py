@@ -31,7 +31,7 @@ app.add_event_handler("shutdown", close_db)
 
 @app.get("/")
 async def root():
-    return {"version": "0.1"}
+    return {"version": "0.2"}
 
 
 @app.get("/groups/{group_id}")
