@@ -276,6 +276,8 @@ void timer_stop() {
 
 void timer_prepare() {
 	status = TimerStatus::prepared;
+	start_time = std::chrono::system_clock::now();
+	current_time = std::chrono::system_clock::now();
 	lastPosition[0] = pMumbleLink->fAvatarPosition[0];
 	lastPosition[1] = pMumbleLink->fAvatarPosition[1];
 	lastPosition[2] = pMumbleLink->fAvatarPosition[2];
@@ -289,7 +291,11 @@ void calculate_groupcode() {
 	}
 
 	CRC32 crc32;
-	group_code = crc32(playersConcat);
+	std::string group_code_new = crc32(playersConcat);
+	if (autoPrepare && group_code != group_code_new) {
+		timer_prepare();
+	}
+	group_code = group_code_new;
 }
 
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t id, uint64_t revision) {
