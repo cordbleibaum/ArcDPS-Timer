@@ -29,7 +29,7 @@ bool showTimer = false;
 bool windowBorder = true;
 
 std::string config_file = "addons/arcdps/timer.json";
-constexpr int version = 4;
+constexpr int version = 5;
 
 TimerStatus status;
 std::chrono::system_clock::time_point start_time;
@@ -50,7 +50,7 @@ std::mutex groupcode_mutex;
 
 bool groupWidePrepare;
 bool autoPrepare;
-// TODO ensure utc
+bool offline;
 
 void log_arc(std::string str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
@@ -96,6 +96,7 @@ arcdps_exports* mod_init() {
 	sync_interval = config.value("sync_interval", 1);
 	groupWidePrepare = config.value("groupWidePrepare", true);
 	autoPrepare = config.value("autoPrepare", true);
+	offline = config.value("offline", false);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -127,6 +128,7 @@ uintptr_t mod_release() {
 	config["sync_interval"] = sync_interval;
 	config["groupWidePrepare"] = groupWidePrepare;
 	config["autoPrepare"] = autoPrepare;
+	config["offline"] = offline;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -140,6 +142,7 @@ uintptr_t mod_options() {
 	ImGui::Checkbox("Window Border", &windowBorder);
 	ImGui::InputText("Server", &server);
 	ImGui::InputInt("Sync Interval", &sync_interval);
+	ImGui::Checkbox("Offline Mode", &offline);
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
 	ImGui::Checkbox("Groupwide Prepare", &groupWidePrepare);
 	return 0;
@@ -182,10 +185,12 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 	}
 
-	if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - last_update).count() > sync_interval) {
+	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_update).count() > sync_interval) {
 		last_update = std::chrono::system_clock::now();
-		std::thread sync_thread(sync_timer);
-		sync_thread.detach();
+		if (!offline) {
+			std::thread sync_thread(sync_timer);
+			sync_thread.detach();
+		}
 	}
 
 	if (showTimer) {
@@ -245,33 +250,37 @@ void timer_start(int delta) {
 	status = TimerStatus::running;
 	start_time = std::chrono::system_clock::now() - std::chrono::seconds(delta);
 
-	std::thread request_thread([&]() {
-		json request;
-		request["time"] = std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(start_time));
+	if (!offline) {
+		std::thread request_thread([&]() {
+			json request;
+			request["time"] = std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(start_time));
 
-		cpr::Post(
-			cpr::Url{ server + "groups/" + group_code + "/start" },
-			cpr::Body{ request.dump() },
-			cpr::Header{ {"Content-Type", "application/json"} }
-		);
-	});
-	request_thread.detach();
+			cpr::Post(
+				cpr::Url{ server + "groups/" + group_code + "/start" },
+				cpr::Body{ request.dump() },
+				cpr::Header{ {"Content-Type", "application/json"} }
+			);
+			});
+		request_thread.detach();
+	}
 }
 
 void timer_stop() {
 	status = TimerStatus::stopped;
 
-	std::thread request_thread([&]() {
-		json request;
-		request["time"] = std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(current_time));
+	if (!offline) {
+		std::thread request_thread([&]() {
+			json request;
+			request["time"] = std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(current_time));
 
-		cpr::Post(
-			cpr::Url{ server + "groups/" + group_code + "/stop" },
-			cpr::Body{ request.dump() },
-			cpr::Header{ {"Content-Type", "application/json"} }
-		);
-	});
-	request_thread.detach();
+			cpr::Post(
+				cpr::Url{ server + "groups/" + group_code + "/stop" },
+				cpr::Body{ request.dump() },
+				cpr::Header{ {"Content-Type", "application/json"} }
+			);
+			});
+		request_thread.detach();
+	}
 }
 
 void timer_prepare() {
@@ -282,10 +291,12 @@ void timer_prepare() {
 	lastPosition[1] = pMumbleLink->fAvatarPosition[1];
 	lastPosition[2] = pMumbleLink->fAvatarPosition[2];
 
-	std::thread request_thread([&]() {
-		cpr::Get(cpr::Url{ server + "groups/" + group_code + "/prepare" });
-		});
-	request_thread.detach();
+	if (!offline) {
+		std::thread request_thread([&]() {
+			cpr::Get(cpr::Url{ server + "groups/" + group_code + "/prepare" });
+			});
+		request_thread.detach();
+	}
 }
 
 void calculate_groupcode() {
@@ -350,10 +361,12 @@ void timer_reset() {
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
 
-	std::thread request_thread([&]() {
-		cpr::Get(cpr::Url{ server + "groups/" + group_code + "/reset" });
-	});
-	request_thread.detach();
+	if (!offline) {
+		std::thread request_thread([&]() {
+			cpr::Get(cpr::Url{ server + "groups/" + group_code + "/reset" });
+			});
+		request_thread.detach();
+	}
 }
 
 std::chrono::system_clock::time_point parse_time(const std::string& source)
