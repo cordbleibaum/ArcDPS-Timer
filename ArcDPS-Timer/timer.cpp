@@ -51,6 +51,7 @@ std::mutex groupcode_mutex;
 bool groupWidePrepare;
 bool autoPrepare;
 bool offline;
+bool outOfDate = false;
 
 void log_arc(std::string str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
@@ -113,6 +114,13 @@ arcdps_exports* mod_init() {
 			log_arc("Failed to open mumble link file\n");
 			arc_exports.sig = 0;
 		}
+	}
+
+	auto response = cpr::Get(cpr::Url{ server + "version" });
+	auto data = json::parse(response.text);
+	if (data["major"] != version) {
+		log_arc("Out of date version, going offline mode\n");
+		outOfDate = true;
 	}
 
 	log_arc("timer: done mod_init");
@@ -187,7 +195,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_update).count() > sync_interval) {
 		last_update = std::chrono::system_clock::now();
-		if (!offline) {
+		if (!offline && !outOfDate) {
 			std::thread sync_thread(sync_timer);
 			sync_thread.detach();
 		}
@@ -250,7 +258,7 @@ void timer_start(int delta) {
 	status = TimerStatus::running;
 	start_time = std::chrono::system_clock::now() - std::chrono::seconds(delta);
 
-	if (!offline) {
+	if (!offline && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
 			request["time"] = std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(start_time));
@@ -260,7 +268,7 @@ void timer_start(int delta) {
 				cpr::Body{ request.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
 			);
-			});
+		});
 		request_thread.detach();
 	}
 }
@@ -268,7 +276,7 @@ void timer_start(int delta) {
 void timer_stop() {
 	status = TimerStatus::stopped;
 
-	if (!offline) {
+	if (!offline && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
 			request["time"] = std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(current_time));
@@ -278,7 +286,7 @@ void timer_stop() {
 				cpr::Body{ request.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
 			);
-			});
+		});
 		request_thread.detach();
 	}
 }
@@ -294,7 +302,7 @@ void timer_prepare() {
 	if (!offline) {
 		std::thread request_thread([&]() {
 			cpr::Get(cpr::Url{ server + "groups/" + group_code + "/prepare" });
-			});
+		});
 		request_thread.detach();
 	}
 }
@@ -361,10 +369,10 @@ void timer_reset() {
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
 
-	if (!offline) {
+	if (!offline && !outOfDate) {
 		std::thread request_thread([&]() {
 			cpr::Get(cpr::Url{ server + "groups/" + group_code + "/reset" });
-			});
+		});
 		request_thread.detach();
 	}
 }
