@@ -195,15 +195,12 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 			log_arc("timer: starting on movement");
 		}
 	}
-	else {
-		if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
-			lastMapID = ((MumbleContext*)pMumbleLink->context)->mapId;
-			if (autoPrepare) {
-				timer_prepare();
-			}
+	else if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
+		lastMapID = ((MumbleContext*)pMumbleLink->context)->mapId;
+		if (autoPrepare) {
+			timer_prepare();
 		}
 	}
-
 
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_update).count() > sync_interval) {
 		last_update = std::chrono::system_clock::now();
@@ -260,6 +257,10 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 			timer_reset();
 		}
 
+		if (outOfDate) {
+			ImGui::TextColored(ImVec4(1, 0, 0, 1), "OFFLINE, ADDON OUT OF DATE");
+		}
+
 		ImGui::End();
 	}
 
@@ -311,7 +312,7 @@ void timer_prepare() {
 	lastPosition[1] = pMumbleLink->fAvatarPosition[1];
 	lastPosition[2] = pMumbleLink->fAvatarPosition[2];
 
-	if (!offline) {
+	if (!offline && !outOfDate) {
 		std::thread request_thread([&]() {
 			cpr::Get(cpr::Url{ server + "groups/" + group_code + "/prepare" });
 		});
