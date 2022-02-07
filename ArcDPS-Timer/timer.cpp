@@ -29,7 +29,7 @@ bool showTimer = false;
 bool windowBorder = true;
 
 std::string config_file = "addons/arcdps/timer.json";
-constexpr int version = 5;
+constexpr int version_major = 5;
 
 TimerStatus status;
 std::chrono::system_clock::time_point start_time;
@@ -88,7 +88,7 @@ arcdps_exports* mod_init() {
 	if (std::filesystem::exists(config_file)) {
 		std::ifstream input(config_file);
 		input >> config;
-		if (config["version"] < version) {
+		if (config["version"] < version_major) {
 			config.clear();
 		}
 	}
@@ -119,7 +119,7 @@ arcdps_exports* mod_init() {
 
 	auto response = cpr::Get(cpr::Url{ server + "version" });
 	auto data = json::parse(response.text);
-	if (data["major"] != version) {
+	if (data["major"] != version_major) {
 		log_arc("Out of date version, going offline mode\n");
 		outOfDate = true;
 	}
@@ -133,7 +133,7 @@ uintptr_t mod_release() {
 	config["showTimer"] = showTimer;
 	config["windowBorder"] = windowBorder;
 	config["server"] = server;
-	config["version"] = version;
+	config["version"] = version_major;
 	config["sync_interval"] = sync_interval;
 	config["groupWidePrepare"] = groupWidePrepare;
 	config["autoPrepare"] = autoPrepare;
@@ -149,9 +149,11 @@ uintptr_t mod_release() {
 
 uintptr_t mod_options() {
 	ImGui::Checkbox("Window Border", &windowBorder);
+	ImGui::Separator();
 	ImGui::InputText("Server", &server);
 	ImGui::InputInt("Sync Interval", &sync_interval);
 	ImGui::Checkbox("Offline Mode", &offline);
+	ImGui::Separator();
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
 	ImGui::Checkbox("Groupwide Prepare", &groupWidePrepare);
 	return 0;
