@@ -90,3 +90,15 @@ async def reset_timer(group_id):
         }
     });
     return {'status': 'success'}
+
+
+@app.get("/groups/{group_id}/prepare")
+async def reset_timer(group_id):
+    db = await get_db()
+    await db.groups.update_one({'_id': group_id}, {
+        '$set': {
+            '_id': group_id,
+            'status': 'prepared',
+        }
+    });
+    return {'status': 'success'}
