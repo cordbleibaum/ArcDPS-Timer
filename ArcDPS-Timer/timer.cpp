@@ -48,6 +48,8 @@ int sync_interval;
 
 std::mutex groupcode_mutex;
 
+bool groupWidePrepare;
+bool autoPrepare;
 // TODO ensure utc
 
 void log_arc(std::string str) {
@@ -92,6 +94,8 @@ arcdps_exports* mod_init() {
 	windowBorder = config.value("windowBorder", false);
 	server = config.value("server", "http://164.92.229.177:5001/");
 	sync_interval = config.value("sync_interval", 1);
+	groupWidePrepare = config.value("groupWidePrepare", true);
+	autoPrepare = config.value("autoPrepare", true);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -121,6 +125,8 @@ uintptr_t mod_release() {
 	config["server"] = server;
 	config["version"] = version;
 	config["sync_interval"] = sync_interval;
+	config["groupWidePrepare"] = groupWidePrepare;
+	config["autoPrepare"] = autoPrepare;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -134,6 +140,8 @@ uintptr_t mod_options() {
 	ImGui::Checkbox("Window Border", &windowBorder);
 	ImGui::InputText("Server", &server);
 	ImGui::InputInt("Sync Interval", &sync_interval);
+	ImGui::Checkbox("Auto Prepare", &autoPrepare);
+	ImGui::Checkbox("Groupwide Prepare", &groupWidePrepare);
 	return 0;
 }
 
