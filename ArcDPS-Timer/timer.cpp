@@ -160,6 +160,7 @@ uintptr_t mod_options() {
 	ImGui::Separator();
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
 	ImGui::Checkbox("Groupwide Prepare", &groupWidePrepare);
+	ImGui::Checkbox("Auto Prepare only in Instanced Content", &autoPrepareOnlyInstancedContent);
 	return 0;
 }
 
@@ -205,7 +206,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 		bool doAutoPrepare = autoPrepare;
 		if (autoPrepareOnlyInstancedContent) {
-			auto mapRequest = cpr::Get(cpr::Url{ "https://api.guildwars2.com/v2/maps/" + lastMapID });
+			auto mapRequest = cpr::Get(cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(lastMapID) });
 			auto mapData = json::parse(mapRequest.text);
 			doAutoPrepare &= mapData["type"] == "Instance";
 		}
