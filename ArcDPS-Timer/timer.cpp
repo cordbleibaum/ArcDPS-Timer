@@ -54,6 +54,7 @@ bool autoPrepare;
 bool offline;
 bool outOfDate = false;
 bool autoPrepareOnlyInstancedContent;
+bool autoPrepareOnGroupChange;
 
 void log_arc(std::string str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
@@ -78,7 +79,7 @@ arcdps_exports* mod_init() {
 	arc_exports.imguivers = IMGUI_VERSION_NUM;
 	arc_exports.size = sizeof(arcdps_exports);
 	arc_exports.out_name = "Timer";
-	arc_exports.out_build = "0.2";
+	arc_exports.out_build = "0.3";
 	arc_exports.options_end = mod_options;
 	arc_exports.options_windows = mod_windows;
 	arc_exports.imgui = mod_imgui;
@@ -101,7 +102,7 @@ arcdps_exports* mod_init() {
 	autoPrepare = config.value("autoPrepare", true);
 	offline = config.value("offline", false);
 	autoPrepareOnlyInstancedContent = config.value("autoPrepareOnlyInstancedContent", true);
-
+	autoPrepareOnGroupChange = config.value("autoPrepareOnGroupChange", false);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -142,6 +143,7 @@ uintptr_t mod_release() {
 	config["autoPrepare"] = autoPrepare;
 	config["offline"] = offline;
 	config["autoPrepareOnlyInstancedContent"] = autoPrepareOnlyInstancedContent;
+	config["autoPrepareOnGroupChange"] = autoPrepareOnGroupChange;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -161,6 +163,7 @@ uintptr_t mod_options() {
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
 	ImGui::Checkbox("Groupwide Prepare", &groupWidePrepare);
 	ImGui::Checkbox("Auto Prepare only in Instanced Content", &autoPrepareOnlyInstancedContent);
+	ImGui::Checkbox("Auto Prepare on Group Change", &autoPrepareOnGroupChange);
 	return 0;
 }
 
@@ -343,7 +346,7 @@ void calculate_groupcode() {
 
 	CRC32 crc32;
 	std::string group_code_new = crc32(playersConcat);
-	if (autoPrepare && group_code != group_code_new) {
+	if (autoPrepare && autoPrepareOnGroupChange && group_code != group_code_new) {
 		timer_prepare();
 	}
 	group_code = group_code_new;
