@@ -513,6 +513,7 @@ void sync_timer() {
 		else if (data["status"] == "prepared") {
 			if (status != TimerStatus::running) {
 				log_arc("timer: preparing on server");
+				status = TimerStatus::prepared;
 				start_time = std::chrono::system_clock::now();
 				current_time = std::chrono::system_clock::now();
 				lastPosition[0] = pMumbleLink->fAvatarPosition[0];
