@@ -107,5 +107,5 @@ async def reset_timer(group_id):
             '_id': group_id,
             'status': 'prepared',
         }
-    });
+    }, True);
     return {'status': 'success'}
