@@ -24,6 +24,7 @@ enum class TimerStatus { stopped, prepared, running };
 
 arcdps_exports arc_exports;
 void* arclog;
+void* filelog;
 
 bool showTimer = false;
 bool windowBorder = true;
@@ -62,8 +63,20 @@ void log_arc(std::string str) {
 	return;
 }
 
+void log_file(std::string str) {
+	size_t(*log)(char*) = (size_t(*)(char*))filelog;
+	if (log) (*log)(str.data());
+	return;
+}
+
+void log(std::string str) {
+	log_arc(str);
+	log_file(str);
+}
+
 extern "C" __declspec(dllexport) void* get_init_addr(char *arcversion, ImGuiContext *imguictx, void *id3dptr, HANDLE arcdll, void *mallocfn, void *freefn, uint32_t d3dversion) {
 	arclog = (void*)GetProcAddress((HMODULE)arcdll, "e8");
+	filelog = (void*)GetProcAddress((HMODULE)arcdll, "e3");
 	ImGui::SetCurrentContext((ImGuiContext*)imguictx);
 	ImGui::SetAllocatorFunctions((void* (*)(size_t, void*))mallocfn, (void (*)(void*, void*))freefn);
 	return mod_init;
@@ -110,13 +123,13 @@ arcdps_exports* mod_init() {
 
 	hMumbleLink = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(LinkedMem), L"MumbleLink");
 	if (hMumbleLink == NULL) {
-		log_arc("Could not create mumble link file mapping object\n");
+		log("Could not create mumble link file mapping object\n");
 		arc_exports.sig = 0;
 	}
 	else {
 		pMumbleLink = (LinkedMem*) MapViewOfFile(hMumbleLink, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(LinkedMem));
 		if (pMumbleLink == NULL) {
-			log_arc("Failed to open mumble link file\n");
+			log("Failed to open mumble link file\n");
 			arc_exports.sig = 0;
 		}
 	}
@@ -124,7 +137,7 @@ arcdps_exports* mod_init() {
 	auto response = cpr::Get(cpr::Url{ server + "version" });
 	auto data = json::parse(response.text);
 	if (data["major"] != version_major) {
-		log_arc("Out of date version, going offline mode\n");
+		log("Out of date version, going offline mode\n");
 		outOfDate = true;
 	}
 
