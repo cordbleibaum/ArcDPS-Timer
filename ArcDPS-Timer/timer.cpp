@@ -56,6 +56,7 @@ bool offline;
 bool outOfDate = false;
 bool autoPrepareOnlyInstancedContent;
 bool autoPrepareOnGroupChange;
+bool hideOutsideInstances;
 
 void log_arc(std::string str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
@@ -116,6 +117,7 @@ arcdps_exports* mod_init() {
 	offline = config.value("offline", false);
 	autoPrepareOnlyInstancedContent = config.value("autoPrepareOnlyInstancedContent", true);
 	autoPrepareOnGroupChange = config.value("autoPrepareOnGroupChange", false);
+	hideOutsideInstances = config.value("hideOutsideInstances", true);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -157,6 +159,7 @@ uintptr_t mod_release() {
 	config["offline"] = offline;
 	config["autoPrepareOnlyInstancedContent"] = autoPrepareOnlyInstancedContent;
 	config["autoPrepareOnGroupChange"] = autoPrepareOnGroupChange;
+	config["hideOutsideInstances"] = hideOutsideInstances;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -167,11 +170,12 @@ uintptr_t mod_release() {
 }
 
 uintptr_t mod_options() {
-	ImGui::Checkbox("Window Border", &windowBorder);
-	ImGui::Separator();
 	ImGui::InputText("Server", &server);
 	ImGui::InputInt("Sync Interval", &sync_interval);
 	ImGui::Checkbox("Offline Mode", &offline);
+	ImGui::Separator();
+	ImGui::Checkbox("Window Border", &windowBorder);
+	ImGui::Checkbox("Hide outside Instanced Content", &hideOutsideInstances);
 	ImGui::Separator();
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
 	ImGui::Checkbox("Groupwide Prepare", &groupWidePrepare);
@@ -241,7 +245,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 	}
 
-	if (showTimer) {
+	if (showTimer && !hideOutsideInstances) {
 		ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize;
 		if (!windowBorder) {
 			flags |= ImGuiWindowFlags_NoDecoration;
