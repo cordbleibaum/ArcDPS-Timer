@@ -497,7 +497,7 @@ void sync_timer() {
 		}
 		else if (data["status"] == "stopped") {
 			log_arc("timer: stopping on server");
-			if (status != TimerStatus::prepared || !groupWidePrepare) {
+			if (status != TimerStatus::prepared || groupWidePrepare) {
 				status = TimerStatus::stopped;
 				current_time = parse_time(data["stop_time"]);
 			}
