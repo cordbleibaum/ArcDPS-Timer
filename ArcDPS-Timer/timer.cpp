@@ -504,7 +504,7 @@ void sync_timer() {
 		}
 		else if (data["status"] == "resetted") {
 			log_arc("timer: resetting on server");
-			if (status != TimerStatus::prepared) {
+			if (status != TimerStatus::prepared || groupWidePrepare) {
 				status = TimerStatus::stopped;
 			}
 			start_time = std::chrono::system_clock::now();
