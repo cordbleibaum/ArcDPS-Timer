@@ -255,7 +255,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	}
 
 	if (hideOutsideInstances && !isInstanced) {
-		return;
+		return 0;
 	}
 
 	if (showTimer) {
