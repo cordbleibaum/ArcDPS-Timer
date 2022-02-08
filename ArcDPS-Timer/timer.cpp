@@ -277,9 +277,21 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		int milliseconds = (int) (duration * 100);
 		std::string time_string = string_format("%02d:%02d.%02d", minutes, seconds, milliseconds);
 
+		switch (status) {
+		case TimerStatus::stopped:
+			ImGui::TextColored(ImVec4(1, 0.2f, 0.2f, 1), "S");
+			break;
+		case TimerStatus::prepared:
+			ImGui::TextColored(ImVec4(1, 1, 0.2f, 1), "P");
+			break;
+		case TimerStatus::running:
+			ImGui::TextColored(ImVec4(0.2f, 1, 0.2f, 1), "R");
+			break;
+		}
+
 		auto windowWidth = ImGui::GetWindowSize().x;
 		auto textWidth = ImGui::CalcTextSize(time_string.c_str()).x;
-
+		ImGui::SameLine(0, 0);
 		ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
 		ImGui::Text(time_string.c_str());
 
