@@ -78,6 +78,12 @@ void log(std::string str) {
 	log_file(str);
 }
 
+void log_debug(std::string str) {
+#ifndef NDEBUG
+	log(str);
+#endif // !NDEBUG
+}
+
 extern "C" __declspec(dllexport) void* get_init_addr(char *arcversion, ImGuiContext *imguictx, void *id3dptr, HANDLE arcdll, void *mallocfn, void *freefn, uint32_t d3dversion) {
 	arclog = (void*)GetProcAddress((HMODULE)arcdll, "e8");
 	filelog = (void*)GetProcAddress((HMODULE)arcdll, "e3");
@@ -128,13 +134,13 @@ arcdps_exports* mod_init() {
 
 	hMumbleLink = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(LinkedMem), L"MumbleLink");
 	if (hMumbleLink == NULL) {
-		log("Could not create mumble link file mapping object\n");
+		log("timer: could not create mumble link file mapping object\n");
 		arc_exports.sig = 0;
 	}
 	else {
 		pMumbleLink = (LinkedMem*) MapViewOfFile(hMumbleLink, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(LinkedMem));
 		if (pMumbleLink == NULL) {
-			log("Failed to open mumble link file\n");
+			log("timer: failed to open mumble link file\n");
 			arc_exports.sig = 0;
 		}
 	}
@@ -142,13 +148,13 @@ arcdps_exports* mod_init() {
 	auto response = cpr::Get(cpr::Url{ server + "version" });
 	auto data = json::parse(response.text);
 	if (data["major"] != version_major) {
-		log("Out of date version, going offline mode\n");
+		log("timer: out of date version, going offline mode\n");
 		outOfDate = true;
 	}
 
 	NTPClient ntp("pool.ntp.org");
 	clockOffset = ntp.request_time_delta();
-	log_arc("Clock offset: " + std::to_string(clockOffset));
+	log_arc("timer: clock offset: " + std::to_string(clockOffset));
 
 	log_arc("timer: done mod_init");
 	return &arc_exports;
@@ -223,7 +229,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 1) ||
 			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 1) ||
 			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 1)) {
-			log_arc("timer: starting on movement");
+			log_debug("timer: starting on movement");
 			timer_start(0);
 		}
 	}
@@ -246,7 +252,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 
 		if (doAutoPrepare && status == TimerStatus::stopped) {
-			log_arc("timer: preparing on map change");
+			log_debug("timer: preparing on map change");
 			timer_prepare();
 		}
 	}
@@ -304,26 +310,26 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
 		if (ImGui::Button("Prepare", ImVec2(190, ImGui::GetFontSize()*1.5f))) {
-			log_arc("timer: preparing manually");
+			log_debug("timer: preparing manually");
 			timer_prepare();
 		}
 
 		if (ImGui::Button("Start", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
-			log_arc("timer: starting manually");
+			log_debug("timer: starting manually");
 			timer_start(0);
 		}
 		
 		ImGui::SameLine(0, 5);
 		
 		if (ImGui::Button("Stop", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
-			log_arc("timer: stopping manually");
+			log_debug("timer: stopping manually");
 			timer_stop();
 		}
 
 		ImGui::SameLine(0, 5);
 
 		if (ImGui::Button("Reset", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
-			log_arc("timer: resetting manually");
+			log_debug("timer: resetting manually");
 			timer_reset();
 		}
 
@@ -406,7 +412,7 @@ void calculate_groupcode() {
 	CRC32 crc32;
 	std::string group_code_new = crc32(playersConcat);
 	if (autoPrepare && autoPrepareOnGroupChange && group_code != group_code_new) {
-		log_arc("timer: preparing on group change");
+		log_debug("timer: preparing on group change");
 		timer_prepare();
 	}
 	group_code = group_code_new;
@@ -446,7 +452,7 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 			double duration = duration_dbl.count();
 
 			if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
-				log_arc("timer: starting on skill");
+				log_debug("timer: starting on skill");
 				timer_start(3);
 			}
 		}
@@ -495,26 +501,26 @@ void sync_timer() {
 
 
 	if (response.status_code != 200) {
-		log_arc("Failed to sync with server");
+		log("timer: failed to sync with server");
 		return;
 	}
 
 	auto data = json::parse(response.text);
 	if (data.find("status") != data.end()) {
 		if (data["status"] == "running") {
-			log_arc("timer: starting on server");
+			log_debug("timer: starting on server");
 			status = TimerStatus::running;
 			start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clockOffset * 1000.0));;
 		}
 		else if (data["status"] == "stopped") {
-			log_arc("timer: stopping on server");
+			log_debug("timer: stopping on server");
 			if (status != TimerStatus::prepared || groupWidePrepare) {
 				status = TimerStatus::stopped;
 				current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clockOffset*1000.0));
 			}
 		}
 		else if (data["status"] == "resetted") {
-			log_arc("timer: resetting on server");
+			log_debug("timer: resetting on server");
 			if (status != TimerStatus::prepared || groupWidePrepare) {
 				status = TimerStatus::stopped;
 			}
@@ -523,7 +529,7 @@ void sync_timer() {
 		}
 		else if (data["status"] == "prepared") {
 			if (status != TimerStatus::running) {
-				log_arc("timer: preparing on server");
+				log_debug("timer: preparing on server");
 				status = TimerStatus::prepared;
 				start_time = std::chrono::system_clock::now();
 				current_time = std::chrono::system_clock::now();
