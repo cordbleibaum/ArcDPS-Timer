@@ -58,6 +58,8 @@ bool autoPrepareOnlyInstancedContent;
 bool autoPrepareOnGroupChange;
 bool hideOutsideInstances;
 
+bool isInstanced = false;
+
 void log_arc(std::string str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
 	if (log) (*log)(str.data());
@@ -224,11 +226,18 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
 		lastMapID = ((MumbleContext*)pMumbleLink->context)->mapId;
 
-		bool doAutoPrepare = autoPrepare;
-		if (autoPrepareOnlyInstancedContent) {
+		if (hideOutsideInstances || autoPrepareOnlyInstancedContent) {
 			auto mapRequest = cpr::Get(cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(lastMapID) });
 			auto mapData = json::parse(mapRequest.text);
-			doAutoPrepare &= mapData["type"] == "Instance";
+			isInstanced = mapData["type"] == "Instance";
+		}
+		else {
+			isInstanced = false;
+		}
+
+		bool doAutoPrepare = autoPrepare;
+		if (autoPrepareOnlyInstancedContent) {
+			doAutoPrepare &= isInstanced;
 		}
 
 		if (doAutoPrepare && status == TimerStatus::stopped) {
@@ -245,7 +254,11 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 	}
 
-	if (showTimer && !hideOutsideInstances) {
+	if (hideOutsideInstances && !isInstanced) {
+		return;
+	}
+
+	if (showTimer) {
 		ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize;
 		if (!windowBorder) {
 			flags |= ImGuiWindowFlags_NoDecoration;
