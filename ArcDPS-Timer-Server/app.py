@@ -79,11 +79,15 @@ async def stop_timer(group_id, stop: TimingInfoModel):
         group['status'] = 'stopped'
         group['stop_time'] = stop.time
         await db.groups.replace_one({'_id': group_id}, group)
-    elif group and group['status'] == 'running':
+    elif group and group['status'] == 'stopped':
         is_older = group['stop_time'] > stop.time
         if is_older:
             group['stop_time'] = stop.time
             await db.groups.replace_one({'_id': group_id}, group)
+    elif group and group['status'] == 'prepared':
+        group['status'] = 'stopped'
+        group['stop_time'] = stop.time
+        await db.groups.replace_one({'_id': group_id}, group)
     return {'status': 'success'}
 
 
