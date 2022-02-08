@@ -17,7 +17,7 @@ double NTPClient::request_time_delta() {
 	memset(&packetRequest, 0, sizeof(packetRequest));
 	packetRequest.li_vn_mode = 0x1b;
 
-	unsigned long t0, t3, t1, t2;
+	long long t0, t3, t1, t2;
 	bool ntp_success = false;
 	int retry = 0;
 
@@ -42,8 +42,8 @@ double NTPClient::request_time_delta() {
 			t3 = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
 
 			NTPPacket* packetResponse = (NTPPacket*)recvBuffer.data();
-			t1 = (ntohl(packetResponse->rxTm_s) - 2208988800U) * 1000UL + (((double)ntohl(packetResponse->rxTm_f) / std::numeric_limits<uint32_t>::max()) * 1000UL);
-			t2 = (ntohl(packetResponse->txTm_s) - 2208988800U) * 1000UL + (((double)ntohl(packetResponse->txTm_f) / std::numeric_limits<uint32_t>::max()) * 1000UL);
+			t1 = (ntohl(packetResponse->rxTm_s) - 2208988800U) * 1000LL + (((double)ntohl(packetResponse->rxTm_f) / std::numeric_limits<uint32_t>::max()) * 1000LL);
+			t2 = (ntohl(packetResponse->txTm_s) - 2208988800U) * 1000LL + (((double)ntohl(packetResponse->txTm_f) / std::numeric_limits<uint32_t>::max()) * 1000LL);
 		}).wait_for(std::chrono::milliseconds{ 500 });
 		switch (status)
 		{
