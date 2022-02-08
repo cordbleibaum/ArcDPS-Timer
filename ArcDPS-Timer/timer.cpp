@@ -12,13 +12,12 @@
 #include <cpr/cpr.h>
 
 #include "imgui_stdlib.h"
-
 #include "json.hpp"
-using json = nlohmann::json;
-
 #include "mumble_link.h"
-
 #include "hash-library/crc32.h"
+#include "ntp.h"
+
+using json = nlohmann::json;
 
 enum class TimerStatus { stopped, prepared, running };
 
@@ -59,6 +58,8 @@ bool autoPrepareOnGroupChange;
 bool hideOutsideInstances;
 
 bool isInstanced = false;
+
+double clockOffset = 0;
 
 void log_arc(std::string str) {
 	size_t(*log)(char*) = (size_t(*)(char*))arclog;
@@ -144,6 +145,10 @@ arcdps_exports* mod_init() {
 		log("Out of date version, going offline mode\n");
 		outOfDate = true;
 	}
+
+	NTPClient ntp("pool.ntp.org");
+	clockOffset = ntp.request_time_delta();
+	log_arc("Clock offset: " + std::to_string(clockOffset));
 
 	log_arc("timer: done mod_init");
 	return &arc_exports;
@@ -339,8 +344,11 @@ void timer_start(int delta) {
 	if (!offline && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
-			request["time"] = std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(start_time));
-
+			request["time"] = std::format(
+				"{:%FT%T}", 
+				std::chrono::floor<std::chrono::milliseconds>(start_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+			);
+			
 			cpr::Post(
 				cpr::Url{ server + "groups/" + group_code + "/start" },
 				cpr::Body{ request.dump() },
@@ -357,7 +365,10 @@ void timer_stop() {
 	if (!offline && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
-			request["time"] = std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(current_time));
+			request["time"] = std::format(
+				"{:%FT%T}", 
+				std::chrono::floor<std::chrono::milliseconds>(current_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+			);
 
 			cpr::Post(
 				cpr::Url{ server + "groups/" + group_code + "/stop" },
@@ -493,13 +504,13 @@ void sync_timer() {
 		if (data["status"] == "running") {
 			log_arc("timer: starting on server");
 			status = TimerStatus::running;
-			start_time = parse_time(data["start_time"]);
+			start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clockOffset * 1000.0));;
 		}
 		else if (data["status"] == "stopped") {
 			log_arc("timer: stopping on server");
 			if (status != TimerStatus::prepared || groupWidePrepare) {
 				status = TimerStatus::stopped;
-				current_time = parse_time(data["stop_time"]);
+				current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clockOffset*1000.0));
 			}
 		}
 		else if (data["status"] == "resetted") {

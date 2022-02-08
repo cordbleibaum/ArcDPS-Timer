@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 #include <Windows.h>
 
 #include "imgui/imgui.h"

@@ -36,6 +36,9 @@
     <ClInclude Include="hash-library\crc32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ntp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="timer.cpp">
@@ -57,6 +60,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hash-library\crc32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ntp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
