@@ -212,8 +212,8 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 1) ||
 			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 1) ||
 			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 1)) {
-			timer_start(0);
 			log_arc("timer: starting on movement");
+			timer_start(0);
 		}
 	}
 		
@@ -228,6 +228,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 
 		if (doAutoPrepare && status == TimerStatus::stopped) {
+			log_arc("timer: preparing on map change");
 			timer_prepare();
 		}
 	}
@@ -268,22 +269,26 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
 		if (ImGui::Button("Prepare", ImVec2(190, ImGui::GetFontSize()*1.5f))) {
+			log_arc("timer: preparing manually");
 			timer_prepare();
 		}
 
 		if (ImGui::Button("Start", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
+			log_arc("timer: starting manually");
 			timer_start(0);
 		}
 		
 		ImGui::SameLine(0, 5);
 		
 		if (ImGui::Button("Stop", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
+			log_arc("timer: stopping manually");
 			timer_stop();
 		}
 
 		ImGui::SameLine(0, 5);
 
 		if (ImGui::Button("Reset", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
+			log_arc("timer: resetting manually");
 			timer_reset();
 		}
 
@@ -360,6 +365,7 @@ void calculate_groupcode() {
 	CRC32 crc32;
 	std::string group_code_new = crc32(playersConcat);
 	if (autoPrepare && autoPrepareOnGroupChange && group_code != group_code_new) {
+		log_arc("timer: preparing on group change");
 		timer_prepare();
 	}
 	group_code = group_code_new;
@@ -399,6 +405,7 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 			double duration = duration_dbl.count();
 
 			if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
+				log_arc("timer: starting on skill");
 				timer_start(3);
 			}
 		}
@@ -454,16 +461,19 @@ void sync_timer() {
 	auto data = json::parse(response.text);
 	if (data.find("status") != data.end()) {
 		if (data["status"] == "running") {
+			log_arc("timer: starting on server");
 			status = TimerStatus::running;
 			start_time = parse_time(data["start_time"]);
 		}
 		else if (data["status"] == "stopped") {
+			log_arc("timer: stopping on server");
 			if (status != TimerStatus::prepared) {
 				status = TimerStatus::stopped;
 			}
 			current_time = parse_time(data["stop_time"]);
 		}
 		else if (data["status"] == "resetted") {
+			log_arc("timer: resetting on server");
 			if (status != TimerStatus::prepared) {
 				status = TimerStatus::stopped;
 			}
@@ -472,7 +482,7 @@ void sync_timer() {
 		}
 		else if (data["status"] == "prepared") {
 			if (status != TimerStatus::running) {
-				status = TimerStatus::prepared;
+				log_arc("timer: preparing on server");
 				start_time = std::chrono::system_clock::now();
 				current_time = std::chrono::system_clock::now();
 				lastPosition[0] = pMumbleLink->fAvatarPosition[0];
