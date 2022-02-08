@@ -226,9 +226,9 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		current_time = std::chrono::system_clock::now();
 	}
 	else if (status == TimerStatus::prepared) {
-		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 1) ||
-			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 1) ||
-			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 1)) {
+		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 0.1f) ||
+			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 0.1f) ||
+			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 0.1f)) {
 			log_debug("timer: starting on movement");
 			timer_start(0);
 		}
