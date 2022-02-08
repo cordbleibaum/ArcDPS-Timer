@@ -277,6 +277,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		int milliseconds = (int) (duration * 100);
 		std::string time_string = string_format("%02d:%02d.%02d", minutes, seconds, milliseconds);
 
+		ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x + 3);
 		switch (status) {
 		case TimerStatus::stopped:
 			ImGui::TextColored(ImVec4(1, 0.2f, 0.2f, 1), "S");
