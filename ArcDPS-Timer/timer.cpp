@@ -497,10 +497,10 @@ void sync_timer() {
 		}
 		else if (data["status"] == "stopped") {
 			log_arc("timer: stopping on server");
-			if (status != TimerStatus::prepared) {
+			if (status != TimerStatus::prepared || !groupWidePrepare) {
 				status = TimerStatus::stopped;
+				current_time = parse_time(data["stop_time"]);
 			}
-			current_time = parse_time(data["stop_time"]);
 		}
 		else if (data["status"] == "resetted") {
 			log_arc("timer: resetting on server");
