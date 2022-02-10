@@ -63,11 +63,13 @@ async def start_timer(group_id, start: TimingInfoModel):
             group['status'] = 'running'
             await db.groups.replace_one({'_id': group_id}, group)
     else:
-        await db.groups.insert_one({
-            '_id': group_id,
-            'status': 'running',
-            'start_time': start.time,
-        })
+        await db.groups.update_one(
+            {'_id': group_id},
+            {
+                '_id': group_id,
+                'status': 'running',
+                'start_time': start.time,
+            }, True)
     return {'status': 'success'}
 
 
