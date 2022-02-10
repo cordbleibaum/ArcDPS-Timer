@@ -66,9 +66,11 @@ async def start_timer(group_id, start: TimingInfoModel):
         await db.groups.update_one(
             {'_id': group_id},
             {
-                '_id': group_id,
-                'status': 'running',
-                'start_time': start.time,
+                '$set': {
+                    '_id': group_id,
+                    'status': 'running',
+                    'start_time': start.time
+                }
             }, True)
     return {'status': 'success'}
 
