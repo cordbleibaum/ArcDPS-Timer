@@ -56,7 +56,7 @@ async def read_group(group_id):
 async def start_timer(group_id, start: TimingInfoModel):
     db = await get_db()
     group = await db.groups.find_one({'_id': group_id})
-    if group:
+    if group and group['status'] == 'running':
         is_newer = group['start_time'] < start.time
         if is_newer or group['status'] != 'running':
             group['start_time'] = start.time

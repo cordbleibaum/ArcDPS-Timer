@@ -56,6 +56,7 @@ bool outOfDate = false;
 bool autoPrepareOnlyInstancedContent;
 bool autoPrepareOnGroupChange;
 bool hideOutsideInstances;
+bool resetOnMapChange;
 
 bool isInstanced = false;
 
@@ -121,12 +122,12 @@ arcdps_exports* mod_init() {
 	windowBorder = config.value("windowBorder", false);
 	server = config.value("server", "http://164.92.229.177:5001/");
 	sync_interval = config.value("sync_interval", 1);
-	groupWidePrepare = config.value("groupWidePrepare", true);
 	autoPrepare = config.value("autoPrepare", true);
 	offline = config.value("offline", false);
 	autoPrepareOnlyInstancedContent = config.value("autoPrepareOnlyInstancedContent", true);
 	autoPrepareOnGroupChange = config.value("autoPrepareOnGroupChange", false);
 	hideOutsideInstances = config.value("hideOutsideInstances", true);
+	resetOnMapChange = config.value("resetOnMapChange", true);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -167,12 +168,12 @@ uintptr_t mod_release() {
 	config["server"] = server;
 	config["version"] = version_major;
 	config["sync_interval"] = sync_interval;
-	config["groupWidePrepare"] = groupWidePrepare;
 	config["autoPrepare"] = autoPrepare;
 	config["offline"] = offline;
 	config["autoPrepareOnlyInstancedContent"] = autoPrepareOnlyInstancedContent;
 	config["autoPrepareOnGroupChange"] = autoPrepareOnGroupChange;
 	config["hideOutsideInstances"] = hideOutsideInstances;
+	config["resetOnMapChange"] = resetOnMapChange;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -191,9 +192,9 @@ uintptr_t mod_options() {
 	ImGui::Checkbox("Hide outside Instanced Content", &hideOutsideInstances);
 	ImGui::Separator();
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
-	ImGui::Checkbox("Groupwide Prepare", &groupWidePrepare);
 	ImGui::Checkbox("Auto Prepare only in Instanced Content", &autoPrepareOnlyInstancedContent);
 	ImGui::Checkbox("Auto Prepare on Group Change", &autoPrepareOnGroupChange);
+	ImGui::Checkbox("Reset on Map Change", &resetOnMapChange);
 	return 0;
 }
 
@@ -244,6 +245,10 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 		else {
 			isInstanced = false;
+		}
+
+		if (resetOnMapChange) {
+			timer_reset();
 		}
 
 		bool doAutoPrepare = autoPrepare;
@@ -514,16 +519,12 @@ void sync_timer() {
 		}
 		else if (data["status"] == "stopped") {
 			log_debug("timer: stopping on server");
-			if (status != TimerStatus::prepared || groupWidePrepare) {
-				status = TimerStatus::stopped;
-				current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clockOffset*1000.0));
-			}
+			status = TimerStatus::stopped;
+			current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clockOffset*1000.0));
 		}
 		else if (data["status"] == "resetted") {
 			log_debug("timer: resetting on server");
-			if (status != TimerStatus::prepared || groupWidePrepare) {
-				status = TimerStatus::stopped;
-			}
+			status = TimerStatus::stopped;
 			start_time = std::chrono::system_clock::now();
 			current_time = std::chrono::system_clock::now();
 		}
