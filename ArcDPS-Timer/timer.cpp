@@ -193,17 +193,6 @@ bool checkDelta(float a, float b, float delta) {
 	return std::abs(a - b) > delta;
 }
 
-template<typename ... Args>
-std::string string_format(const std::string& format, Args ... args)
-{
-	int size_s = std::snprintf(nullptr, 0, format.c_str(), args ...) + 1;
-	if (size_s <= 0) { throw std::runtime_error("Error during formatting."); }
-	auto size = static_cast<size_t>(size_s);
-	auto buf = std::make_unique<char[]>(size);
-	std::snprintf(buf.get(), size, format.c_str(), args ...);
-	return std::string(buf.get(), buf.get() + size - 1);
-}
-
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (!not_charsel_or_loading) return 0;
 
@@ -257,14 +246,8 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
-		std::chrono::duration<double> duration_dbl = current_time - start_time;
-		double duration = duration_dbl.count();
-		int minutes = (int) duration / 60;
-		duration -= minutes * 60;
-		int seconds = (int) duration;
-		duration -= seconds;
-		int milliseconds = (int) (duration * 100);
-		std::string time_string = string_format("%02d:%02d.%02d", minutes, seconds, milliseconds);
+		auto duration = std::chrono::round<std::chrono::milliseconds>(current_time - start_time);
+		std::string time_string = std::format("{0:%M:%S}", duration);
 
 		ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x + 3);
 		switch (status) {
