@@ -50,7 +50,6 @@ int sync_interval;
 std::mutex groupcode_mutex;
 
 bool autoPrepare;
-bool autoStop;
 bool offline;
 bool outOfDate = false;
 bool disableOutsideInstances;
@@ -165,7 +164,6 @@ uintptr_t mod_release() {
 	config["autoPrepare"] = autoPrepare;
 	config["offline"] = offline;
 	config["disableOutsideInstances"] = disableOutsideInstances;
-	config["autoStop"] = autoStop;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -182,7 +180,6 @@ uintptr_t mod_options() {
 	ImGui::Separator();
 	ImGui::Checkbox("Disable outside Instanced Content", &disableOutsideInstances);
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
-	ImGui::Checkbox("Auto Stop", &autoStop);
 	return 0;
 }
 
@@ -472,14 +469,6 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 				log_debug("timer: starting on skill");
 				timer_start(3);
 			}
-		}
-		if (ev->is_statechange == CBTS_REWARD && autoStop) {
-			log_debug("timer: stopping on reward");
-			timer_stop(3);
-		}
-		if (ev->is_statechange == CBTS_LOGEND && autoStop) {
-			log_debug("timer: stopping on log end");
-			timer_stop(3);
 		}
 	}
 
