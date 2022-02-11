@@ -55,7 +55,6 @@ bool autoPrepare;
 bool offline;
 bool outOfDate = false;
 bool autoPrepareOnlyInstancedContent;
-bool autoPrepareOnGroupChange;
 bool hideOutsideInstances;
 bool resetOnMapChange;
 
@@ -126,7 +125,6 @@ arcdps_exports* mod_init() {
 	autoPrepare = config.value("autoPrepare", true);
 	offline = config.value("offline", false);
 	autoPrepareOnlyInstancedContent = config.value("autoPrepareOnlyInstancedContent", true);
-	autoPrepareOnGroupChange = config.value("autoPrepareOnGroupChange", false);
 	hideOutsideInstances = config.value("hideOutsideInstances", true);
 	resetOnMapChange = config.value("resetOnMapChange", true);
 
@@ -173,7 +171,6 @@ uintptr_t mod_release() {
 	config["autoPrepare"] = autoPrepare;
 	config["offline"] = offline;
 	config["autoPrepareOnlyInstancedContent"] = autoPrepareOnlyInstancedContent;
-	config["autoPrepareOnGroupChange"] = autoPrepareOnGroupChange;
 	config["hideOutsideInstances"] = hideOutsideInstances;
 	config["resetOnMapChange"] = resetOnMapChange;
 	std::ofstream o(config_file);
@@ -195,7 +192,6 @@ uintptr_t mod_options() {
 	ImGui::Separator();
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
 	ImGui::Checkbox("Auto Prepare only in Instanced Content", &autoPrepareOnlyInstancedContent);
-	ImGui::Checkbox("Auto Prepare on Group Change", &autoPrepareOnGroupChange);
 	ImGui::Checkbox("Reset on Map Change", &resetOnMapChange);
 	return 0;
 }
@@ -441,7 +437,7 @@ void calculate_groupcode() {
 
 	CRC32 crc32;
 	std::string group_code_new = crc32(playersConcat);
-	if (autoPrepare && autoPrepareOnGroupChange && group_code != group_code_new) {
+	if (autoPrepare && group_code != group_code_new) {
 		log_debug("timer: preparing on group change");
 		timer_prepare();
 	}
