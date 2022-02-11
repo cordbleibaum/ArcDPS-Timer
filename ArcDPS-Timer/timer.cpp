@@ -120,7 +120,6 @@ arcdps_exports* mod_init() {
 	autoPrepare = config.value("autoPrepare", true);
 	offline = config.value("offline", false);
 	disableOutsideInstances = config.value("disableOutsideInstances", true);
-	autoStop = config.value("autoStop", true);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
