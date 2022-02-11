@@ -56,7 +56,6 @@ bool offline;
 bool outOfDate = false;
 bool autoPrepareOnlyInstancedContent;
 bool hideOutsideInstances;
-bool resetOnMapChange;
 
 bool isInstanced = false;
 
@@ -126,7 +125,6 @@ arcdps_exports* mod_init() {
 	offline = config.value("offline", false);
 	autoPrepareOnlyInstancedContent = config.value("autoPrepareOnlyInstancedContent", true);
 	hideOutsideInstances = config.value("hideOutsideInstances", true);
-	resetOnMapChange = config.value("resetOnMapChange", true);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -172,7 +170,6 @@ uintptr_t mod_release() {
 	config["offline"] = offline;
 	config["autoPrepareOnlyInstancedContent"] = autoPrepareOnlyInstancedContent;
 	config["hideOutsideInstances"] = hideOutsideInstances;
-	config["resetOnMapChange"] = resetOnMapChange;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -192,7 +189,6 @@ uintptr_t mod_options() {
 	ImGui::Separator();
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
 	ImGui::Checkbox("Auto Prepare only in Instanced Content", &autoPrepareOnlyInstancedContent);
-	ImGui::Checkbox("Reset on Map Change", &resetOnMapChange);
 	return 0;
 }
 
@@ -243,10 +239,6 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 		else {
 			isInstanced = false;
-		}
-
-		if (resetOnMapChange) {
-			timer_reset();
 		}
 
 		bool doAutoPrepare = autoPrepare;
@@ -539,7 +531,6 @@ void sync_timer() {
 	}
 
 	auto response = cpr::Get(cpr::Url{ server + "groups/" + groupcode_copy });
-
 
 	if (response.status_code != 200) {
 		log("timer: failed to sync with server");
