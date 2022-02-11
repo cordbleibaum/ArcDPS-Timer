@@ -34,6 +34,7 @@ constexpr int version_major = 6;
 TimerStatus status;
 std::chrono::system_clock::time_point start_time;
 std::chrono::system_clock::time_point current_time;
+std::chrono::system_clock::time_point update_time;
 
 HANDLE hMumbleLink;
 LinkedMem *pMumbleLink;
@@ -131,6 +132,7 @@ arcdps_exports* mod_init() {
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
+	update_time = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
 
 	hMumbleLink = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(LinkedMem), L"MumbleLink");
@@ -351,6 +353,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 void timer_start(int delta) {
 	status = TimerStatus::running;
 	start_time = std::chrono::system_clock::now() - std::chrono::seconds(delta);
+	update_time = std::chrono::system_clock::now();
 
 	if (!offline && !outOfDate) {
 		std::thread request_thread([&]() {
@@ -362,7 +365,7 @@ void timer_start(int delta) {
 
 			request["update_time"] = std::format(
 				"{:%FT%T}",
-				std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now() + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+				std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
 			);
 			
 			cpr::Post(
@@ -377,6 +380,7 @@ void timer_start(int delta) {
 
 void timer_stop() {
 	status = TimerStatus::stopped;
+	update_time = std::chrono::system_clock::now();
 
 	if (!offline && !outOfDate) {
 		std::thread request_thread([&]() {
@@ -388,7 +392,7 @@ void timer_stop() {
 
 			request["update_time"] = std::format(
 				"{:%FT%T}",
-				std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now() + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+				std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
 			);
 
 			cpr::Post(
@@ -408,16 +412,17 @@ void timer_prepare() {
 	lastPosition[0] = pMumbleLink->fAvatarPosition[0];
 	lastPosition[1] = pMumbleLink->fAvatarPosition[1];
 	lastPosition[2] = pMumbleLink->fAvatarPosition[2];
+	update_time = std::chrono::system_clock::now();
 
 	if (!offline && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
 			request["update_time"] = std::format(
 				"{:%FT%T}",
-				std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now() + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+				std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
 			);
 
-			cpr::Get(
+			cpr::Post(
 				cpr::Url{ server + "groups/" + group_code + "/prepare" },
 				cpr::Body{ request.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
@@ -490,16 +495,17 @@ void timer_reset() {
 	status = TimerStatus::stopped;
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
+	update_time = std::chrono::system_clock::now();
 
 	if (!offline && !outOfDate) {
 		json request;
 		request["update_time"] = std::format(
 			"{:%FT%T}",
-			std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now() + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+			std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
 		);
 
 		std::thread request_thread([&]() {
-			cpr::Get(
+			cpr::Post(
 				cpr::Url{ server + "groups/" + group_code + "/reset" },
 				cpr::Body{ request.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
@@ -541,11 +547,18 @@ void sync_timer() {
 	}
 
 	auto data = json::parse(response.text);
+
+	bool isNewer = true;
+	if (data.find("update_time") != data.end()) {
+		std::chrono::system_clock::time_point new_update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clockOffset * 1000.0));
+		isNewer = new_update_time < update_time ? true : false;
+	}
+
 	if (data.find("status") != data.end()) {
 		if (data["status"] == "running") {
 			log_debug("timer: starting on server");
 			status = TimerStatus::running;
-			start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clockOffset * 1000.0));;
+			start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clockOffset * 1000.0));
 		}
 		else if (data["status"] == "stopped") {
 			log_debug("timer: stopping on server");

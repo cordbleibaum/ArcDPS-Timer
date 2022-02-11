@@ -105,7 +105,7 @@ async def stop_timer(group_id, stop: TimingInfoModel):
     return {'status': 'success'}
 
 
-@app.get("/groups/{group_id}/reset")
+@app.post("/groups/{group_id}/reset")
 async def reset_timer(group_id, reset: ActionInfoModel):
     db = await get_db()
     await db.groups.update_one({'_id': group_id}, {
@@ -118,7 +118,7 @@ async def reset_timer(group_id, reset: ActionInfoModel):
     return {'status': 'success'}
 
 
-@app.get("/groups/{group_id}/prepare")
+@app.post("/groups/{group_id}/prepare")
 async def prepare_timer(group_id, prepare: ActionInfoModel):
     db = await get_db()
     await db.groups.update_one({'_id': group_id}, {
