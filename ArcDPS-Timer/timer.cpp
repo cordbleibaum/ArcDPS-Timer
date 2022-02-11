@@ -505,7 +505,6 @@ void timer_reset() {
 				std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
 			);
 
-
 			cpr::Post(
 				cpr::Url{ server + "groups/" + group_code + "/reset" },
 				cpr::Body{ request.dump() },
