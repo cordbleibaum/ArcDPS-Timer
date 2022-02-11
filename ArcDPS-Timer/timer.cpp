@@ -572,15 +572,13 @@ void sync_timer() {
 			current_time = std::chrono::system_clock::now();
 		}
 		else if (data["status"] == "prepared") {
-			if (status != TimerStatus::running) {
-				log_debug("timer: preparing on server");
-				status = TimerStatus::prepared;
-				start_time = std::chrono::system_clock::now();
-				current_time = std::chrono::system_clock::now();
-				lastPosition[0] = pMumbleLink->fAvatarPosition[0];
-				lastPosition[1] = pMumbleLink->fAvatarPosition[1];
-				lastPosition[2] = pMumbleLink->fAvatarPosition[2];
-			}
+			log_debug("timer: preparing on server");
+			status = TimerStatus::prepared;
+			start_time = std::chrono::system_clock::now();
+			current_time = std::chrono::system_clock::now();
+			lastPosition[0] = pMumbleLink->fAvatarPosition[0];
+			lastPosition[1] = pMumbleLink->fAvatarPosition[1];
+			lastPosition[2] = pMumbleLink->fAvatarPosition[2];
 		}
 	}
 }
