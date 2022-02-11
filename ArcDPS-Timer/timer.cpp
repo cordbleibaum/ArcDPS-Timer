@@ -52,7 +52,6 @@ std::mutex groupcode_mutex;
 bool autoPrepare;
 bool offline;
 bool outOfDate = false;
-bool autoPrepareOnlyInstancedContent;
 bool disableOutsideInstances;
 
 bool isInstanced = false;
@@ -120,7 +119,6 @@ arcdps_exports* mod_init() {
 	sync_interval = config.value("sync_interval", 1);
 	autoPrepare = config.value("autoPrepare", true);
 	offline = config.value("offline", false);
-	autoPrepareOnlyInstancedContent = config.value("autoPrepareOnlyInstancedContent", true);
 	disableOutsideInstances = config.value("disableOutsideInstances", true);
 
 	start_time = std::chrono::system_clock::now();
@@ -164,7 +162,6 @@ uintptr_t mod_release() {
 	config["sync_interval"] = sync_interval;
 	config["autoPrepare"] = autoPrepare;
 	config["offline"] = offline;
-	config["autoPrepareOnlyInstancedContent"] = autoPrepareOnlyInstancedContent;
 	config["disableOutsideInstances"] = disableOutsideInstances;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
@@ -182,7 +179,6 @@ uintptr_t mod_options() {
 	ImGui::Separator();
 	ImGui::Checkbox("Disable outside Instanced Content", &disableOutsideInstances);
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
-	ImGui::Checkbox("Auto Prepare only in Instanced Content", &autoPrepareOnlyInstancedContent);
 	return 0;
 }
 
@@ -214,7 +210,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
 		lastMapID = ((MumbleContext*)pMumbleLink->context)->mapId;
 
-		if (disableOutsideInstances || autoPrepareOnlyInstancedContent) {
+		if (disableOutsideInstances) {
 			auto mapRequest = cpr::Get(cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(lastMapID) });
 			auto mapData = json::parse(mapRequest.text);
 			isInstanced = mapData["type"] == "Instance";
@@ -224,7 +220,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 
 		bool doAutoPrepare = autoPrepare;
-		doAutoPrepare &= isInstanced | !autoPrepareOnlyInstancedContent;
+		doAutoPrepare &= isInstanced | !disableOutsideInstances;
 
 		if (doAutoPrepare) {
 			log_debug("timer: preparing on map change");
