@@ -498,13 +498,14 @@ void timer_reset() {
 	update_time = std::chrono::system_clock::now();
 
 	if (!offline && !outOfDate) {
-		json request;
-		request["update_time"] = std::format(
-			"{:%FT%T}",
-			std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-		);
-
 		std::thread request_thread([&]() {
+			json request;
+			request["update_time"] = std::format(
+				"{:%FT%T}",
+				std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+			);
+
+
 			cpr::Post(
 				cpr::Url{ server + "groups/" + group_code + "/reset" },
 				cpr::Body{ request.dump() },
