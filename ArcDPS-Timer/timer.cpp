@@ -551,7 +551,7 @@ void sync_timer() {
 	bool isNewer = true;
 	if (data.find("update_time") != data.end()) {
 		std::chrono::system_clock::time_point new_update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clockOffset * 1000.0));
-		isNewer = new_update_time < update_time ? true : false;
+		isNewer = new_update_time > update_time;
 	}
 
 	if (isNewer && data.find("status") != data.end()) {
