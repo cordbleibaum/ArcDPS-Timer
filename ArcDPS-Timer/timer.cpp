@@ -53,7 +53,7 @@ bool autoPrepare;
 bool offline;
 bool outOfDate = false;
 bool autoPrepareOnlyInstancedContent;
-bool hideOutsideInstances;
+bool disableOutsideInstances;
 
 bool isInstanced = false;
 
@@ -121,7 +121,7 @@ arcdps_exports* mod_init() {
 	autoPrepare = config.value("autoPrepare", true);
 	offline = config.value("offline", false);
 	autoPrepareOnlyInstancedContent = config.value("autoPrepareOnlyInstancedContent", true);
-	hideOutsideInstances = config.value("hideOutsideInstances", true);
+	disableOutsideInstances = config.value("disableOutsideInstances", true);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -165,7 +165,7 @@ uintptr_t mod_release() {
 	config["autoPrepare"] = autoPrepare;
 	config["offline"] = offline;
 	config["autoPrepareOnlyInstancedContent"] = autoPrepareOnlyInstancedContent;
-	config["hideOutsideInstances"] = hideOutsideInstances;
+	config["disableOutsideInstances"] = disableOutsideInstances;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -180,8 +180,7 @@ uintptr_t mod_options() {
 	ImGui::InputInt("Sync Interval", &sync_interval);
 	ImGui::Checkbox("Offline Mode", &offline);
 	ImGui::Separator();
-	ImGui::Checkbox("Hide outside Instanced Content", &hideOutsideInstances);
-	ImGui::Separator();
+	ImGui::Checkbox("Disable outside Instanced Content", &disableOutsideInstances);
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
 	ImGui::Checkbox("Auto Prepare only in Instanced Content", &autoPrepareOnlyInstancedContent);
 	return 0;
@@ -212,22 +211,10 @@ std::string string_format(const std::string& format, Args ... args)
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (!not_charsel_or_loading) return 0;
 
-	if (status == TimerStatus::running) {
-		current_time = std::chrono::system_clock::now();
-	}
-	else if (status == TimerStatus::prepared) {
-		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 0.1f) ||
-			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 0.1f) ||
-			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 0.1f)) {
-			log_debug("timer: starting on movement");
-			timer_start(0);
-		}
-	}
-		
 	if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
 		lastMapID = ((MumbleContext*)pMumbleLink->context)->mapId;
 
-		if (hideOutsideInstances || autoPrepareOnlyInstancedContent) {
+		if (disableOutsideInstances || autoPrepareOnlyInstancedContent) {
 			auto mapRequest = cpr::Get(cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(lastMapID) });
 			auto mapData = json::parse(mapRequest.text);
 			isInstanced = mapData["type"] == "Instance";
@@ -245,16 +232,28 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 	}
 
+	if (disableOutsideInstances && !isInstanced) {
+		return 0;
+	}
+
+	if (status == TimerStatus::running) {
+		current_time = std::chrono::system_clock::now();
+	}
+	else if (status == TimerStatus::prepared) {
+		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 0.1f) ||
+			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 0.1f) ||
+			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 0.1f)) {
+			log_debug("timer: starting on movement");
+			timer_start(0);
+		}
+	}
+
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_update).count() > sync_interval) {
 		last_update = std::chrono::system_clock::now();
 		if (!offline && !outOfDate) {
 			std::thread sync_thread(sync_timer);
 			sync_thread.detach();
 		}
-	}
-
-	if (hideOutsideInstances && !isInstanced) {
-		return 0;
 	}
 
 	if (showTimer) {
