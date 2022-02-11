@@ -23,6 +23,11 @@ async def close_db():
 
 class TimingInfoModel(BaseModel):
     time: datetime.datetime
+    update_time: datetime.datetime
+
+
+class ActionInfoModel(BaseModel):
+    update_time: datetime.datetime
 
 
 app = FastAPI()
@@ -37,7 +42,7 @@ async def root():
 @app.get("/version")
 async def get_version():
     return {
-        "major": 5
+        "major": 6
     }
 
 
@@ -61,6 +66,7 @@ async def start_timer(group_id, start: TimingInfoModel):
         if is_newer or group['status'] != 'running':
             group['start_time'] = start.time
             group['status'] = 'running'
+            group['update_time'] = start.update_time
             await db.groups.replace_one({'_id': group_id}, group)
     else:
         await db.groups.update_one(
@@ -69,7 +75,8 @@ async def start_timer(group_id, start: TimingInfoModel):
                 '$set': {
                     '_id': group_id,
                     'status': 'running',
-                    'start_time': start.time
+                    'start_time': start.time,
+                    'update_time': start.update_time
                 }
             }, True)
     return {'status': 'success'}
@@ -82,38 +89,43 @@ async def stop_timer(group_id, stop: TimingInfoModel):
     if group and group['status'] == 'running':
         group['status'] = 'stopped'
         group['stop_time'] = stop.time
+        group['update_time'] = stop.update_time
         await db.groups.replace_one({'_id': group_id}, group)
     elif group and group['status'] == 'stopped':
         is_older = group['stop_time'] > stop.time
         if is_older:
             group['stop_time'] = stop.time
+            group['update_time'] = stop.update_time
             await db.groups.replace_one({'_id': group_id}, group)
     elif group and group['status'] == 'prepared':
         group['status'] = 'stopped'
         group['stop_time'] = stop.time
+        group['update_time'] = stop.update_time
         await db.groups.replace_one({'_id': group_id}, group)
     return {'status': 'success'}
 
 
 @app.get("/groups/{group_id}/reset")
-async def reset_timer(group_id):
+async def reset_timer(group_id, reset: ActionInfoModel):
     db = await get_db()
     await db.groups.update_one({'_id': group_id}, {
         '$set': {
             '_id': group_id,
             'status': 'resetted',
+            'update_time': reset.update_time
         }
     });
     return {'status': 'success'}
 
 
 @app.get("/groups/{group_id}/prepare")
-async def reset_timer(group_id):
+async def prepare_timer(group_id, prepare: ActionInfoModel):
     db = await get_db()
     await db.groups.update_one({'_id': group_id}, {
         '$set': {
             '_id': group_id,
             'status': 'prepared',
+             'update_time': prepare.update_time
         }
     }, True);
     return {'status': 'success'}

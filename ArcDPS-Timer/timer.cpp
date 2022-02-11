@@ -29,7 +29,7 @@ bool showTimer = false;
 bool windowBorder = true;
 
 std::string config_file = "addons/arcdps/timer.json";
-constexpr int version_major = 5;
+constexpr int version_major = 6;
 
 TimerStatus status;
 std::chrono::system_clock::time_point start_time;
@@ -359,6 +359,11 @@ void timer_start(int delta) {
 				"{:%FT%T}", 
 				std::chrono::floor<std::chrono::milliseconds>(start_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
 			);
+
+			request["update_time"] = std::format(
+				"{:%FT%T}",
+				std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now() + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+			);
 			
 			cpr::Post(
 				cpr::Url{ server + "groups/" + group_code + "/start" },
@@ -381,6 +386,11 @@ void timer_stop() {
 				std::chrono::floor<std::chrono::milliseconds>(current_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
 			);
 
+			request["update_time"] = std::format(
+				"{:%FT%T}",
+				std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now() + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+			);
+
 			cpr::Post(
 				cpr::Url{ server + "groups/" + group_code + "/stop" },
 				cpr::Body{ request.dump() },
@@ -401,7 +411,17 @@ void timer_prepare() {
 
 	if (!offline && !outOfDate) {
 		std::thread request_thread([&]() {
-			cpr::Get(cpr::Url{ server + "groups/" + group_code + "/prepare" });
+			json request;
+			request["update_time"] = std::format(
+				"{:%FT%T}",
+				std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now() + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+			);
+
+			cpr::Get(
+				cpr::Url{ server + "groups/" + group_code + "/prepare" },
+				cpr::Body{ request.dump() },
+				cpr::Header{ {"Content-Type", "application/json"} }
+			);
 		});
 		request_thread.detach();
 	}
@@ -472,8 +492,18 @@ void timer_reset() {
 	current_time = std::chrono::system_clock::now();
 
 	if (!offline && !outOfDate) {
+		json request;
+		request["update_time"] = std::format(
+			"{:%FT%T}",
+			std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now() + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+		);
+
 		std::thread request_thread([&]() {
-			cpr::Get(cpr::Url{ server + "groups/" + group_code + "/reset" });
+			cpr::Get(
+				cpr::Url{ server + "groups/" + group_code + "/reset" },
+				cpr::Body{ request.dump() },
+				cpr::Header{ {"Content-Type", "application/json"} }
+			);
 		});
 		request_thread.detach();
 	}
