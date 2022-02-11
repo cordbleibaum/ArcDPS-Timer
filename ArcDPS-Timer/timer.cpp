@@ -34,7 +34,6 @@ TimerStatus status;
 std::chrono::system_clock::time_point start_time;
 std::chrono::system_clock::time_point current_time;
 std::chrono::system_clock::time_point update_time;
-std::chrono::system_clock::time_point mapload_lock;
 
 HANDLE hMumbleLink;
 LinkedMem *pMumbleLink;
@@ -127,7 +126,6 @@ arcdps_exports* mod_init() {
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
 	update_time = std::chrono::system_clock::now();
-	mapload_lock = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
 
 	hMumbleLink = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(LinkedMem), L"MumbleLink");
@@ -217,7 +215,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (status == TimerStatus::running) {
 		current_time = std::chrono::system_clock::now();
 	}
-	else if (status == TimerStatus::prepared && std::chrono::system_clock::now() > mapload_lock) {
+	else if (status == TimerStatus::prepared) {
 		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 0.1f) ||
 			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 0.1f) ||
 			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 0.1f)) {
@@ -241,12 +239,9 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		bool doAutoPrepare = autoPrepare;
 		doAutoPrepare &= isInstanced | !autoPrepareOnlyInstancedContent;
 
-		if (doAutoPrepare && status == TimerStatus::stopped) {
+		if (doAutoPrepare) {
 			log_debug("timer: preparing on map change");
 			timer_prepare();
-
-
-			mapload_lock = std::chrono::system_clock::now() + std::chrono::milliseconds{ 100 };
 		}
 	}
 
@@ -263,9 +258,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	}
 
 	if (showTimer) {
-		ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize;
-
-		ImGui::Begin("Timer", &showTimer, flags);
+		ImGui::Begin("Timer", &showTimer, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
