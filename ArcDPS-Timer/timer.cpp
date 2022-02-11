@@ -446,7 +446,8 @@ void calculate_groupcode() {
 		timer_prepare();
 	}
 	if (group_code != group_code_new) {
-		update_time = std::chrono::system_clock::now();
+		using namespace std::chrono_literals;
+		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
 	}
 	group_code = group_code_new;
 }
