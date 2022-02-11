@@ -554,7 +554,7 @@ void sync_timer() {
 		isNewer = new_update_time < update_time ? true : false;
 	}
 
-	if (data.find("status") != data.end()) {
+	if (isNewer && data.find("status") != data.end()) {
 		if (data["status"] == "running") {
 			log_debug("timer: starting on server");
 			status = TimerStatus::running;
