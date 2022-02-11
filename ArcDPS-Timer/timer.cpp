@@ -26,7 +26,6 @@ void* arclog;
 void* filelog;
 
 bool showTimer = false;
-bool windowBorder = true;
 
 std::string config_file = "addons/arcdps/timer.json";
 constexpr int version_major = 6;
@@ -35,6 +34,7 @@ TimerStatus status;
 std::chrono::system_clock::time_point start_time;
 std::chrono::system_clock::time_point current_time;
 std::chrono::system_clock::time_point update_time;
+std::chrono::system_clock::time_point mapload_lock;
 
 HANDLE hMumbleLink;
 LinkedMem *pMumbleLink;
@@ -50,7 +50,6 @@ int sync_interval;
 
 std::mutex groupcode_mutex;
 
-bool groupWidePrepare;
 bool autoPrepare;
 bool offline;
 bool outOfDate = false;
@@ -102,7 +101,7 @@ arcdps_exports* mod_init() {
 	arc_exports.imguivers = IMGUI_VERSION_NUM;
 	arc_exports.size = sizeof(arcdps_exports);
 	arc_exports.out_name = "Timer";
-	arc_exports.out_build = "0.3";
+	arc_exports.out_build = "0.4";
 	arc_exports.options_end = mod_options;
 	arc_exports.options_windows = mod_windows;
 	arc_exports.imgui = mod_imgui;
@@ -118,7 +117,6 @@ arcdps_exports* mod_init() {
 		}
 	}
 	showTimer = config.value("showTimer", true);
-	windowBorder = config.value("windowBorder", false);
 	server = config.value("server", "http://164.92.229.177:5001/");
 	sync_interval = config.value("sync_interval", 1);
 	autoPrepare = config.value("autoPrepare", true);
@@ -129,6 +127,7 @@ arcdps_exports* mod_init() {
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
 	update_time = std::chrono::system_clock::now();
+	mapload_lock = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
 
 	hMumbleLink = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(LinkedMem), L"MumbleLink");
@@ -162,7 +161,6 @@ arcdps_exports* mod_init() {
 uintptr_t mod_release() {
 	json config;
 	config["showTimer"] = showTimer;
-	config["windowBorder"] = windowBorder;
 	config["server"] = server;
 	config["version"] = version_major;
 	config["sync_interval"] = sync_interval;
@@ -184,7 +182,6 @@ uintptr_t mod_options() {
 	ImGui::InputInt("Sync Interval", &sync_interval);
 	ImGui::Checkbox("Offline Mode", &offline);
 	ImGui::Separator();
-	ImGui::Checkbox("Window Border", &windowBorder);
 	ImGui::Checkbox("Hide outside Instanced Content", &hideOutsideInstances);
 	ImGui::Separator();
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
@@ -220,7 +217,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (status == TimerStatus::running) {
 		current_time = std::chrono::system_clock::now();
 	}
-	else if (status == TimerStatus::prepared) {
+	else if (status == TimerStatus::prepared && std::chrono::system_clock::now() > mapload_lock) {
 		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 0.1f) ||
 			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 0.1f) ||
 			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 0.1f)) {
@@ -242,13 +239,14 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 
 		bool doAutoPrepare = autoPrepare;
-		if (autoPrepareOnlyInstancedContent) {
-			doAutoPrepare &= isInstanced;
-		}
+		doAutoPrepare &= isInstanced | !autoPrepareOnlyInstancedContent;
 
 		if (doAutoPrepare && status == TimerStatus::stopped) {
 			log_debug("timer: preparing on map change");
 			timer_prepare();
+
+
+			mapload_lock = std::chrono::system_clock::now() + std::chrono::milliseconds{ 100 };
 		}
 	}
 
@@ -266,9 +264,6 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 	if (showTimer) {
 		ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize;
-		if (!windowBorder) {
-			flags |= ImGuiWindowFlags_NoDecoration;
-		}
 
 		ImGui::Begin("Timer", &showTimer, flags);
 
