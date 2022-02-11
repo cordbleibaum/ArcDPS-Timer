@@ -445,6 +445,9 @@ void calculate_groupcode() {
 		log_debug("timer: preparing on group change");
 		timer_prepare();
 	}
+	if (group_code != group_code_new) {
+		update_time = std::chrono::system_clock::now();
+	}
 	group_code = group_code_new;
 }
 
