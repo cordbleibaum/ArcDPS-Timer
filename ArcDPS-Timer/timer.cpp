@@ -50,6 +50,7 @@ int sync_interval;
 std::mutex groupcode_mutex;
 
 bool autoPrepare;
+bool stopOnReward;
 bool offline;
 bool outOfDate = false;
 bool disableOutsideInstances;
@@ -120,6 +121,7 @@ arcdps_exports* mod_init() {
 	autoPrepare = config.value("autoPrepare", true);
 	offline = config.value("offline", false);
 	disableOutsideInstances = config.value("disableOutsideInstances", true);
+	stopOnReward = config.value("stopOnReward", true);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -163,6 +165,7 @@ uintptr_t mod_release() {
 	config["autoPrepare"] = autoPrepare;
 	config["offline"] = offline;
 	config["disableOutsideInstances"] = disableOutsideInstances;
+	config["stopOnReward"] = stopOnReward;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 
@@ -179,6 +182,7 @@ uintptr_t mod_options() {
 	ImGui::Separator();
 	ImGui::Checkbox("Disable outside Instanced Content", &disableOutsideInstances);
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
+	ImGui::Checkbox("Stop on Reward", &stopOnReward);
 	return 0;
 }
 
@@ -284,7 +288,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		
 		if (ImGui::Button("Stop", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 			log_debug("timer: stopping manually");
-			timer_stop();
+			timer_stop(0);
 		}
 
 		ImGui::SameLine(0, 5);
@@ -332,7 +336,8 @@ void timer_start(int delta) {
 	}
 }
 
-void timer_stop() {
+void timer_stop(int delta) {
+	current_time = std::chrono::system_clock::now() - std::chrono::seconds(delta);
 	status = TimerStatus::stopped;
 	update_time = std::chrono::system_clock::now();
 
@@ -467,6 +472,9 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 				log_debug("timer: starting on skill");
 				timer_start(3);
 			}
+		}
+		if (ev->is_statechange == CBTS_REWARD && stopOnReward) {
+			timer_stop(3);
 		}
 	}
 

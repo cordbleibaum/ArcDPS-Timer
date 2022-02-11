@@ -10,7 +10,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading);
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t id, uint64_t revision);
 
 void timer_start(int delta);
-void timer_stop();
+void timer_stop(int delta);
 void timer_prepare();
 void timer_reset();
 
