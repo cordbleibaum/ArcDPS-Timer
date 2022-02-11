@@ -428,25 +428,27 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 					std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
 					double duration = duration_dbl.count();
 					if (duration < 3 && status == TimerStatus::running) {
-						std::thread request_thread([&]() {
-							json request;
-							request["time"] = std::format(
-								"{:%FT%T}", 
-								std::chrono::floor<std::chrono::milliseconds>(start_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-							);
+						if (!offline && !outOfDate) {
+							std::thread request_thread([&]() {
+								json request;
+								request["time"] = std::format(
+									"{:%FT%T}",
+									std::chrono::floor<std::chrono::milliseconds>(start_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+								);
 
-							request["update_time"] = std::format(
-								"{:%FT%T}",
-								std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-							);
-			
-							cpr::Post(
-								cpr::Url{ server + "groups/" + group_code + "/start" },
-								cpr::Body{ request.dump() },
-								cpr::Header{ {"Content-Type", "application/json"} }
-							);
-						});
-						request_thread.detach();
+								request["update_time"] = std::format(
+									"{:%FT%T}",
+									std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+								);
+
+								cpr::Post(
+									cpr::Url{ server + "groups/" + group_code + "/start" },
+									cpr::Body{ request.dump() },
+									cpr::Header{ {"Content-Type", "application/json"} }
+								);
+								});
+							request_thread.detach();
+						}
 					}
 				}
 				else {
