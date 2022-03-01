@@ -207,7 +207,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 			auto mapRequest = cpr::Get(cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(lastMapID) });
 			if (mapRequest.status_code != 200) {
 				isInstanced = true;
-				log("GW2 API not accessible, can't check if instanced");
+				log("timer: GW2 API not accessible, can't check if instanced");
 			}
 			else {
 				auto mapData = json::parse(mapRequest.text);
