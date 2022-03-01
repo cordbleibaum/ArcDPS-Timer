@@ -173,12 +173,16 @@ uintptr_t mod_release() {
 }
 
 uintptr_t mod_options() {
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
+
 	ImGui::InputText("Server", &server);
 	ImGui::InputInt("Sync Interval", &sync_interval);
 	ImGui::Checkbox("Offline Mode", &offline);
 	ImGui::Separator();
 	ImGui::Checkbox("Disable outside Instanced Content", &disableOutsideInstances);
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
+
+	ImGui::PopStyleVar();
 	return 0;
 }
 
@@ -201,8 +205,14 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 		if (disableOutsideInstances) {
 			auto mapRequest = cpr::Get(cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(lastMapID) });
-			auto mapData = json::parse(mapRequest.text);
-			isInstanced = mapData["type"] == "Instance";
+			if (mapRequest.status_code >= 400) {
+				isInstanced = true;
+				log("GW2 API not accessible, can't check if instanced");
+			}
+			else {
+				auto mapData = json::parse(mapRequest.text);
+				isInstanced = mapData["type"] == "Instance";
+			}
 		}
 		else {
 			isInstanced = false;
@@ -229,7 +239,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 0.1f) ||
 			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 0.1f)) {
 			log_debug("timer: starting on movement");
-			timer_start(0);
+			timer_start();
 		}
 	}
 
@@ -277,7 +287,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 		if (ImGui::Button("Start", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 			log_debug("timer: starting manually");
-			timer_start(0);
+			timer_start();
 		}
 		
 		ImGui::SameLine(0, 5);
@@ -304,32 +314,45 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	return 0;
 }
 
-void timer_start(int delta) {
-	status = TimerStatus::running;
-	start_time = std::chrono::system_clock::now() - std::chrono::seconds(delta);
-	update_time = std::chrono::system_clock::now();
-
+void request_start() {
 	if (!offline && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
 			request["time"] = std::format(
-				"{:%FT%T}", 
-				std::chrono::floor<std::chrono::milliseconds>(start_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+				"{:%FT%T}",
+				std::chrono::floor<std::chrono::milliseconds>(current_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
 			);
 
 			request["update_time"] = std::format(
 				"{:%FT%T}",
 				std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
 			);
-			
+
 			cpr::Post(
-				cpr::Url{ server + "groups/" + group_code + "/start" },
+				cpr::Url{ server + "groups/" + group_code + "/stop" },
 				cpr::Body{ request.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
 			);
-		});
+			});
 		request_thread.detach();
 	}
+}
+
+void timer_start() {
+	status = TimerStatus::running;
+	start_time = std::chrono::system_clock::now();
+	update_time = std::chrono::system_clock::now();
+
+	request_start();
+}
+
+void timer_start(uint64_t time) {
+	status = TimerStatus::running;
+	std::chrono::milliseconds time_ms(time);
+	start_time = std::chrono::time_point<std::chrono::system_clock>(time_ms);
+	update_time = std::chrono::system_clock::now();
+
+	request_start();
 }
 
 void timer_stop(int delta) {
@@ -468,7 +491,11 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 
 			if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
 				log_debug("timer: starting on skill");
-				timer_start(3);
+				auto ticks_now = timeGetTime();
+				auto ticks_diff = ticks_now - ev->time;
+				auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+				auto skill_time = now_ms.time_since_epoch().count() - ticks_diff;
+				timer_start(skill_time);
 			}
 		}
 	}
