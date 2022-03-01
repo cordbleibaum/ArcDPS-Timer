@@ -246,6 +246,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 			timer_start();
 		}
 	}
+
 	if (status == TimerStatus::running) {
 		current_time = std::chrono::system_clock::now();
 	}
@@ -262,7 +263,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		ImGui::Begin("Timer", &showTimer, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
-
+		
 		auto duration = std::chrono::round<std::chrono::milliseconds>(current_time - start_time);
 		std::string time_string = std::format("{0:%M:%S}", duration);
 
@@ -348,6 +349,7 @@ void request_start() {
 void timer_start() {
 	start_time = std::chrono::system_clock::now();
 	update_time = std::chrono::system_clock::now();
+	current_time = std::chrono::system_clock::now();
 	status = TimerStatus::running;
 
 	request_start();
@@ -358,6 +360,7 @@ void timer_start(uint64_t time) {
 	std::chrono::milliseconds time_ms(time);
 	start_time = std::chrono::time_point<std::chrono::system_clock>(time_ms);
 	update_time = std::chrono::system_clock::now();
+	current_time = std::chrono::system_clock::now();
 
 	request_start();
 }
