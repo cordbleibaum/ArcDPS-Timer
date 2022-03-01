@@ -48,7 +48,6 @@ std::chrono::system_clock::time_point last_update;
 int sync_interval;
 
 std::mutex groupcode_mutex;
-std::mutex groupcode_mutex;
 
 bool autoPrepare;
 bool offline;
