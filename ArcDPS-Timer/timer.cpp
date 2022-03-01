@@ -140,10 +140,16 @@ arcdps_exports* mod_init() {
 	}
 
 	auto response = cpr::Get(cpr::Url{ server + "version" });
-	auto data = json::parse(response.text);
-	if (data["major"] != version_major) {
-		log("timer: out of date version, going offline mode\n");
-		outOfDate = true;
+	if (response.status_code != 200) {
+		log("timer: failed to connect to timer api, enabling offline mode\n");
+		offline = true;
+	}
+	else {
+		auto data = json::parse(response.text);
+		if (data["major"] != version_major) {
+			log("timer: out of date version, going offline mode\n");
+			outOfDate = true;
+		}
 	}
 
 	NTPClient ntp("pool.ntp.org");
