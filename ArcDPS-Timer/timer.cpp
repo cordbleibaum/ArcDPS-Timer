@@ -48,6 +48,7 @@ std::chrono::system_clock::time_point last_update;
 int sync_interval;
 
 std::mutex groupcode_mutex;
+std::mutex groupcode_mutex;
 
 bool autoPrepare;
 bool offline;
@@ -237,16 +238,17 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		return 0;
 	}
 
-	if (status == TimerStatus::running) {
-		current_time = std::chrono::system_clock::now();
-	}
-	else if (status == TimerStatus::prepared) {
+
+	if (status == TimerStatus::prepared) {
 		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 0.1f) ||
 			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 0.1f) ||
 			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 0.1f)) {
 			log_debug("timer: starting on movement");
 			timer_start();
 		}
+	}
+	if (status == TimerStatus::running) {
+		current_time = std::chrono::system_clock::now();
 	}
 
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_update).count() > sync_interval) {
@@ -345,9 +347,9 @@ void request_start() {
 }
 
 void timer_start() {
-	status = TimerStatus::running;
 	start_time = std::chrono::system_clock::now();
 	update_time = std::chrono::system_clock::now();
+	status = TimerStatus::running;
 
 	request_start();
 }
