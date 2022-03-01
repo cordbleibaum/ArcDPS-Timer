@@ -99,7 +99,7 @@ arcdps_exports* mod_init() {
 	arc_exports.imguivers = IMGUI_VERSION_NUM;
 	arc_exports.size = sizeof(arcdps_exports);
 	arc_exports.out_name = "Timer";
-	arc_exports.out_build = "0.4";
+	arc_exports.out_build = "0.5";
 	arc_exports.options_end = mod_options;
 	arc_exports.options_windows = mod_windows;
 	arc_exports.imgui = mod_imgui;
