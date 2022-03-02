@@ -366,30 +366,32 @@ void timer_start(uint64_t time) {
 }
 
 void timer_stop(int delta) {
-	current_time = std::chrono::system_clock::now() - std::chrono::seconds(delta);
-	status = TimerStatus::stopped;
-	update_time = std::chrono::system_clock::now();
+	if (status != TimerStatus::stopped) {
+		current_time = std::chrono::system_clock::now() - std::chrono::seconds(delta);
+		status = TimerStatus::stopped;
+		update_time = std::chrono::system_clock::now();
 
-	if (!offline && !outOfDate) {
-		std::thread request_thread([&]() {
-			json request;
-			request["time"] = std::format(
-				"{:%FT%T}", 
-				std::chrono::floor<std::chrono::milliseconds>(current_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-			);
+		if (!offline && !outOfDate) {
+			std::thread request_thread([&]() {
+				json request;
+				request["time"] = std::format(
+					"{:%FT%T}",
+					std::chrono::floor<std::chrono::milliseconds>(current_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+				);
 
-			request["update_time"] = std::format(
-				"{:%FT%T}",
-				std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-			);
+				request["update_time"] = std::format(
+					"{:%FT%T}",
+					std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+				);
 
-			cpr::Post(
-				cpr::Url{ server + "groups/" + group_code + "/stop" },
-				cpr::Body{ request.dump() },
-				cpr::Header{ {"Content-Type", "application/json"} }
-			);
-		});
-		request_thread.detach();
+				cpr::Post(
+					cpr::Url{ server + "groups/" + group_code + "/stop" },
+					cpr::Body{ request.dump() },
+					cpr::Header{ {"Content-Type", "application/json"} }
+				);
+				});
+			request_thread.detach();
+		}
 	}
 }
 
