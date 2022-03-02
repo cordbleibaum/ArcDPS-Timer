@@ -186,7 +186,10 @@ uintptr_t mod_options() {
 	ImGui::Checkbox("Offline Mode", &offline);
 	ImGui::Separator();
 	ImGui::Checkbox("Disable outside Instanced Content", &disableOutsideInstances);
+
 	ImGui::Checkbox("Auto Prepare", &autoPrepare);
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip("Tries to automatically set the timer to prepared,\nand start on movement/skillcast. Still has a few limitations");
 
 	ImGui::PopStyleVar();
 	return 0;
