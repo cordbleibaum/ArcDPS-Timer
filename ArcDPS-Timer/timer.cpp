@@ -191,7 +191,14 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 		
 		auto duration = std::chrono::round<std::chrono::milliseconds>(current_time - start_time);
-		std::string time_string = std::format("{0:%M:%S}", duration);
+
+		std::string time_string = "";
+		try {
+			time_string = std::format(settings.time_formatter, duration);
+		}
+		catch(const std::exception& e) {
+			time_string = "INVALID";
+		}
 
 		ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x + 3);
 		switch (status) {

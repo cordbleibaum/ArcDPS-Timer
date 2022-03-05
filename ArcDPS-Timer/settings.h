@@ -15,6 +15,7 @@ public:
 	bool auto_prepare;
 	bool is_offline_mode;
 	bool disable_outside_instances;
+	std::string time_formatter;
 private:
 	int settings_version;
 	std::string config_file;

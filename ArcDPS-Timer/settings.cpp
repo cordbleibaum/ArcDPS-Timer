@@ -28,6 +28,7 @@ Settings::Settings(std::string file, int settings_version)
 	auto_prepare = config.value("auto_prepare", true);
 	is_offline_mode = config.value("is_offline_mode", false);
 	disable_outside_instances = config.value("disable_outside_instances", true);
+	time_formatter = config.value("time_formatter", "{0:%M:%S}");
 }
 
 void Settings::save() {
@@ -39,6 +40,7 @@ void Settings::save() {
 	config["auto_prepare"] = auto_prepare;
 	config["is_offline_mode"] = is_offline_mode;
 	config["disable_outside_instances"] = disable_outside_instances;
+	config["timer_formatter"] = time_formatter;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -55,6 +57,12 @@ void Settings::show_options() {
 	ImGui::Checkbox("Auto Prepare", &auto_prepare);
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip("Tries to automatically set the timer to prepared,\nand start on movement/skillcast. Still has a few limitations");
+	}
+
+	ImGui::Separator();
+	ImGui::InputText("Time formatter", &time_formatter);
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Format for timer time, see https://en.cppreference.com/w/cpp/chrono/duration/formatter");
 	}
 
 	ImGui::PopStyleVar();
