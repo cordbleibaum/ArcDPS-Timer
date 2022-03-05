@@ -248,19 +248,19 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	return 0;
 }
 
+std::string format_time(std::chrono::system_clock::time_point time) {
+	return std::format(
+		"{:%FT%T}",
+		std::chrono::floor<std::chrono::milliseconds>(time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
+	);
+}
+
 void request_start() {
 	if (!settings.is_offline_mode && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
-			request["time"] = std::format(
-				"{:%FT%T}",
-				std::chrono::floor<std::chrono::milliseconds>(current_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-			);
-
-			request["update_time"] = std::format(
-				"{:%FT%T}",
-				std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-			);
+			request["time"] = format_time(start_time);
+			request["update_time"] = format_time(update_time);
 
 			cpr::Post(
 				cpr::Url{ settings.server_url + "groups/" + group_code + "/stop" },
@@ -300,15 +300,8 @@ void timer_stop(int delta) {
 		if (!settings.is_offline_mode && !outOfDate) {
 			std::thread request_thread([&]() {
 				json request;
-				request["time"] = std::format(
-					"{:%FT%T}",
-					std::chrono::floor<std::chrono::milliseconds>(current_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-				);
-
-				request["update_time"] = std::format(
-					"{:%FT%T}",
-					std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-				);
+				request["time"] = format_time(current_time);
+				request["update_time"] = format_time(update_time);
 
 				cpr::Post(
 					cpr::Url{ settings.server_url + "groups/" + group_code + "/stop" },
@@ -333,10 +326,7 @@ void timer_prepare() {
 	if (!settings.is_offline_mode && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
-			request["update_time"] = std::format(
-				"{:%FT%T}",
-				std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-			);
+			request["update_time"] = format_time(update_time);
 
 			cpr::Post(
 				cpr::Url{ settings.server_url + "groups/" + group_code + "/prepare" },
@@ -392,15 +382,8 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 						if (!settings.is_offline_mode && !outOfDate) {
 							std::thread request_thread([&]() {
 								json request;
-								request["time"] = std::format(
-									"{:%FT%T}",
-									std::chrono::floor<std::chrono::milliseconds>(start_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-								);
-
-								request["update_time"] = std::format(
-									"{:%FT%T}",
-									std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-								);
+								request["time"] = format_time(start_time);
+								request["update_time"] = format_time(update_time);
 
 								cpr::Post(
 									cpr::Url{ settings.server_url + "groups/" + group_code + "/start" },
@@ -450,10 +433,7 @@ void timer_reset() {
 	if (!settings.is_offline_mode && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
-			request["update_time"] = std::format(
-				"{:%FT%T}",
-				std::chrono::floor<std::chrono::milliseconds>(update_time + std::chrono::milliseconds((int)(clockOffset * 1000.0)))
-			);
+			request["update_time"] = format_time(update_time);
 
 			cpr::Post(
 				cpr::Url{ settings.server_url + "groups/" + group_code + "/reset" },
