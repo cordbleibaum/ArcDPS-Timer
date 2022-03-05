@@ -7,6 +7,7 @@ public:
 	Settings() = default;
 	Settings(std::string file, int settings_version);
 	void save();
+	void show_options();
 
 	bool show_timer;
 	std::string server_url;

@@ -151,19 +151,7 @@ uintptr_t mod_release() {
 }
 
 uintptr_t mod_options() {
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
-
-	ImGui::InputText("Server", &settings.server_url);
-	ImGui::InputInt("Sync Interval", &settings.sync_interval);
-	ImGui::Checkbox("Offline Mode", &settings.is_offline_mode);
-	ImGui::Separator();
-	ImGui::Checkbox("Disable outside Instanced Content", &settings.disable_outside_instances);
-
-	ImGui::Checkbox("Auto Prepare", &settings.auto_prepare);
-	if (ImGui::IsItemHovered())
-		ImGui::SetTooltip("Tries to automatically set the timer to prepared,\nand start on movement/skillcast. Still has a few limitations");
-
-	ImGui::PopStyleVar();
+	settings.show_options();
 	return 0;
 }
 
@@ -514,8 +502,7 @@ void timer_reset() {
 	}
 }
 
-std::chrono::system_clock::time_point parse_time(const std::string& source)
-{
+std::chrono::system_clock::time_point parse_time(const std::string& source) {
 	std::chrono::sys_time<std::chrono::microseconds> timePoint;
 	std::istringstream(source) >> std::chrono::parse(std::string("%FT%T"), timePoint);
 	return timePoint;

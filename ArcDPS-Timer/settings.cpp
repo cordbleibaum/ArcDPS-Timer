@@ -4,6 +4,8 @@
 #include <fstream>
 
 #include "json.hpp"
+#include "imgui/imgui.h"
+#include "imgui_stdlib.h"
 
 using json = nlohmann::json;
 
@@ -28,8 +30,7 @@ Settings::Settings(std::string file, int settings_version)
 	disable_outside_instances = config.value("disable_outside_instances", true);
 }
 
-void Settings::save()
-{
+void Settings::save() {
 	json config;
 	config["show_timer"] = show_timer;
 	config["server_url"] = server_url;
@@ -40,4 +41,21 @@ void Settings::save()
 	config["disable_outside_instances"] = disable_outside_instances;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
+}
+
+void Settings::show_options() {
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
+
+	ImGui::InputText("Server", &server_url);
+	ImGui::InputInt("Sync Interval", &sync_interval);
+	ImGui::Checkbox("Offline Mode", &is_offline_mode);
+	ImGui::Separator();
+	ImGui::Checkbox("Disable outside Instanced Content", &disable_outside_instances);
+
+	ImGui::Checkbox("Auto Prepare", &auto_prepare);
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Tries to automatically set the timer to prepared,\nand start on movement/skillcast. Still has a few limitations");
+	}
+
+	ImGui::PopStyleVar();
 }
