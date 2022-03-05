@@ -179,6 +179,7 @@
     <ClInclude Include="json.hpp" />
     <ClInclude Include="mumble_link.h" />
     <ClInclude Include="ntp.h" />
+    <ClInclude Include="settings.h" />
     <ClInclude Include="timer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -189,6 +190,7 @@
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="imgui_stdlib.cpp" />
     <ClCompile Include="ntp.cpp" />
+    <ClCompile Include="settings.cpp" />
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

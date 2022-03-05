@@ -1,8 +1,6 @@
 #include "timer.h"
 
 #include <string>
-#include <fstream>
-#include <filesystem>
 #include <chrono>
 #include <cmath>
 #include <format>
@@ -15,7 +13,9 @@
 #include "json.hpp"
 #include "mumble_link.h"
 #include "hash-library/crc32.h"
+
 #include "ntp.h"
+#include "settings.h"
 
 using json = nlohmann::json;
 
@@ -25,10 +25,11 @@ arcdps_exports arc_exports;
 void* arclog;
 void* filelog;
 
-bool showTimer = false;
+Settings settings;
 
 std::string config_file = "addons/arcdps/timer.json";
-constexpr int version_major = 6;
+constexpr int server_version = 6;
+constexpr int settings_version = 7;
 
 TimerStatus status;
 std::chrono::system_clock::time_point start_time;
@@ -40,20 +41,14 @@ LinkedMem *pMumbleLink;
 float lastPosition[3];
 uint32_t lastMapID = 0;
 
-std::string server;
 std::string selfAccountName;
 std::string group_code;
 std::set<std::string> group_players;
 std::chrono::system_clock::time_point last_update;
-int sync_interval;
 
 std::mutex groupcode_mutex;
 
-bool autoPrepare;
-bool offline;
 bool outOfDate = false;
-bool disableOutsideInstances;
-
 bool isInstanced = false;
 
 double clockOffset = 0;
@@ -105,21 +100,7 @@ arcdps_exports* mod_init() {
 	arc_exports.imgui = mod_imgui;
 	arc_exports.combat = mod_combat;
 
-	json config;
-	config["filler"] = "empty";
-	if (std::filesystem::exists(config_file)) {
-		std::ifstream input(config_file);
-		input >> config;
-		if (config["version"] < version_major) {
-			config.clear();
-		}
-	}
-	showTimer = config.value("showTimer", true);
-	server = config.value("server", "http://164.92.229.177:5001/");
-	sync_interval = config.value("sync_interval", 1);
-	autoPrepare = config.value("autoPrepare", true);
-	offline = config.value("offline", false);
-	disableOutsideInstances = config.value("disableOutsideInstances", true);
+	settings = Settings(config_file, settings_version);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -139,14 +120,14 @@ arcdps_exports* mod_init() {
 		}
 	}
 
-	auto response = cpr::Get(cpr::Url{ server + "version" });
+	auto response = cpr::Get(cpr::Url{ settings.server_url + "version" });
 	if (response.status_code != 200) {
 		log("timer: failed to connect to timer api, enabling offline mode\n");
-		offline = true;
+		settings.is_offline_mode = true;
 	}
 	else {
 		auto data = json::parse(response.text);
-		if (data["major"] != version_major) {
+		if (data["major"] != server_version) {
 			log("timer: out of date version, going offline mode\n");
 			outOfDate = true;
 		}
@@ -161,16 +142,7 @@ arcdps_exports* mod_init() {
 }
 
 uintptr_t mod_release() {
-	json config;
-	config["showTimer"] = showTimer;
-	config["server"] = server;
-	config["version"] = version_major;
-	config["sync_interval"] = sync_interval;
-	config["autoPrepare"] = autoPrepare;
-	config["offline"] = offline;
-	config["disableOutsideInstances"] = disableOutsideInstances;
-	std::ofstream o(config_file);
-	o << std::setw(4) << config << std::endl;
+	settings.save();
 
 	UnmapViewOfFile(pMumbleLink);
 	CloseHandle(hMumbleLink);
@@ -181,13 +153,13 @@ uintptr_t mod_release() {
 uintptr_t mod_options() {
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
 
-	ImGui::InputText("Server", &server);
-	ImGui::InputInt("Sync Interval", &sync_interval);
-	ImGui::Checkbox("Offline Mode", &offline);
+	ImGui::InputText("Server", &settings.server_url);
+	ImGui::InputInt("Sync Interval", &settings.sync_interval);
+	ImGui::Checkbox("Offline Mode", &settings.is_offline_mode);
 	ImGui::Separator();
-	ImGui::Checkbox("Disable outside Instanced Content", &disableOutsideInstances);
+	ImGui::Checkbox("Disable outside Instanced Content", &settings.disable_outside_instances);
 
-	ImGui::Checkbox("Auto Prepare", &autoPrepare);
+	ImGui::Checkbox("Auto Prepare", &settings.auto_prepare);
 	if (ImGui::IsItemHovered())
 		ImGui::SetTooltip("Tries to automatically set the timer to prepared,\nand start on movement/skillcast. Still has a few limitations");
 
@@ -197,7 +169,7 @@ uintptr_t mod_options() {
 
 uintptr_t mod_windows(const char* windowname) {
 	if (!windowname) {
-		ImGui::Checkbox("Timer", &showTimer);
+		ImGui::Checkbox("Timer", &settings.show_timer);
 	}
 	return 0;
 }
@@ -212,7 +184,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
 		lastMapID = ((MumbleContext*)pMumbleLink->context)->mapId;
 
-		if (disableOutsideInstances) {
+		if (settings.disable_outside_instances) {
 			auto mapRequest = cpr::Get(cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(lastMapID) });
 			if (mapRequest.status_code != 200) {
 				isInstanced = true;
@@ -227,8 +199,8 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 			isInstanced = false;
 		}
 
-		bool doAutoPrepare = autoPrepare;
-		doAutoPrepare &= isInstanced | !disableOutsideInstances;
+		bool doAutoPrepare = settings.auto_prepare;
+		doAutoPrepare &= isInstanced | !settings.disable_outside_instances;
 
 		if (doAutoPrepare) {
 			log_debug("timer: preparing on map change");
@@ -236,7 +208,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		}
 	}
 
-	if (disableOutsideInstances && !isInstanced) {
+	if (settings.disable_outside_instances && !isInstanced) {
 		return 0;
 	}
 
@@ -254,16 +226,16 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		current_time = std::chrono::system_clock::now();
 	}
 
-	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_update).count() > sync_interval) {
+	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_update).count() > settings.sync_interval) {
 		last_update = std::chrono::system_clock::now();
-		if (!offline && !outOfDate) {
+		if (!settings.is_offline_mode && !outOfDate) {
 			std::thread sync_thread(sync_timer);
 			sync_thread.detach();
 		}
 	}
 
-	if (showTimer) {
-		ImGui::Begin("Timer", &showTimer, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+	if (settings.show_timer) {
+		ImGui::Begin("Timer", &settings.show_timer, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 		
@@ -326,7 +298,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 }
 
 void request_start() {
-	if (!offline && !outOfDate) {
+	if (!settings.is_offline_mode && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
 			request["time"] = std::format(
@@ -340,7 +312,7 @@ void request_start() {
 			);
 
 			cpr::Post(
-				cpr::Url{ server + "groups/" + group_code + "/stop" },
+				cpr::Url{ settings.server_url + "groups/" + group_code + "/stop" },
 				cpr::Body{ request.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
 			);
@@ -374,7 +346,7 @@ void timer_stop(int delta) {
 		status = TimerStatus::stopped;
 		update_time = std::chrono::system_clock::now();
 
-		if (!offline && !outOfDate) {
+		if (!settings.is_offline_mode && !outOfDate) {
 			std::thread request_thread([&]() {
 				json request;
 				request["time"] = std::format(
@@ -388,7 +360,7 @@ void timer_stop(int delta) {
 				);
 
 				cpr::Post(
-					cpr::Url{ server + "groups/" + group_code + "/stop" },
+					cpr::Url{ settings.server_url + "groups/" + group_code + "/stop" },
 					cpr::Body{ request.dump() },
 					cpr::Header{ {"Content-Type", "application/json"} }
 				);
@@ -407,7 +379,7 @@ void timer_prepare() {
 	lastPosition[2] = pMumbleLink->fAvatarPosition[2];
 	update_time = std::chrono::system_clock::now();
 
-	if (!offline && !outOfDate) {
+	if (!settings.is_offline_mode && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
 			request["update_time"] = std::format(
@@ -416,7 +388,7 @@ void timer_prepare() {
 			);
 
 			cpr::Post(
-				cpr::Url{ server + "groups/" + group_code + "/prepare" },
+				cpr::Url{ settings.server_url + "groups/" + group_code + "/prepare" },
 				cpr::Body{ request.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
 			);
@@ -434,7 +406,7 @@ void calculate_groupcode() {
 
 	CRC32 crc32;
 	std::string group_code_new = crc32(playersConcat);
-	if (autoPrepare && group_code != group_code_new) {
+	if (settings.auto_prepare && group_code != group_code_new) {
 		log_debug("timer: preparing on group change");
 		timer_prepare();
 	}
@@ -466,7 +438,7 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 					std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
 					double duration = duration_dbl.count();
 					if (duration < 3 && status == TimerStatus::running) {
-						if (!offline && !outOfDate) {
+						if (!settings.is_offline_mode && !outOfDate) {
 							std::thread request_thread([&]() {
 								json request;
 								request["time"] = std::format(
@@ -480,7 +452,7 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 								);
 
 								cpr::Post(
-									cpr::Url{ server + "groups/" + group_code + "/start" },
+									cpr::Url{ settings.server_url + "groups/" + group_code + "/start" },
 									cpr::Body{ request.dump() },
 									cpr::Header{ {"Content-Type", "application/json"} }
 								);
@@ -524,7 +496,7 @@ void timer_reset() {
 	current_time = std::chrono::system_clock::now();
 	update_time = std::chrono::system_clock::now();
 
-	if (!offline && !outOfDate) {
+	if (!settings.is_offline_mode && !outOfDate) {
 		std::thread request_thread([&]() {
 			json request;
 			request["update_time"] = std::format(
@@ -533,7 +505,7 @@ void timer_reset() {
 			);
 
 			cpr::Post(
-				cpr::Url{ server + "groups/" + group_code + "/reset" },
+				cpr::Url{ settings.server_url + "groups/" + group_code + "/reset" },
 				cpr::Body{ request.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
 			);
@@ -565,7 +537,7 @@ void sync_timer() {
 		return;
 	}
 
-	auto response = cpr::Get(cpr::Url{ server + "groups/" + groupcode_copy });
+	auto response = cpr::Get(cpr::Url{ settings.server_url + "groups/" + groupcode_copy });
 
 	if (response.status_code != 200) {
 		log("timer: failed to sync with server");
