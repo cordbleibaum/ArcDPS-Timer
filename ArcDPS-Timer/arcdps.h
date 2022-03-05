@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <Windows.h>
+#include <string>
 
 #include "imgui/imgui.h"
 
@@ -110,3 +111,9 @@ typedef struct ag {
 
 extern "C" __declspec(dllexport) void* get_init_addr(char* arcversion, ImGuiContext * imguictx, void* id3dptr, HANDLE arcdll, void* mallocfn, void* freefn, uint32_t d3dversion);
 extern "C" __declspec(dllexport) void* get_release_addr();
+
+void log_arc(std::string str);
+void log_file(std::string str);
+
+void log(std::string str);
+void log_debug(std::string str);
