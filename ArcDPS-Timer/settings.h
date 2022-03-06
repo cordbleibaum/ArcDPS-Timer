@@ -16,6 +16,7 @@ public:
 	bool is_offline_mode;
 	bool disable_outside_instances;
 	std::string time_formatter;
+	bool hide_buttons;
 private:
 	int settings_version;
 	std::string config_file;

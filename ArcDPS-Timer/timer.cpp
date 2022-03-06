@@ -221,28 +221,30 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
-		if (ImGui::Button("Prepare", ImVec2(190, ImGui::GetFontSize()*1.5f))) {
-			log_debug("timer: preparing manually");
-			timer_prepare();
-		}
+		if (!settings.hide_buttons) {
+			if (ImGui::Button("Prepare", ImVec2(190, ImGui::GetFontSize() * 1.5f))) {
+				log_debug("timer: preparing manually");
+				timer_prepare();
+			}
 
-		if (ImGui::Button("Start", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
-			log_debug("timer: starting manually");
-			timer_start();
-		}
-		
-		ImGui::SameLine(0, 5);
-		
-		if (ImGui::Button("Stop", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
-			log_debug("timer: stopping manually");
-			timer_stop(0);
-		}
+			if (ImGui::Button("Start", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
+				log_debug("timer: starting manually");
+				timer_start();
+			}
 
-		ImGui::SameLine(0, 5);
+			ImGui::SameLine(0, 5);
 
-		if (ImGui::Button("Reset", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
-			log_debug("timer: resetting manually");
-			timer_reset();
+			if (ImGui::Button("Stop", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
+				log_debug("timer: stopping manually");
+				timer_stop(0);
+			}
+
+			ImGui::SameLine(0, 5);
+
+			if (ImGui::Button("Reset", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
+				log_debug("timer: resetting manually");
+				timer_reset();
+			}
 		}
 
 		if (outOfDate) {
