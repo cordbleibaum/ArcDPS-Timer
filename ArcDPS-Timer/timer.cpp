@@ -246,6 +246,9 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 				timer_reset();
 			}
 		}
+		else {
+			ImGui::Dummy(ImVec2(160, 0));
+		}
 
 		if (outOfDate) {
 			ImGui::TextColored(ImVec4(1, 0, 0, 1), "OFFLINE, ADDON OUT OF DATE");
