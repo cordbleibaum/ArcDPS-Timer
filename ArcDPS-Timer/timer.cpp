@@ -134,21 +134,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 	if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
 		lastMapID = ((MumbleContext*)pMumbleLink->context)->mapId;
-
-		if (settings.disable_outside_instances) {
-			auto mapRequest = cpr::Get(cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(lastMapID) });
-			if (mapRequest.status_code != 200) {
-				isInstanced = true;
-				log("timer: GW2 API not accessible, can't check if instanced");
-			}
-			else {
-				auto mapData = json::parse(mapRequest.text);
-				isInstanced = mapData["type"] == "Instance";
-			}
-		}
-		else {
-			isInstanced = false;
-		}
+		isInstanced = ((MumbleContext*)pMumbleLink->context)->mapType == MapType::MAPTYPE_INSTANCE;
 
 		bool doAutoPrepare = settings.auto_prepare;
 		doAutoPrepare &= isInstanced | !settings.disable_outside_instances;

@@ -38,3 +38,7 @@ struct LinkedMem {
     unsigned char context[256];
     wchar_t description[2048];
 };
+
+enum MapType {
+    MAPTYPE_INSTANCE = 4
+};
