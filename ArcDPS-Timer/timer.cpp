@@ -4,7 +4,6 @@
 #include <chrono>
 #include <cmath>
 #include <format>
-#include <set>
 #include <regex>
 
 #include <cpr/cpr.h>
@@ -95,9 +94,13 @@ arcdps_exports* mod_init() {
 		}
 	}
 
-	NTPClient ntp("pool.ntp.org");
-	clockOffset = ntp.request_time_delta();
-	log_arc("timer: clock offset: " + std::to_string(clockOffset));
+	clockOffset = 0;
+	std::thread ntp_thread([&]() {
+		NTPClient ntp("pool.ntp.org");
+		clockOffset = ntp.request_time_delta();
+		log_arc("timer: clock offset: " + std::to_string(clockOffset));
+	});
+	ntp_thread.detach();
 
 	log_arc("timer: done mod_init");
 	return &arc_exports;
