@@ -18,6 +18,7 @@
 #include "settings.h"
 
 using json = nlohmann::json;
+using namespace std::chrono_literals;
 
 enum class TimerStatus { stopped, prepared, running };
 
@@ -39,12 +40,10 @@ LinkedMem *pMumbleLink;
 float lastPosition[3];
 uint32_t lastMapID = 0;
 
-std::string selfAccountName;
-std::string group_code;
-std::set<std::string> group_players;
-std::chrono::system_clock::time_point last_update;
+std::string map_code;
+std::mutex mapcode_mutex;
 
-std::mutex groupcode_mutex;
+std::chrono::system_clock::time_point last_update;
 
 bool outOfDate = false;
 bool isInstanced = false;
@@ -133,8 +132,14 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (!not_charsel_or_loading) return 0;
 
 	if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
+		std::scoped_lock<std::mutex> guard(mapcode_mutex);
+
 		lastMapID = ((MumbleContext*)pMumbleLink->context)->mapId;
 		isInstanced = ((MumbleContext*)pMumbleLink->context)->mapType == MapType::MAPTYPE_INSTANCE;
+
+		CRC32 crc32;
+		map_code = crc32(((MumbleContext*)pMumbleLink->context)->serverAddress, sizeof(sockaddr_in));
+		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
 
 		bool doAutoPrepare = settings.auto_prepare;
 		doAutoPrepare &= isInstanced | !settings.disable_outside_instances;
@@ -261,7 +266,7 @@ void request_start() {
 			request["update_time"] = format_time(update_time);
 
 			cpr::Post(
-				cpr::Url{ settings.server_url + "groups/" + group_code + "/stop" },
+				cpr::Url{ settings.server_url + "groups/" + map_code + "/stop" },
 				cpr::Body{ request.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
 			);
@@ -302,7 +307,7 @@ void timer_stop(int delta) {
 				request["update_time"] = format_time(update_time);
 
 				cpr::Post(
-					cpr::Url{ settings.server_url + "groups/" + group_code + "/stop" },
+					cpr::Url{ settings.server_url + "groups/" + map_code + "/stop" },
 					cpr::Body{ request.dump() },
 					cpr::Header{ {"Content-Type", "application/json"} }
 				);
@@ -327,7 +332,7 @@ void timer_prepare() {
 			request["update_time"] = format_time(update_time);
 
 			cpr::Post(
-				cpr::Url{ settings.server_url + "groups/" + group_code + "/prepare" },
+				cpr::Url{ settings.server_url + "groups/" + map_code + "/prepare" },
 				cpr::Body{ request.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
 			);
@@ -336,86 +341,18 @@ void timer_prepare() {
 	}
 }
 
-void calculate_groupcode() {
-	std::string playersConcat = "";
-
-	for (auto it = group_players.begin(); it != group_players.end(); ++it) {
-		playersConcat = playersConcat + (*it);
-	}
-
-	CRC32 crc32;
-	std::string group_code_new = crc32(playersConcat);
-	if (settings.auto_prepare && group_code != group_code_new) {
-		log_debug("timer: preparing on group change");
-		timer_prepare();
-	}
-	if (group_code != group_code_new) {
-		using namespace std::chrono_literals;
-		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
-	}
-	group_code = group_code_new;
-}
-
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t id, uint64_t revision) {
-	if (!ev) {
-		if (!src->elite) {
-			if (src->name != nullptr && src->name[0] != '\0' && dst->name != nullptr && dst->name[0] != '\0') {
-				std::string username(dst->name);
-				if (username.at(0) == ':') {
-					username.erase(0, 1);
-				}
+	if (ev && ev->is_activation) {
+		std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
+		double duration = duration_dbl.count();
 
-				if (src->prof) {
-					std::scoped_lock<std::mutex> guard(groupcode_mutex);
-					if (selfAccountName.empty() && dst->self) {
-						selfAccountName = username;
-					}
-
-					group_players.insert(username);
-					calculate_groupcode();
-
-					std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
-					double duration = duration_dbl.count();
-					if (duration < 3 && status == TimerStatus::running) {
-						if (!settings.is_offline_mode && !outOfDate) {
-							std::thread request_thread([&]() {
-								json request;
-								request["time"] = format_time(start_time);
-								request["update_time"] = format_time(update_time);
-
-								cpr::Post(
-									cpr::Url{ settings.server_url + "groups/" + group_code + "/start" },
-									cpr::Body{ request.dump() },
-									cpr::Header{ {"Content-Type", "application/json"} }
-								);
-								});
-							request_thread.detach();
-						}
-					}
-				}
-				else {
-					if (username != selfAccountName) {
-						std::scoped_lock<std::mutex> guard(groupcode_mutex);
-						group_players.erase(username);
-						calculate_groupcode();
-					}
-				}
-			}
-		}
-	}
-	else {
-		if (ev->is_activation) {
-			std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
-			double duration = duration_dbl.count();
-
-			if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
-				log_debug("timer: starting on skill");
-				auto ticks_now = timeGetTime();
-				auto ticks_diff = ticks_now - ev->time;
-				auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-				auto skill_time = now_ms.time_since_epoch().count() - ticks_diff;
-				timer_start(skill_time);
-			}
+		if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
+			log_debug("timer: starting on skill");
+			auto ticks_now = timeGetTime();
+			auto ticks_diff = ticks_now - ev->time;
+			auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+			auto skill_time = now_ms.time_since_epoch().count() - ticks_diff;
+			timer_start(skill_time);
 		}
 	}
 
@@ -434,7 +371,7 @@ void timer_reset() {
 			request["update_time"] = format_time(update_time);
 
 			cpr::Post(
-				cpr::Url{ settings.server_url + "groups/" + group_code + "/reset" },
+				cpr::Url{ settings.server_url + "groups/" + map_code + "/reset" },
 				cpr::Body{ request.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
 			);
@@ -450,22 +387,22 @@ std::chrono::system_clock::time_point parse_time(const std::string& source) {
 }
 
 void sync_timer() {
-	std::string groupcode_copy = "";
+	std::string mapcode_copy = "";
 	
 	{
-		std::scoped_lock<std::mutex> guard(groupcode_mutex);
-		if (group_code == "") {
-			calculate_groupcode();
+		std::scoped_lock<std::mutex> guard(mapcode_mutex);
+		if (map_code == "") {
+			return;
 		}
-		groupcode_copy = group_code;
+		mapcode_copy = map_code;
 	}
 
 	std::regex empty_group("^0+$");
-	if (std::regex_match(groupcode_copy, empty_group)) {
+	if (std::regex_match(mapcode_copy, empty_group)) {
 		return;
 	}
 
-	auto response = cpr::Get(cpr::Url{ settings.server_url + "groups/" + groupcode_copy });
+	auto response = cpr::Get(cpr::Url{ settings.server_url + "groups/" + mapcode_copy });
 
 	if (response.status_code != 200) {
 		log("timer: failed to sync with server");
