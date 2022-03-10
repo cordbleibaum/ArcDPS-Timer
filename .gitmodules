@@ -4,3 +4,6 @@
 [submodule "ArcDPS-Timer/hash-library"]
 	path = ArcDPS-Timer/hash-library
 	url = https://github.com/stbrumme/hash-library.git
+[submodule "ArcDPS-Timer/arcdps-extension"]
+	path = ArcDPS-Timer/arcdps-extension
+	url = https://github.com/knoxfighter/arcdps-extension.git
