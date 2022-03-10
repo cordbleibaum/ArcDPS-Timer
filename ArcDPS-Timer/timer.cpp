@@ -393,6 +393,11 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t i
 				16617, // Chaos - Gladiator
 				20497, // Deepstone - The Voice
 				12900, // Molten Furnace - Engineer
+				17051, // Nightmare - Ensolyss
+				16948, // Nightmare CM - Ensolyss
+				17830, // Shattered Observatory - Arkk
+				17759, // Shattered Observatory - Arkk CM
+				11408, // Urban Battleground - Captain Ashym
 			};
 
 			if (std::find(std::begin(last_bosses), std::end(last_bosses), species_id) != std::end(last_bosses)) {
