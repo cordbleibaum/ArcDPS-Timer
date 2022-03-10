@@ -31,6 +31,7 @@ TimerStatus status;
 std::chrono::system_clock::time_point start_time;
 std::chrono::system_clock::time_point current_time;
 std::chrono::system_clock::time_point update_time;
+std::chrono::system_clock::time_point last_update;
 
 Settings settings;
 GW2MumbleLink mumble_link;
@@ -40,8 +41,6 @@ uint32_t lastMapID = 0;
 
 std::string map_code;
 std::mutex mapcode_mutex;
-
-std::chrono::system_clock::time_point last_update;
 
 bool outOfDate = false;
 bool isInstanced = false;
@@ -69,7 +68,7 @@ arcdps_exports* mod_init() {
 	status = TimerStatus::stopped;
 
 	auto response = cpr::Get(cpr::Url{ settings.server_url + "version" });
-	if (response.status_code != 200) {
+	if (response.status_code != cpr::status::HTTP_OK) {
 		log("timer: failed to connect to timer api, enabling offline mode\n");
 		settings.is_offline_mode = true;
 	}
@@ -128,6 +127,14 @@ void post_serverapi(std::string url, const json& payload) {
 	);
 }
 
+template<class F> void network_thread(F&& f)
+{
+	if (!settings.is_offline_mode && !outOfDate) {
+		std::thread thread(std::forward<F>(f));
+		thread.detach();
+	}
+}
+
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (!not_charsel_or_loading) return 0;
 
@@ -169,10 +176,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_update).count() > settings.sync_interval) {
 		last_update = std::chrono::system_clock::now();
-		if (!settings.is_offline_mode && !outOfDate) {
-			std::thread sync_thread(sync_timer);
-			sync_thread.detach();
-		}
+		network_thread(sync_timer);
 	}
 
 	if (settings.show_timer) {
@@ -258,15 +262,10 @@ std::string format_time(std::chrono::system_clock::time_point time) {
 }
 
 void request_start() {
-	if (!settings.is_offline_mode && !outOfDate) {
-		std::thread request_thread([&]() {
-			json request;
-			request["time"] = format_time(start_time);
-			request["update_time"] = format_time(update_time);
-			post_serverapi("groups/" + map_code + "/start", request);
-		});
-		request_thread.detach();
-	}
+	json request;
+	request["time"] = format_time(start_time);
+	request["update_time"] = format_time(update_time);
+	post_serverapi("groups/" + map_code + "/start", request);
 }
 
 void timer_start() {
@@ -274,8 +273,7 @@ void timer_start() {
 	update_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
 	status = TimerStatus::running;
-
-	request_start();
+	network_thread(request_start);
 }
 
 void timer_start(uint64_t time) {
@@ -284,20 +282,14 @@ void timer_start(uint64_t time) {
 	start_time = std::chrono::time_point<std::chrono::system_clock>(time_ms);
 	update_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
-
-	request_start();
+	network_thread(request_start);
 }
 
 void request_stop() {
-	if (!settings.is_offline_mode && !outOfDate) {
-		std::thread request_thread([&]() {
-			json request;
-			request["time"] = format_time(current_time);
-			request["update_time"] = format_time(update_time);
-			post_serverapi("groups/" + map_code + "/stop", request);
-		});
-		request_thread.detach();
-	}
+	json request;
+	request["time"] = format_time(current_time);
+	request["update_time"] = format_time(update_time);
+	post_serverapi("groups/" + map_code + "/stop", request);
 }
 
 void timer_stop() {
@@ -305,7 +297,7 @@ void timer_stop() {
 		status = TimerStatus::stopped;
 		current_time = std::chrono::system_clock::now();
 		update_time = std::chrono::system_clock::now();
-		request_stop();
+		network_thread(request_stop);
 	}
 }
 
@@ -317,7 +309,7 @@ void timer_stop(uint64_t time) {
 		status = TimerStatus::stopped;
 		current_time = new_stop_time;
 		update_time = std::chrono::system_clock::now();
-		request_stop();
+		network_thread(request_stop);
 	}
 }
 
@@ -328,14 +320,11 @@ void timer_prepare() {
 	update_lastposition();
 	update_time = std::chrono::system_clock::now();
 
-	if (!settings.is_offline_mode && !outOfDate) {
-		std::thread request_thread([&]() {
-			json request;
-			request["update_time"] = format_time(update_time);
-			post_serverapi("groups/" + map_code + "/prepare", request);
-		});
-		request_thread.detach();
-	}
+	network_thread([&]() {
+		json request;
+		request["update_time"] = format_time(update_time);
+		post_serverapi("groups/" + map_code + "/prepare", request);
+	});
 }
 
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision) {
@@ -397,14 +386,11 @@ void timer_reset() {
 	current_time = std::chrono::system_clock::now();
 	update_time = std::chrono::system_clock::now();
 
-	if (!settings.is_offline_mode && !outOfDate) {
-		std::thread request_thread([&]() {
-			json request;
-			request["update_time"] = format_time(update_time);
-			post_serverapi("groups/" + map_code + "/reset", request);
-		});
-		request_thread.detach();
-	}
+	network_thread([&]() {
+		json request;
+		request["update_time"] = format_time(update_time);
+		post_serverapi("groups/" + map_code + "/reset", request);
+	});
 }
 
 std::chrono::system_clock::time_point parse_time(const std::string& source) {
@@ -426,7 +412,7 @@ void sync_timer() {
 
 	auto response = cpr::Get(cpr::Url{ settings.server_url + "groups/" + mapcode_copy });
 
-	if (response.status_code != 200) {
+	if (response.status_code != cpr::status::HTTP_OK) {
 		log("timer: failed to sync with server");
 		return;
 	}
