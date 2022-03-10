@@ -12,7 +12,8 @@ uintptr_t mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 void timer_start();
 void timer_start(uint64_t time);
-void timer_stop(int delta);
+void timer_stop();
+void timer_stop(uint64_t time);
 void timer_prepare();
 void timer_reset();
 

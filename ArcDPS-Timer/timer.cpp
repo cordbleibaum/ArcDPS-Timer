@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cmath>
 #include <format>
+#include <set>
 
 #include <cpr/cpr.h>
 
@@ -230,7 +231,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 			if (ImGui::Button("Stop", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: stopping manually");
-				timer_stop(0);
+				timer_stop();
 			}
 
 			ImGui::SameLine(0, 5);
@@ -297,26 +298,43 @@ void timer_start(uint64_t time) {
 	request_start();
 }
 
-void timer_stop(int delta) {
+void request_stop() {
+	if (!settings.is_offline_mode && !outOfDate) {
+		std::thread request_thread([&]() {
+			json request;
+			request["time"] = format_time(current_time);
+			request["update_time"] = format_time(update_time);
+
+			cpr::Post(
+				cpr::Url{ settings.server_url + "groups/" + map_code + "/stop" },
+				cpr::Body{ request.dump() },
+				cpr::Header{ {"Content-Type", "application/json"} }
+			);
+			});
+		request_thread.detach();
+	}
+}
+
+void timer_stop() {
 	if (status != TimerStatus::stopped) {
-		current_time = std::chrono::system_clock::now() - std::chrono::seconds(delta);
 		status = TimerStatus::stopped;
+		current_time = std::chrono::system_clock::now();
 		update_time = std::chrono::system_clock::now();
 
-		if (!settings.is_offline_mode && !outOfDate) {
-			std::thread request_thread([&]() {
-				json request;
-				request["time"] = format_time(current_time);
-				request["update_time"] = format_time(update_time);
+		request_stop();
+	}
+}
 
-				cpr::Post(
-					cpr::Url{ settings.server_url + "groups/" + map_code + "/stop" },
-					cpr::Body{ request.dump() },
-					cpr::Header{ {"Content-Type", "application/json"} }
-				);
-				});
-			request_thread.detach();
-		}
+void timer_stop(uint64_t time) {
+	std::chrono::milliseconds time_ms(time);
+	std::chrono::time_point<std::chrono::system_clock> new_stop_time = std::chrono::time_point<std::chrono::system_clock>(time_ms);
+
+	if (status != TimerStatus::stopped || current_time > new_stop_time) {
+		status = TimerStatus::stopped;
+		current_time = new_stop_time;
+		update_time = std::chrono::system_clock::now();
+
+		request_stop();
 	}
 }
 
@@ -345,17 +363,46 @@ void timer_prepare() {
 }
 
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t id, uint64_t revision) {
-	if (ev && ev->is_activation) {
-		std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
-		double duration = duration_dbl.count();
+	if (ev) {
+		if (ev->is_activation) {
+			std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
+			double duration = duration_dbl.count();
 
-		if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
-			log_debug("timer: starting on skill");
-			auto ticks_now = timeGetTime();
-			auto ticks_diff = ticks_now - ev->time;
-			auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-			auto skill_time = now_ms.time_since_epoch().count() - ticks_diff;
-			timer_start(skill_time);
+			if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
+				log_debug("timer: starting on skill");
+				auto ticks_now = timeGetTime();
+				auto ticks_diff = ticks_now - ev->time;
+				auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+				auto skill_time = now_ms.time_since_epoch().count() - ticks_diff;
+				timer_start(skill_time);
+			}
+		}
+		else if (ev->is_statechange == cbtstatechange::CBTS_LOGEND && settings.auto_stop) {
+			int species_id = ev->src_agent;
+
+			std::set<int> last_bosses = {
+				11265, // Swampland - Bloomhunger 
+				11239, // Underground Facility - Dredge
+				11240, // Underground Facility - Elemental
+				11485, // Volcanic - Imbued Shaman
+				11296, // Cliffside - Archdiviner
+				19697, // Mai Trin Boss Fractal - Mai Trin
+				12906, // Thaumanova - Thaumanova Anomaly
+				11333, // Snowblind - Shaman
+				11402, // Aquatic Ruins - Jellyfish Beast
+				16617, // Chaos - Gladiator
+				20497, // Deepstone - The Voice
+				12900, // Molten Furnace - Engineer
+			};
+
+			if (std::find(std::begin(last_bosses), std::end(last_bosses), species_id) != std::end(last_bosses)) {
+				log_debug("timer: stopping on log end");
+				auto ticks_now = timeGetTime();
+				auto ticks_diff = ticks_now - ev->time;
+				auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+				auto end_time = now_ms.time_since_epoch().count() - ticks_diff;
+				timer_stop(end_time);
+			}
 		}
 	}
 
@@ -456,7 +503,7 @@ uintptr_t mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		}
 		else if (vkey == settings.stop_key) {
 			log_debug("timer: stopping manually");
-			timer_stop(0);
+			timer_stop();
 		}
 		else if (vkey == settings.reset_key) {
 			log_debug("timer: resetting manually");
