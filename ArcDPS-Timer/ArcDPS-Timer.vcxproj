@@ -128,12 +128,13 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;ARCDPSTIMER_EXPORTS;_WINDOWS;_USRDLL;_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;ARCDPSTIMER_EXPORTS;_WINDOWS;_USRDLL;_WIN32_WINNT=0x0601;NOMINMAX;IMGUI_DEFINE_MATH_OPERATORS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -151,7 +152,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;ARCDPSTIMER_EXPORTS;_WINDOWS;_USRDLL;_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;ARCDPSTIMER_EXPORTS;_WINDOWS;_USRDLL;_WIN32_WINNT=0x0601;NOMINMAX;IMGUI_DEFINE_MATH_OPERATORS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -172,6 +173,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="arcdps-extension\Widgets.h" />
     <ClInclude Include="arcdps.h" />
     <ClInclude Include="hash-library\crc32.h" />
     <ClInclude Include="imgui\imgui.h" />
@@ -183,6 +185,7 @@
     <ClInclude Include="timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="arcdps-extension\Widgets.cpp" />
     <ClCompile Include="arcdps.cpp" />
     <ClCompile Include="hash-library\crc32.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />

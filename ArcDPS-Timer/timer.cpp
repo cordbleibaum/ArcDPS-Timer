@@ -27,7 +27,7 @@ Settings settings;
 
 std::string config_file = "addons/arcdps/timer.json";
 constexpr int server_version = 6;
-constexpr int settings_version = 7;
+constexpr int settings_version = 8;
 
 TimerStatus status;
 std::chrono::system_clock::time_point start_time;
@@ -60,6 +60,7 @@ arcdps_exports* mod_init() {
 	arc_exports.options_windows = mod_windows;
 	arc_exports.imgui = mod_imgui;
 	arc_exports.combat = mod_combat;
+	arc_exports.wnd_nofilter = mod_wnd;
 
 	settings = Settings(config_file, settings_version);
 
@@ -373,11 +374,11 @@ void timer_reset() {
 			json request;
 			request["update_time"] = format_time(update_time);
 
-			cpr::Post(
-				cpr::Url{ settings.server_url + "groups/" + map_code + "/reset" },
-				cpr::Body{ request.dump() },
-				cpr::Header{ {"Content-Type", "application/json"} }
-			);
+cpr::Post(
+	cpr::Url{ settings.server_url + "groups/" + map_code + "/reset" },
+	cpr::Body{ request.dump() },
+	cpr::Header{ {"Content-Type", "application/json"} }
+);
 		});
 		request_thread.detach();
 	}
@@ -391,7 +392,7 @@ std::chrono::system_clock::time_point parse_time(const std::string& source) {
 
 void sync_timer() {
 	std::string mapcode_copy = "";
-	
+
 	{
 		std::scoped_lock<std::mutex> guard(mapcode_mutex);
 		if (map_code == "") {
@@ -429,7 +430,7 @@ void sync_timer() {
 		else if (data["status"] == "stopped") {
 			log_debug("timer: stopping on server");
 			status = TimerStatus::stopped;
-			current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clockOffset*1000.0));
+			current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clockOffset * 1000.0));
 		}
 		else if (data["status"] == "resetted") {
 			log_debug("timer: resetting on server");
@@ -447,4 +448,36 @@ void sync_timer() {
 			lastPosition[2] = pMumbleLink->fAvatarPosition[2];
 		}
 	}
+}
+
+uintptr_t mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	switch (uMsg) {
+	case WM_KEYDOWN:
+	case WM_SYSKEYDOWN: {
+		const int vkey = (int)wParam;
+
+		if (vkey == settings.start_key) {
+			log_debug("timer: starting manually");
+			timer_start();
+		}
+		else if (vkey == settings.stop_key) {
+			log_debug("timer: stopping manually");
+			timer_stop(0);
+		}
+		else if (vkey == settings.reset_key) {
+			log_debug("timer: resetting manually");
+			timer_reset();
+		}
+		else if (vkey == settings.prepare_key) {
+			log_debug("timer: preparing manually");
+			timer_prepare();
+		}
+
+		break;
+	}
+	default:
+		break;
+	}
+
+	return uMsg;
 }

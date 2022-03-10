@@ -6,6 +6,7 @@
 #include "json.hpp"
 #include "imgui/imgui.h"
 #include "imgui_stdlib.h"
+#include "arcdps-extension/Widgets.h"
 
 using json = nlohmann::json;
 
@@ -30,6 +31,26 @@ Settings::Settings(std::string file, int settings_version)
 	disable_outside_instances = config.value("disable_outside_instances", true);
 	time_formatter = config.value("time_formatter", "{0:%M:%S}");
 	hide_buttons = config.value("hide_buttons", false);
+
+	this->start_key = config.value("start_key", 0);
+	std::string start_key = std::to_string(this->start_key);
+	memset(start_key_buffer, 0, sizeof(start_key_buffer));
+	start_key.copy(start_key_buffer, start_key.size());
+
+	this->stop_key = config.value("stop_key", 0);
+	std::string stop_key = std::to_string(this->stop_key);
+	memset(stop_key_buffer, 0, sizeof(stop_key_buffer));
+	stop_key.copy(stop_key_buffer, stop_key.size());
+
+	this->reset_key = config.value("reset_key", 0);
+	std::string reset_key = std::to_string(this->reset_key);
+	memset(reset_key_buffer, 0, sizeof(reset_key_buffer));
+	reset_key.copy(reset_key_buffer, reset_key.size());
+
+	this->prepare_key = config.value("prepare_key", 0);
+	std::string prepare_key = std::to_string(this->prepare_key);
+	memset(prepare_key_buffer, 0, sizeof(prepare_key_buffer));
+	prepare_key.copy(prepare_key_buffer, prepare_key.size());
 }
 
 void Settings::save() {
@@ -43,6 +64,10 @@ void Settings::save() {
 	config["disable_outside_instances"] = disable_outside_instances;
 	config["timer_formatter"] = time_formatter;
 	config["hide_buttons"] = hide_buttons;
+	config["start_key"] = start_key;
+	config["stop_key"] = stop_key;
+	config["reset_key"] = reset_key;
+	config["prepare_key"] = prepare_key;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -69,6 +94,11 @@ void Settings::show_options() {
 	}
 
 	ImGui::Checkbox("Hide buttons", &hide_buttons);
+
+	ImGuiEx::KeyInput("Start Key", "##startkey", start_key_buffer, sizeof(start_key_buffer), start_key, "(not set)");
+	ImGuiEx::KeyInput("Stop Key", "##stopkey", stop_key_buffer, sizeof(stop_key_buffer), stop_key, "(not set)");
+	ImGuiEx::KeyInput("Reset Key", "##resetkey", reset_key_buffer, sizeof(reset_key_buffer), reset_key, "(not set)");
+	ImGuiEx::KeyInput("Prepare Key", "##preparekey", prepare_key_buffer, sizeof(prepare_key_buffer), prepare_key, "(not set)");
 
 	ImGui::PopStyleVar();
 }
