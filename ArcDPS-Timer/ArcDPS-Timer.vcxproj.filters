@@ -78,7 +78,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="arcdps-extension\Widgets.cpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
