@@ -23,8 +23,6 @@ enum class TimerStatus { stopped, prepared, running };
 
 arcdps_exports arc_exports;
 
-Settings settings;
-
 std::string config_file = "addons/arcdps/timer.json";
 constexpr int server_version = 6;
 constexpr int settings_version = 8;
@@ -34,6 +32,7 @@ std::chrono::system_clock::time_point start_time;
 std::chrono::system_clock::time_point current_time;
 std::chrono::system_clock::time_point update_time;
 
+Settings settings;
 GW2MumbleLink mumble_link;
 
 float lastPosition[3];
@@ -96,7 +95,6 @@ arcdps_exports* mod_init() {
 
 uintptr_t mod_release() {
 	settings.save();
-
 	return 0;
 }
 
@@ -120,6 +118,14 @@ void update_lastposition() {
 	lastPosition[0] = mumble_link->fAvatarPosition[0];
 	lastPosition[1] = mumble_link->fAvatarPosition[1];
 	lastPosition[2] = mumble_link->fAvatarPosition[2];
+}
+
+void post_serverapi(std::string url, const json& payload) {
+	cpr::Post(
+		cpr::Url{ settings.server_url + url },
+		cpr::Body{ payload.dump() },
+		cpr::Header{ {"Content-Type", "application/json"} }
+	);
 }
 
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
@@ -147,7 +153,6 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (settings.disable_outside_instances && !isInstanced) {
 		return 0;
 	}
-
 
 	if (status == TimerStatus::prepared) {
 		if (checkDelta(lastPosition[0], mumble_link->fAvatarPosition[0], 0.1f) ||
@@ -258,13 +263,8 @@ void request_start() {
 			json request;
 			request["time"] = format_time(start_time);
 			request["update_time"] = format_time(update_time);
-
-			cpr::Post(
-				cpr::Url{ settings.server_url + "groups/" + map_code + "/stop" },
-				cpr::Body{ request.dump() },
-				cpr::Header{ {"Content-Type", "application/json"} }
-			);
-			});
+			post_serverapi("groups/" + map_code + "/start", request);
+		});
 		request_thread.detach();
 	}
 }
@@ -294,13 +294,8 @@ void request_stop() {
 			json request;
 			request["time"] = format_time(current_time);
 			request["update_time"] = format_time(update_time);
-
-			cpr::Post(
-				cpr::Url{ settings.server_url + "groups/" + map_code + "/stop" },
-				cpr::Body{ request.dump() },
-				cpr::Header{ {"Content-Type", "application/json"} }
-			);
-			});
+			post_serverapi("groups/" + map_code + "/stop", request);
+		});
 		request_thread.detach();
 	}
 }
@@ -310,7 +305,6 @@ void timer_stop() {
 		status = TimerStatus::stopped;
 		current_time = std::chrono::system_clock::now();
 		update_time = std::chrono::system_clock::now();
-
 		request_stop();
 	}
 }
@@ -323,7 +317,6 @@ void timer_stop(uint64_t time) {
 		status = TimerStatus::stopped;
 		current_time = new_stop_time;
 		update_time = std::chrono::system_clock::now();
-
 		request_stop();
 	}
 }
@@ -339,12 +332,7 @@ void timer_prepare() {
 		std::thread request_thread([&]() {
 			json request;
 			request["update_time"] = format_time(update_time);
-
-			cpr::Post(
-				cpr::Url{ settings.server_url + "groups/" + map_code + "/prepare" },
-				cpr::Body{ request.dump() },
-				cpr::Header{ {"Content-Type", "application/json"} }
-			);
+			post_serverapi("groups/" + map_code + "/prepare", request);
 		});
 		request_thread.detach();
 	}
@@ -366,9 +354,9 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 			}
 		}
 		else if (ev->is_statechange == cbtstatechange::CBTS_LOGEND && settings.auto_stop) {
-			int species_id = ev->src_agent;
+			uintptr_t species_id = ev->src_agent;
 
-			std::set<int> last_bosses = {
+			std::set<uintptr_t> last_bosses = {
 				11265, // Swampland - Bloomhunger 
 				11239, // Underground Facility - Dredge
 				11240, // Underground Facility - Elemental
@@ -402,6 +390,7 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 	return 0;
 }
 
+
 void timer_reset() {
 	status = TimerStatus::stopped;
 	start_time = std::chrono::system_clock::now();
@@ -412,12 +401,7 @@ void timer_reset() {
 		std::thread request_thread([&]() {
 			json request;
 			request["update_time"] = format_time(update_time);
-
-cpr::Post(
-	cpr::Url{ settings.server_url + "groups/" + map_code + "/reset" },
-	cpr::Body{ request.dump() },
-	cpr::Header{ {"Content-Type", "application/json"} }
-);
+			post_serverapi("groups/" + map_code + "/reset", request);
 		});
 		request_thread.detach();
 	}
