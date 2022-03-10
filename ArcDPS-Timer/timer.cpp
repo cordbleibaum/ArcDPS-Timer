@@ -135,14 +135,14 @@ bool checkDelta(float a, float b, float delta) {
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (!not_charsel_or_loading) return 0;
 
-	if (lastMapID != ((MumbleContext*)pMumbleLink->context)->mapId) {
+	if (lastMapID != pMumbleLink->getMumbleContext()->mapId) {
 		std::scoped_lock<std::mutex> guard(mapcode_mutex);
 
-		lastMapID = ((MumbleContext*)pMumbleLink->context)->mapId;
-		isInstanced = ((MumbleContext*)pMumbleLink->context)->mapType == MapType::MAPTYPE_INSTANCE;
+		lastMapID = pMumbleLink->getMumbleContext()->mapId;
+		isInstanced = pMumbleLink->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
 
 		CRC32 crc32;
-		map_code = crc32(((MumbleContext*)pMumbleLink->context)->serverAddress, sizeof(sockaddr_in));
+		map_code = crc32(pMumbleLink->getMumbleContext()->serverAddress, sizeof(sockaddr_in));
 		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
 
 		bool doAutoPrepare = settings.auto_prepare;
