@@ -34,8 +34,8 @@ std::chrono::system_clock::time_point start_time;
 std::chrono::system_clock::time_point current_time;
 std::chrono::system_clock::time_point update_time;
 
-HANDLE hMumbleLink;
-LinkedMem *pMumbleLink;
+GW2MumbleLink mumble_link;
+
 float lastPosition[3];
 uint32_t lastMapID = 0;
 
@@ -69,19 +69,6 @@ arcdps_exports* mod_init() {
 	update_time = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
 
-	hMumbleLink = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(LinkedMem), L"MumbleLink");
-	if (hMumbleLink == NULL) {
-		log("timer: could not create mumble link file mapping object\n");
-		arc_exports.sig = 0;
-	}
-	else {
-		pMumbleLink = (LinkedMem*) MapViewOfFile(hMumbleLink, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(LinkedMem));
-		if (pMumbleLink == NULL) {
-			log("timer: failed to open mumble link file\n");
-			arc_exports.sig = 0;
-		}
-	}
-
 	auto response = cpr::Get(cpr::Url{ settings.server_url + "version" });
 	if (response.status_code != 200) {
 		log("timer: failed to connect to timer api, enabling offline mode\n");
@@ -110,9 +97,6 @@ arcdps_exports* mod_init() {
 uintptr_t mod_release() {
 	settings.save();
 
-	UnmapViewOfFile(pMumbleLink);
-	CloseHandle(hMumbleLink);
-
 	return 0;
 }
 
@@ -132,17 +116,23 @@ bool checkDelta(float a, float b, float delta) {
 	return std::abs(a - b) > delta;
 }
 
+void update_lastposition() {
+	lastPosition[0] = mumble_link->fAvatarPosition[0];
+	lastPosition[1] = mumble_link->fAvatarPosition[1];
+	lastPosition[2] = mumble_link->fAvatarPosition[2];
+}
+
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (!not_charsel_or_loading) return 0;
 
-	if (lastMapID != pMumbleLink->getMumbleContext()->mapId) {
+	if (lastMapID != mumble_link->getMumbleContext()->mapId) {
 		std::scoped_lock<std::mutex> guard(mapcode_mutex);
 
-		lastMapID = pMumbleLink->getMumbleContext()->mapId;
-		isInstanced = pMumbleLink->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
+		lastMapID = mumble_link->getMumbleContext()->mapId;
+		isInstanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
 
 		CRC32 crc32;
-		map_code = crc32(pMumbleLink->getMumbleContext()->serverAddress, sizeof(sockaddr_in));
+		map_code = crc32(mumble_link->getMumbleContext()->serverAddress, sizeof(sockaddr_in));
 		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
 
 		bool doAutoPrepare = settings.auto_prepare;
@@ -160,9 +150,9 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 
 	if (status == TimerStatus::prepared) {
-		if (checkDelta(lastPosition[0], pMumbleLink->fAvatarPosition[0], 0.1f) ||
-			checkDelta(lastPosition[1], pMumbleLink->fAvatarPosition[1], 0.1f) ||
-			checkDelta(lastPosition[2], pMumbleLink->fAvatarPosition[2], 0.1f)) {
+		if (checkDelta(lastPosition[0], mumble_link->fAvatarPosition[0], 0.1f) ||
+			checkDelta(lastPosition[1], mumble_link->fAvatarPosition[1], 0.1f) ||
+			checkDelta(lastPosition[2], mumble_link->fAvatarPosition[2], 0.1f)) {
 			log_debug("timer: starting on movement");
 			timer_start();
 		}
@@ -191,7 +181,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		try {
 			time_string = std::format(settings.time_formatter, duration);
 		}
-		catch(const std::exception& e) {
+		catch([[maybe_unused]] const std::exception& e) {
 			time_string = "INVALID";
 		}
 
@@ -342,9 +332,7 @@ void timer_prepare() {
 	status = TimerStatus::prepared;
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
-	lastPosition[0] = pMumbleLink->fAvatarPosition[0];
-	lastPosition[1] = pMumbleLink->fAvatarPosition[1];
-	lastPosition[2] = pMumbleLink->fAvatarPosition[2];
+	update_lastposition();
 	update_time = std::chrono::system_clock::now();
 
 	if (!settings.is_offline_mode && !outOfDate) {
@@ -489,9 +477,7 @@ void sync_timer() {
 			status = TimerStatus::prepared;
 			start_time = std::chrono::system_clock::now();
 			current_time = std::chrono::system_clock::now();
-			lastPosition[0] = pMumbleLink->fAvatarPosition[0];
-			lastPosition[1] = pMumbleLink->fAvatarPosition[1];
-			lastPosition[2] = pMumbleLink->fAvatarPosition[2];
+			update_lastposition();
 		}
 	}
 }

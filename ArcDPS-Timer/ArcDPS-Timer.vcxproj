@@ -195,6 +195,7 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="imgui_stdlib.cpp" />
+    <ClCompile Include="mumble_link.cpp" />
     <ClCompile Include="ntp.cpp" />
     <ClCompile Include="settings.cpp" />
     <ClCompile Include="timer.cpp" />
