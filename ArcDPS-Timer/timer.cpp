@@ -4,7 +4,6 @@
 #include <chrono>
 #include <cmath>
 #include <format>
-#include <regex>
 
 #include <cpr/cpr.h>
 
@@ -399,11 +398,6 @@ void sync_timer() {
 			return;
 		}
 		mapcode_copy = map_code;
-	}
-
-	std::regex empty_group("^0+$");
-	if (std::regex_match(mapcode_copy, empty_group)) {
-		return;
 	}
 
 	auto response = cpr::Get(cpr::Url{ settings.server_url + "groups/" + mapcode_copy });
