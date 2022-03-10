@@ -31,6 +31,7 @@ Settings::Settings(std::string file, int settings_version)
 	disable_outside_instances = config.value("disable_outside_instances", true);
 	time_formatter = config.value("time_formatter", "{0:%M:%S}");
 	hide_buttons = config.value("hide_buttons", false);
+	auto_stop = config.value("auto_stop", false);
 
 	this->start_key = config.value("start_key", 0);
 	std::string start_key = std::to_string(this->start_key);
@@ -68,6 +69,7 @@ void Settings::save() {
 	config["stop_key"] = stop_key;
 	config["reset_key"] = reset_key;
 	config["prepare_key"] = prepare_key;
+	config["auto_stop"] = auto_stop;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -84,6 +86,11 @@ void Settings::show_options() {
 	ImGui::Checkbox("Auto Prepare", &auto_prepare);
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip("Tries to automatically set the timer to prepared,\nand start on movement/skillcast. Still has a few limitations");
+	}
+
+	ImGui::Checkbox("Auto Stop", &auto_stop);
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Tries to automatically stop the timer. Still experimental");
 	}
 
 	ImGui::Separator();

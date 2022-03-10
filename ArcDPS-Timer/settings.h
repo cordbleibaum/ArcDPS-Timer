@@ -23,6 +23,7 @@ public:
 	WPARAM stop_key;
 	WPARAM reset_key;
 	WPARAM prepare_key;
+	bool auto_stop;
 private:
 	int settings_version;
 	std::string config_file;
