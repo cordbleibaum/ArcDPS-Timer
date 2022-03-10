@@ -45,6 +45,9 @@
     <ClInclude Include="arcdps-extension\Widgets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="arcdps-extension\arcdps_structs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="timer.cpp">

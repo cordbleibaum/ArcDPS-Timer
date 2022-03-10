@@ -173,6 +173,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="arcdps-extension\arcdps_structs.h" />
     <ClInclude Include="arcdps-extension\Widgets.h" />
     <ClInclude Include="arcdps.h" />
     <ClInclude Include="hash-library\crc32.h" />
