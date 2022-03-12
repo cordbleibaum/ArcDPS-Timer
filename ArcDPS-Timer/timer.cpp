@@ -38,9 +38,11 @@ GW2MumbleLink mumble_link;
 
 float lastPosition[3];
 uint32_t lastMapID = 0;
+std::set<uintptr_t> log_agents;
 
 std::string map_code;
 std::mutex mapcode_mutex;
+std::mutex logagents_mutex;
 
 bool outOfDate = false;
 bool isInstanced = false;
@@ -329,6 +331,17 @@ void timer_prepare() {
 
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision) {
 	if (ev) {
+		if (settings.auto_stop) {
+			if (src && src->prof > 9) {
+				std::scoped_lock<std::mutex> guard(logagents_mutex);
+				log_agents.insert(src->prof);
+			}
+			if (dst && dst->prof > 9) {
+				std::scoped_lock<std::mutex> guard(logagents_mutex);
+				log_agents.insert(dst->prof);
+			}
+		}
+
 		if (ev->is_activation) {
 			std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
 			double duration = duration_dbl.count();
@@ -343,7 +356,8 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 			}
 		}
 		else if (ev->is_statechange == cbtstatechange::CBTS_LOGEND && settings.auto_stop) {
-			uintptr_t species_id = ev->src_agent;
+			std::scoped_lock<std::mutex> guard(logagents_mutex);
+			uintptr_t log_species_id = ev->src_agent;
 
 			std::set<uintptr_t> last_bosses = {
 				11265, // Swampland - Bloomhunger 
@@ -363,9 +377,19 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 				17830, // Shattered Observatory - Arkk
 				17759, // Shattered Observatory - Arkk CM
 				11408, // Urban Battleground - Captain Ashym
+				19664, // Twilight Oasis - Amala
+				21421, // Sirens Reef - Captain Crowe
 			};
 
-			if (std::find(std::begin(last_bosses), std::end(last_bosses), species_id) != std::end(last_bosses)) {
+			bool is_instance_end = std::find(std::begin(last_bosses), std::end(last_bosses), log_species_id) != std::end(last_bosses);
+
+			for (const auto& agent_species_id : log_agents) {
+				is_instance_end |= std::find(std::begin(last_bosses), std::end(last_bosses), agent_species_id) != std::end(last_bosses);
+			}
+
+			log_agents.clear();
+
+			if (is_instance_end) {
 				log_debug("timer: stopping on log end");
 				auto ticks_now = timeGetTime();
 				auto ticks_diff = ticks_now - ev->time;
