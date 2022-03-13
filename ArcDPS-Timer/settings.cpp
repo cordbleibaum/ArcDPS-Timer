@@ -32,7 +32,7 @@ Settings::Settings(std::string file, int settings_version)
 	time_formatter = config.value("time_formatter", "{0:%M:%S}");
 	hide_buttons = config.value("hide_buttons", false);
 	auto_stop = config.value("auto_stop", false);
-	early_gg_threshold = config.value("early_gg_threshold", 10);
+	early_gg_threshold = config.value("early_gg_threshold", 5);
 
 	this->start_key = config.value("start_key", 0);
 	std::string start_key = std::to_string(this->start_key);
