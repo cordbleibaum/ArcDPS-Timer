@@ -482,6 +482,7 @@ void sync_timer() {
 			log_debug("timer: stopping on server");
 			status = TimerStatus::stopped;
 			current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clockOffset * 1000.0));
+			start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clockOffset * 1000.0));
 		}
 		else if (data["status"] == "resetted") {
 			log_debug("timer: resetting on server");
