@@ -21,8 +21,6 @@ using namespace std::chrono_literals;
 
 enum class TimerStatus { stopped, prepared, running };
 
-arcdps_exports arc_exports;
-
 std::string config_file = "addons/arcdps/timer.json";
 constexpr int server_version = 6;
 constexpr int settings_version = 8;
@@ -66,7 +64,7 @@ arcdps_exports* mod_init() {
 	arc_exports.imguivers = IMGUI_VERSION_NUM;
 	arc_exports.size = sizeof(arcdps_exports);
 	arc_exports.out_name = "Timer";
-	arc_exports.out_build = "0.5";
+	arc_exports.out_build = "0.6";
 	arc_exports.options_end = mod_options;
 	arc_exports.options_windows = mod_windows;
 	arc_exports.imgui = mod_imgui;
@@ -80,7 +78,10 @@ arcdps_exports* mod_init() {
 	update_time = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
 
-	auto response = cpr::Get(cpr::Url{ settings.server_url + "version" });
+	auto response = cpr::Get(
+		cpr::Url{ settings.server_url + "version" },
+		cpr::Timeout{ 1000 }
+	);
 	if (response.status_code != cpr::status::HTTP_OK) {
 		log("timer: failed to connect to timer api, enabling offline mode\n");
 		settings.is_offline_mode = true;

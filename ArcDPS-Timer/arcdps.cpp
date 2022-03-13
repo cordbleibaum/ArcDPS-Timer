@@ -1,6 +1,8 @@
 #include "arcdps.h"
 #include "timer.h"
 
+arcdps_exports arc_exports;
+
 void* arclog;
 void* filelog;
 

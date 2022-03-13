@@ -15,3 +15,5 @@ void log_file(std::string str);
 
 void log(std::string str);
 void log_debug(std::string str);
+
+extern arcdps_exports arc_exports;
