@@ -12,7 +12,6 @@ NTPClient::NTPClient(std::string host) {
 	this->host = host;
 }
 
-
 double NTPClient::get_time_delta() {
 	std::vector<NTPInfo> samples;
 
@@ -34,7 +33,6 @@ double NTPClient::get_time_delta() {
 	return best_bias.offset;
 }
 
-// TODO: delay between retries
 NTPInfo NTPClient::request_time_delta(int retries) {
 	NTPPacket packetRequest;
 	memset(&packetRequest, 0, sizeof(packetRequest));
@@ -44,6 +42,9 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 	bool ntp_success = false;
 	int retry = 0;
 	NTPInfo info;
+
+	constexpr int retry_a = 200;
+	constexpr int retry_b = 2;
 
 	while (!ntp_success) {
 		auto status = std::async(std::launch::async, [&]() {
@@ -68,7 +69,7 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 			NTPPacket* packetResponse = (NTPPacket*)recvBuffer.data();
 			t1 = (ntohl(packetResponse->rxTm_s) - 2208988800U) * 1000LL + (((double)ntohl(packetResponse->rxTm_f) / std::numeric_limits<uint32_t>::max()) * 1000LL);
 			t2 = (ntohl(packetResponse->txTm_s) - 2208988800U) * 1000LL + (((double)ntohl(packetResponse->txTm_f) / std::numeric_limits<uint32_t>::max()) * 1000LL);
-		}).wait_for(std::chrono::milliseconds{ 1000 });
+		}).wait_for(std::chrono::milliseconds{ 500 });
 		switch (status)
 		{
 		case std::future_status::deferred:
@@ -81,6 +82,7 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 			if (retry > retries) {
 				return info;
 			}
+			std::this_thread::sleep_for(std::chrono::milliseconds{ (int)(retry_a * std::pow(retry, retry_b)) });
 			break;
 		}
 	}

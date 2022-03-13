@@ -187,6 +187,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		last_ntp_sync = std::chrono::system_clock::now();
 		network_thread([&]() {
 			clockOffset = ntp.get_time_delta();
+			last_ntp_sync = std::chrono::system_clock::now();
 			log_arc("timer: clock offset: " + std::to_string(clockOffset));
 		});
 	}
