@@ -52,6 +52,14 @@ bool isInstanced = false;
 
 double clockOffset = 0;
 
+template<class F> void network_thread(F&& f)
+{
+	if (!settings.is_offline_mode && !outOfDate) {
+		std::thread thread(std::forward<F>(f));
+		thread.detach();
+	}
+}
+
 arcdps_exports* mod_init() {
 	memset(&arc_exports, 0, sizeof(arcdps_exports));
 	arc_exports.sig = 0x1A0;
@@ -86,11 +94,10 @@ arcdps_exports* mod_init() {
 	}
 
 	clockOffset = 0;
-	std::thread ntp_thread([&]() {
+	network_thread([&]() {
 		clockOffset = ntp.request_time_delta();
-		log_debug("timer: clock offset: " + std::to_string(clockOffset));
+		log_arc("timer: clock offset: " + std::to_string(clockOffset));
 	});
-	ntp_thread.detach();
 
 	log_arc("timer: done mod_init");
 	return &arc_exports;
@@ -129,14 +136,6 @@ void post_serverapi(std::string url, const json& payload) {
 		cpr::Body{ payload.dump() },
 		cpr::Header{ {"Content-Type", "application/json"} }
 	);
-}
-
-template<class F> void network_thread(F&& f)
-{
-	if (!settings.is_offline_mode && !outOfDate) {
-		std::thread thread(std::forward<F>(f));
-		thread.detach();
-	}
 }
 
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
@@ -185,11 +184,10 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_ntp_sync).count() > 128) {
 		last_ntp_sync = std::chrono::system_clock::now();
-		std::thread ntp_thread([&]() {
+		network_thread([&]() {
 			clockOffset = ntp.request_time_delta();
-			log_debug("timer: clock offset: " + std::to_string(clockOffset));
+			log_arc("timer: clock offset: " + std::to_string(clockOffset));
 		});
-		ntp_thread.detach();
 	}
 
 	if (settings.show_timer) {
