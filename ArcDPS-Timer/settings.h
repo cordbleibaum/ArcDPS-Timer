@@ -6,10 +6,10 @@
 
 class Settings {
 public:
-	Settings() = default;
-	Settings(std::string file, int settings_version);
+	Settings(std::string file);
 	void save();
 	void show_options();
+	void show_windows();
 
 	bool show_timer;
 	std::string server_url;

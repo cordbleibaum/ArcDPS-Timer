@@ -33,7 +33,7 @@ std::chrono::system_clock::time_point last_update;
 std::chrono::system_clock::time_point last_ntp_sync;
 std::chrono::system_clock::time_point log_start_time;
 
-Settings settings;
+Settings settings(config_file);
 GW2MumbleLink mumble_link;
 NTPClient ntp("pool.ntp.org");
 
@@ -71,8 +71,6 @@ arcdps_exports* mod_init() {
 	arc_exports.imgui = mod_imgui;
 	arc_exports.combat = mod_combat;
 	arc_exports.wnd_nofilter = mod_wnd;
-
-	settings = Settings(config_file, settings_version);
 
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -117,7 +115,7 @@ uintptr_t mod_options() {
 
 uintptr_t mod_windows(const char* windowname) {
 	if (!windowname) {
-		ImGui::Checkbox("Timer", &settings.show_timer);
+		settings.show_windows();
 	}
 	return 0;
 }

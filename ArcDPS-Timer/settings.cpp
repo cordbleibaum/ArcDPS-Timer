@@ -10,7 +10,9 @@
 
 using json = nlohmann::json;
 
-Settings::Settings(std::string file, int settings_version)
+constexpr int settings_version = 8;
+
+Settings::Settings(std::string file)
 :	settings_version(settings_version),
 	config_file(file)
 {
@@ -115,4 +117,8 @@ void Settings::show_options() {
 	ImGuiEx::KeyInput("Prepare Key", "##preparekey", prepare_key_buffer, sizeof(prepare_key_buffer), prepare_key, "(not set)");
 
 	ImGui::PopStyleVar();
+}
+
+void Settings::show_windows() {
+	ImGui::Checkbox("Timer", &show_timer);
 }
