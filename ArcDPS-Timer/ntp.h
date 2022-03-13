@@ -31,10 +31,18 @@ struct NTPPacket {
     uint32_t txTm_f; // 32 bits. Transmit time-stamp fraction of a second.
 };
 
-struct NTPClient {
+struct NTPInfo {
+    double offset = 0;
+    double roundtrip_delay = 0;
+};
+
+class NTPClient {
+public:
     NTPClient(std::string host);
-    double request_time_delta();
+    double get_time_delta();
 
 private:
+    NTPInfo request_time_delta(int retries);
+
     std::string host;
 };

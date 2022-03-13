@@ -95,7 +95,7 @@ arcdps_exports* mod_init() {
 
 	clockOffset = 0;
 	network_thread([&]() {
-		clockOffset = ntp.request_time_delta();
+		clockOffset = ntp.get_time_delta();
 		log_arc("timer: clock offset: " + std::to_string(clockOffset));
 	});
 
@@ -185,7 +185,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_ntp_sync).count() > 128) {
 		last_ntp_sync = std::chrono::system_clock::now();
 		network_thread([&]() {
-			clockOffset = ntp.request_time_delta();
+			clockOffset = ntp.get_time_delta();
 			log_arc("timer: clock offset: " + std::to_string(clockOffset));
 		});
 	}

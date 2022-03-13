@@ -12,7 +12,29 @@ NTPClient::NTPClient(std::string host) {
 	this->host = host;
 }
 
-double NTPClient::request_time_delta() {
+double NTPClient::get_time_delta() {
+	std::vector<NTPInfo> samples;
+
+	for (int i = 0; i < 3; ++i) {
+		NTPInfo info = request_time_delta(5);
+		if (std::abs(info.offset) > 0) {
+			samples.push_back(info);
+		}
+	}
+
+	NTPInfo best_bias = *(samples.begin());
+	
+	for (const auto& info : samples) {
+		if (std::abs(info.offset - info.roundtrip_delay / 2.0) < std::abs(best_bias.offset - best_bias.roundtrip_delay / 2.0)) {
+			best_bias = info;
+		}
+	}
+
+	return best_bias.offset;
+}
+
+
+NTPInfo NTPClient::request_time_delta(int retries) {
 	NTPPacket packetRequest;
 	memset(&packetRequest, 0, sizeof(packetRequest));
 	packetRequest.li_vn_mode = 0x1b;
@@ -20,6 +42,7 @@ double NTPClient::request_time_delta() {
 	long long t0, t3, t1, t2;
 	bool ntp_success = false;
 	int retry = 0;
+	NTPInfo info;
 
 	while (!ntp_success) {
 		auto status = std::async(std::launch::async, [&]() {
@@ -44,7 +67,7 @@ double NTPClient::request_time_delta() {
 			NTPPacket* packetResponse = (NTPPacket*)recvBuffer.data();
 			t1 = (ntohl(packetResponse->rxTm_s) - 2208988800U) * 1000LL + (((double)ntohl(packetResponse->rxTm_f) / std::numeric_limits<uint32_t>::max()) * 1000LL);
 			t2 = (ntohl(packetResponse->txTm_s) - 2208988800U) * 1000LL + (((double)ntohl(packetResponse->txTm_f) / std::numeric_limits<uint32_t>::max()) * 1000LL);
-		}).wait_for(std::chrono::milliseconds{ 500 });
+		}).wait_for(std::chrono::milliseconds{ 1000 });
 		switch (status)
 		{
 		case std::future_status::deferred:
@@ -54,13 +77,15 @@ double NTPClient::request_time_delta() {
 			break;
 		case std::future_status::timeout:
 			retry++;
-			if (retry > 10) {
-				return 0.0;
+			if (retry > retries) {
+				return info;
 			}
 			break;
 		}
 	}
-	double offset = ((t1-t0)+(t2-t3))/(2000.0);
 
-	return offset;
+	info.offset = ((t1-t0)+(t2-t3))/(2000.0);
+	info.roundtrip_delay = ((t3 - t0) - (t2 - t1)) / (1000.0);
+
+	return info;
 }
