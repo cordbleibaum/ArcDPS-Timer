@@ -31,6 +31,7 @@ std::chrono::system_clock::time_point current_time;
 std::chrono::system_clock::time_point update_time;
 std::chrono::system_clock::time_point last_update;
 std::chrono::system_clock::time_point last_ntp_sync;
+std::chrono::system_clock::time_point log_start_time;
 
 Settings settings;
 GW2MumbleLink mumble_link;
@@ -373,51 +374,62 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 				timer_start(calculate_ticktime(ev->time));
 			}
 		}
-		else if (ev->is_statechange == cbtstatechange::CBTS_LOGEND && settings.auto_stop) {
-			std::scoped_lock<std::mutex> guard(logagents_mutex);
-			uintptr_t log_species_id = ev->src_agent;
+		else if (settings.auto_stop) {
+			if (ev->is_statechange == cbtstatechange::CBTS_LOGEND) {
+				std::scoped_lock<std::mutex> guard(logagents_mutex);
+				uintptr_t log_species_id = ev->src_agent;
 
-			std::set<uintptr_t> last_bosses = {
-				11265, // Swampland - Bloomhunger 
-				11239, // Underground Facility - Dredge
-				11240, // Underground Facility - Elemental
-				11485, // Volcanic - Imbued Shaman
-				11296, // Cliffside - Archdiviner
-				19697, // Mai Trin Boss Fractal - Mai Trin
-				12906, // Thaumanova - Thaumanova Anomaly
-				11333, // Snowblind - Shaman
-				11402, // Aquatic Ruins - Jellyfish Beast
-				16617, // Chaos - Gladiator
-				20497, // Deepstone - The Voice
-				12900, // Molten Furnace - Engineer
-				17051, // Nightmare - Ensolyss
-				16948, // Nightmare CM - Ensolyss
-				17830, // Shattered Observatory - Arkk
-				17759, // Shattered Observatory - Arkk CM
-				11408, // Urban Battleground - Captain Ashym
-				19664, // Twilight Oasis - Amala
-				21421, // Sirens Reef - Captain Crowe
-				11328, // Uncategorized - Asura
-				12898, // Molten Boss - Berserker
-				12267, // Aetherblade - Frizz
-			};
+				auto log_duration = std::chrono::system_clock::now() - log_start_time;
 
-			bool is_bosslog_end = std::find(std::begin(last_bosses), std::end(last_bosses), log_species_id) != std::end(last_bosses);
-			bool is_ooc_end = false;
+				if (log_duration > std::chrono::seconds(settings.early_gg_threshold)) {
+					std::set<uintptr_t> last_bosses = {
+						11265, // Swampland - Bloomhunger 
+						11239, // Underground Facility - Dredge
+						11240, // Underground Facility - Elemental
+						11485, // Volcanic - Imbued Shaman
+						11296, // Cliffside - Archdiviner
+						19697, // Mai Trin Boss Fractal - Mai Trin
+						12906, // Thaumanova - Thaumanova Anomaly
+						11333, // Snowblind - Shaman
+						11402, // Aquatic Ruins - Jellyfish Beast
+						16617, // Chaos - Gladiator
+						20497, // Deepstone - The Voice
+						12900, // Molten Furnace - Engineer
+						17051, // Nightmare - Ensolyss
+						16948, // Nightmare CM - Ensolyss
+						17830, // Shattered Observatory - Arkk
+						17759, // Shattered Observatory - Arkk CM
+						11408, // Urban Battleground - Captain Ashym
+						19664, // Twilight Oasis - Amala
+						21421, // Sirens Reef - Captain Crowe
+						11328, // Uncategorized - Asura
+						12898, // Molten Boss - Berserker
+						12267, // Aetherblade - Frizz
+					};
 
-			for (const auto& agent_species_id : log_agents) {
-				is_ooc_end |= std::find(std::begin(last_bosses), std::end(last_bosses), agent_species_id) != std::end(last_bosses);
+					bool is_bosslog_end = std::find(std::begin(last_bosses), std::end(last_bosses), log_species_id) != std::end(last_bosses);
+					bool is_ooc_end = false;
+
+					for (const auto& agent_species_id : log_agents) {
+						is_ooc_end |= std::find(std::begin(last_bosses), std::end(last_bosses), agent_species_id) != std::end(last_bosses);
+					}
+
+					log_agents.clear();
+
+					if (is_bosslog_end) {
+						log_debug("timer: stopping on log end");
+						timer_stop(calculate_ticktime(ev->time));
+					}
+					else if (is_ooc_end) {
+						log_debug("timer: stopping on ooc after boss");
+						timer_stop(last_damage_ticks);
+					}
+				}
 			}
-
-			log_agents.clear();
-
-			if (is_bosslog_end) {
-				log_debug("timer: stopping on log end");
-				timer_stop(calculate_ticktime(ev->time));
-			}
-			else if (is_ooc_end) {
-				log_debug("timer: stopping on ooc after boss");
-				timer_stop(last_damage_ticks);
+			else if (ev->is_statechange == cbtstatechange::CBTS_LOGSTART) {
+				auto ticks_now = timeGetTime();
+				auto ticks_diff = ticks_now - ev->time;
+				log_start_time = std::chrono::system_clock::now() - std::chrono::milliseconds{ ticks_diff };
 			}
 		}
 	}

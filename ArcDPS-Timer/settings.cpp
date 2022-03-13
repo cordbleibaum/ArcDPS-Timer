@@ -32,6 +32,7 @@ Settings::Settings(std::string file, int settings_version)
 	time_formatter = config.value("time_formatter", "{0:%M:%S}");
 	hide_buttons = config.value("hide_buttons", false);
 	auto_stop = config.value("auto_stop", false);
+	early_gg_threshold = config.value("early_gg_threshold", 10);
 
 	this->start_key = config.value("start_key", 0);
 	std::string start_key = std::to_string(this->start_key);
@@ -70,6 +71,7 @@ void Settings::save() {
 	config["reset_key"] = reset_key;
 	config["prepare_key"] = prepare_key;
 	config["auto_stop"] = auto_stop;
+	config["early_gg_threshold"] = early_gg_threshold;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -91,6 +93,11 @@ void Settings::show_options() {
 	ImGui::Checkbox("Auto Stop", &auto_stop);
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip("Tries to automatically stop the timer. Still experimental");
+	}
+
+	ImGui::InputInt("Early /gg threshold", &early_gg_threshold);
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Seconds threshold for min duration of a boss kill, \neverything lower gets ignored for auto stop");
 	}
 
 	ImGui::Separator();

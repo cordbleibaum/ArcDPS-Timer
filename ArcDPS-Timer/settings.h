@@ -24,6 +24,7 @@ public:
 	WPARAM reset_key;
 	WPARAM prepare_key;
 	bool auto_stop;
+	int early_gg_threshold;
 private:
 	int settings_version;
 	std::string config_file;
