@@ -32,6 +32,7 @@ std::chrono::system_clock::time_point start_time;
 std::chrono::system_clock::time_point current_time;
 std::chrono::system_clock::time_point update_time;
 std::chrono::system_clock::time_point last_update;
+std::chrono::system_clock::time_point last_ntp_sync;
 
 Settings settings;
 GW2MumbleLink mumble_link;
@@ -39,6 +40,7 @@ GW2MumbleLink mumble_link;
 float lastPosition[3];
 uint32_t lastMapID = 0;
 std::set<uintptr_t> log_agents;
+unsigned long long last_damage_ticks;
 
 std::string map_code;
 std::mutex mapcode_mutex;
@@ -86,7 +88,7 @@ arcdps_exports* mod_init() {
 	std::thread ntp_thread([&]() {
 		NTPClient ntp("pool.ntp.org");
 		clockOffset = ntp.request_time_delta();
-		log_arc("timer: clock offset: " + std::to_string(clockOffset));
+		log_debug("timer: clock offset: " + std::to_string(clockOffset));
 	});
 	ntp_thread.detach();
 
@@ -179,6 +181,16 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_update).count() > settings.sync_interval) {
 		last_update = std::chrono::system_clock::now();
 		network_thread(sync_timer);
+	}
+
+	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_ntp_sync).count() > 128) {
+		last_ntp_sync = std::chrono::system_clock::now();
+		std::thread ntp_thread([&]() {
+			NTPClient ntp("pool.ntp.org");
+			clockOffset = ntp.request_time_delta();
+			log_debug("timer: clock offset: " + std::to_string(clockOffset));
+		});
+		ntp_thread.detach();
 	}
 
 	if (settings.show_timer) {
@@ -339,6 +351,13 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 			if (dst && dst->prof > 9) {
 				std::scoped_lock<std::mutex> guard(logagents_mutex);
 				log_agents.insert(dst->prof);
+
+				if ((!ev->is_buffremove && !ev->is_activation && !ev->is_statechange) || (ev->buff && ev->buff_dmg)) {
+					auto ticks_now = timeGetTime();
+					auto ticks_diff = ticks_now - ev->time;
+					auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+					last_damage_ticks = now_ms.time_since_epoch().count() - ticks_diff;
+				}
 			}
 		}
 
@@ -379,17 +398,21 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 				11408, // Urban Battleground - Captain Ashym
 				19664, // Twilight Oasis - Amala
 				21421, // Sirens Reef - Captain Crowe
+				11328, // Uncategorized - Asura
+				12898, // Molten Boss - Berserker
+				12267, // Aetherblade - Frizz
 			};
 
-			bool is_instance_end = std::find(std::begin(last_bosses), std::end(last_bosses), log_species_id) != std::end(last_bosses);
+			bool is_bosslog_end = std::find(std::begin(last_bosses), std::end(last_bosses), log_species_id) != std::end(last_bosses);
+			bool is_ooc_end = false;
 
 			for (const auto& agent_species_id : log_agents) {
-				is_instance_end |= std::find(std::begin(last_bosses), std::end(last_bosses), agent_species_id) != std::end(last_bosses);
+				is_ooc_end |= std::find(std::begin(last_bosses), std::end(last_bosses), agent_species_id) != std::end(last_bosses);
 			}
 
 			log_agents.clear();
 
-			if (is_instance_end) {
+			if (is_bosslog_end) {
 				log_debug("timer: stopping on log end");
 				auto ticks_now = timeGetTime();
 				auto ticks_diff = ticks_now - ev->time;
@@ -397,12 +420,15 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 				auto end_time = now_ms.time_since_epoch().count() - ticks_diff;
 				timer_stop(end_time);
 			}
+			else if (is_ooc_end) {
+				log_debug("timer: stopping on ooc after boss");
+				timer_stop(last_damage_ticks);
+			}
 		}
 	}
 
 	return 0;
 }
-
 
 void timer_reset() {
 	status = TimerStatus::stopped;
