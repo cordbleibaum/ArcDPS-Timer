@@ -12,6 +12,7 @@ NTPClient::NTPClient(std::string host) {
 	this->host = host;
 }
 
+
 double NTPClient::get_time_delta() {
 	std::vector<NTPInfo> samples;
 
@@ -25,7 +26,7 @@ double NTPClient::get_time_delta() {
 	NTPInfo best_bias = *(samples.begin());
 	
 	for (const auto& info : samples) {
-		if (std::abs(info.offset - info.roundtrip_delay / 2.0) < std::abs(best_bias.offset - best_bias.roundtrip_delay / 2.0)) {
+		if (info.bias < best_bias.bias) {
 			best_bias = info;
 		}
 	}
@@ -33,7 +34,7 @@ double NTPClient::get_time_delta() {
 	return best_bias.offset;
 }
 
-
+// TODO: delay between retries
 NTPInfo NTPClient::request_time_delta(int retries) {
 	NTPPacket packetRequest;
 	memset(&packetRequest, 0, sizeof(packetRequest));
@@ -84,8 +85,8 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 		}
 	}
 
-	info.offset = ((t1-t0)+(t2-t3))/(2000.0);
-	info.roundtrip_delay = ((t3 - t0) - (t2 - t1)) / (1000.0);
+	info.offset = ((t1-t0) + (t2-t3))/(2000.0);
+	info.bias = ((t3-t2) + (t1-t0))/(2000.0);
 
 	return info;
 }

@@ -33,7 +33,7 @@ struct NTPPacket {
 
 struct NTPInfo {
     double offset = 0;
-    double roundtrip_delay = 0;
+    double bias = 0;
 };
 
 class NTPClient {
