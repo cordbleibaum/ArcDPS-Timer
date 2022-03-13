@@ -97,10 +97,10 @@ arcdps_exports* mod_init() {
 	clockOffset = 0;
 	network_thread([&]() {
 		clockOffset = ntp.get_time_delta();
-		log_arc("timer: clock offset: " + std::to_string(clockOffset));
+		log_debug("timer: clock offset: " + std::to_string(clockOffset));
 	});
 
-	log_arc("timer: done mod_init");
+	log_debug("timer: done mod_init");
 	return &arc_exports;
 }
 
@@ -188,7 +188,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		network_thread([&]() {
 			clockOffset = ntp.get_time_delta();
 			last_ntp_sync = std::chrono::system_clock::now();
-			log_arc("timer: clock offset: " + std::to_string(clockOffset));
+			log_debug("timer: clock offset: " + std::to_string(clockOffset));
 		});
 	}
 
@@ -340,6 +340,13 @@ void timer_prepare() {
 	});
 }
 
+unsigned long long calculate_ticktime(uint64_t boot_ticks) {
+	auto ticks_now = timeGetTime();
+	auto ticks_diff = ticks_now - boot_ticks;
+	auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+	return now_ms.time_since_epoch().count() - ticks_diff;
+}
+
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision) {
 	if (ev) {
 		if (settings.auto_stop) {
@@ -352,10 +359,7 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 				log_agents.insert(dst->prof);
 
 				if ((!ev->is_buffremove && !ev->is_activation && !ev->is_statechange) || (ev->buff && ev->buff_dmg)) {
-					auto ticks_now = timeGetTime();
-					auto ticks_diff = ticks_now - ev->time;
-					auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-					last_damage_ticks = now_ms.time_since_epoch().count() - ticks_diff;
+					last_damage_ticks = calculate_ticktime(ev->time);
 				}
 			}
 		}
@@ -366,11 +370,7 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 
 			if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
 				log_debug("timer: starting on skill");
-				auto ticks_now = timeGetTime();
-				auto ticks_diff = ticks_now - ev->time;
-				auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-				auto skill_time = now_ms.time_since_epoch().count() - ticks_diff;
-				timer_start(skill_time);
+				timer_start(calculate_ticktime(ev->time));
 			}
 		}
 		else if (ev->is_statechange == cbtstatechange::CBTS_LOGEND && settings.auto_stop) {
@@ -413,11 +413,7 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 
 			if (is_bosslog_end) {
 				log_debug("timer: stopping on log end");
-				auto ticks_now = timeGetTime();
-				auto ticks_diff = ticks_now - ev->time;
-				auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-				auto end_time = now_ms.time_since_epoch().count() - ticks_diff;
-				timer_stop(end_time);
+				timer_stop(calculate_ticktime(ev->time));
 			}
 			else if (is_ooc_end) {
 				log_debug("timer: stopping on ooc after boss");
