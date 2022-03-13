@@ -43,7 +43,7 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 	int retry = 0;
 	NTPInfo info;
 
-	constexpr int retry_a = 200;
+	constexpr int retry_a = 500;
 	constexpr int retry_b = 2;
 
 	while (!ntp_success) {
@@ -69,7 +69,7 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 			NTPPacket* packetResponse = (NTPPacket*)recvBuffer.data();
 			t1 = (ntohl(packetResponse->rxTm_s) - 2208988800U) * 1000LL + (((double)ntohl(packetResponse->rxTm_f) / std::numeric_limits<uint32_t>::max()) * 1000LL);
 			t2 = (ntohl(packetResponse->txTm_s) - 2208988800U) * 1000LL + (((double)ntohl(packetResponse->txTm_f) / std::numeric_limits<uint32_t>::max()) * 1000LL);
-		}).wait_for(std::chrono::milliseconds{ 500 });
+		}).wait_for(std::chrono::milliseconds{ (int)(retry_a * std::pow(retry_b, retry)) });
 		switch (status)
 		{
 		case std::future_status::deferred:
@@ -82,7 +82,6 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 			if (retry > retries) {
 				return info;
 			}
-			std::this_thread::sleep_for(std::chrono::milliseconds{ (int)(retry_a * std::pow(retry, retry_b)) });
 			break;
 		}
 	}
