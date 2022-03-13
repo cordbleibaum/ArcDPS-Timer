@@ -36,6 +36,7 @@ std::chrono::system_clock::time_point last_ntp_sync;
 
 Settings settings;
 GW2MumbleLink mumble_link;
+NTPClient ntp("pool.ntp.org");
 
 float lastPosition[3];
 uint32_t lastMapID = 0;
@@ -86,7 +87,6 @@ arcdps_exports* mod_init() {
 
 	clockOffset = 0;
 	std::thread ntp_thread([&]() {
-		NTPClient ntp("pool.ntp.org");
 		clockOffset = ntp.request_time_delta();
 		log_debug("timer: clock offset: " + std::to_string(clockOffset));
 	});
@@ -186,7 +186,6 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_ntp_sync).count() > 128) {
 		last_ntp_sync = std::chrono::system_clock::now();
 		std::thread ntp_thread([&]() {
-			NTPClient ntp("pool.ntp.org");
 			clockOffset = ntp.request_time_delta();
 			log_debug("timer: clock offset: " + std::to_string(clockOffset));
 		});
