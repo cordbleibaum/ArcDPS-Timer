@@ -1,6 +1,71 @@
 #pragma once
 
 #include "arcdps.h"
+#include "settings.h"
+#include "mumble_link.h"
+
+#include <chrono>
+#include <set>
+#include <thread>
+#include <mutex>
+
+#include "json.hpp"
+using json = nlohmann::json;
+
+enum class TimerStatus { stopped, prepared, running };
+
+
+class Timer {
+public:
+	Timer(Settings& settings, GW2MumbleLink& mumble_link);
+	void start();
+	void start(uint64_t time);
+	void stop();
+	void stop(uint64_t time);
+	void reset();
+	void prepare();
+	void sync();
+
+	void mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision);
+	void mod_imgui();
+
+	double clock_offset = 0;
+private:
+	Settings& settings;
+	GW2MumbleLink& mumble_link;
+
+	TimerStatus status;
+	std::chrono::system_clock::time_point start_time;
+	std::chrono::system_clock::time_point current_time;
+	std::chrono::system_clock::time_point update_time;
+	std::chrono::system_clock::time_point last_update;
+	std::chrono::system_clock::time_point log_start_time;
+	double clockOffset = 0;
+
+	float lastPosition[3];
+	uint32_t lastMapID = 0;
+	std::set<uintptr_t> log_agents;
+	unsigned long long last_damage_ticks;
+	std::string map_code;
+
+	mutable std::mutex mapcode_mutex;
+	mutable std::mutex logagents_mutex;
+
+	bool outOfDate = false;
+	bool isInstanced = false;
+
+	void request_stop();
+	void request_start();
+	std::string format_time(std::chrono::system_clock::time_point time);
+	void post_serverapi(std::string url, const json& payload);
+
+	template<class F> void network_thread(F&& f) {
+		if (!settings.is_offline_mode && !outOfDate) {
+			std::thread thread(std::forward<F>(f));
+			thread.detach();
+		}
+	}
+};
 
 arcdps_exports* mod_init();
 uintptr_t mod_release();
@@ -9,12 +74,3 @@ uintptr_t mod_windows(const char* windowname);
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading);
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision);
 uintptr_t mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-void timer_start();
-void timer_start(uint64_t time);
-void timer_stop();
-void timer_stop(uint64_t time);
-void timer_prepare();
-void timer_reset();
-
-void sync_timer();
