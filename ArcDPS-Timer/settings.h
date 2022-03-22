@@ -12,6 +12,7 @@ public:
 	void show_windows();
 
 	bool show_timer;
+	bool show_segments;
 	std::string server_url;
 	int sync_interval;
 	bool auto_prepare;
@@ -25,6 +26,7 @@ public:
 	WPARAM prepare_key;
 	bool auto_stop;
 	int early_gg_threshold;
+	WPARAM segment_key;
 private:
 	int settings_version;
 	std::string config_file;
@@ -33,4 +35,5 @@ private:
 	char stop_key_buffer[64]{};
 	char reset_key_buffer[64]{};
 	char prepare_key_buffer[64]{};
+	char segment_key_buffer[64]{};
 };

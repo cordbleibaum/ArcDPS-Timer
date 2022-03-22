@@ -301,12 +301,11 @@ void Timer::mod_imgui() {
 	if (lastMapID != mumble_link->getMumbleContext()->mapId) {
 		std::scoped_lock<std::mutex> guard(mapcode_mutex);
 
-		lastMapID = mumble_link->getMumbleContext()->mapId;
-		isInstanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
-
 		CRC32 crc32;
 		map_code = crc32(mumble_link->getMumbleContext()->serverAddress, sizeof(sockaddr_in));
 		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
+		lastMapID = mumble_link->getMumbleContext()->mapId;
+		isInstanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
 
 		bool doAutoPrepare = settings.auto_prepare;
 		doAutoPrepare &= isInstanced | !settings.disable_outside_instances;
@@ -412,4 +411,51 @@ void Timer::mod_imgui() {
 
 		ImGui::End();
 	}
+
+	if (settings.show_segments) {
+		ImGui::Begin("Segments", &settings.show_timer, ImGuiWindowFlags_AlwaysAutoResize);
+
+		ImGui::BeginTable("##segmenttable", 3);
+
+		ImGui::TableSetupColumn("#");
+		ImGui::TableSetupColumn("Last Time (Duration)");
+		ImGui::TableSetupColumn("Best Time (Duration)");
+		ImGui::TableHeadersRow();
+
+		for (int i = 0; i < segments.size(); ++i) {
+			ImGui::TableNextRow();
+
+			ImGui::TableNextColumn();
+			ImGui::Text(std::to_string(i).c_str());
+
+			ImGui::TableNextColumn();
+			// TODO
+
+			ImGui::TableNextColumn();
+			// TODO
+		}
+
+
+		ImGui::EndTable();
+
+		if (ImGui::Button("Segment")) {
+			segment();
+		}
+
+		ImGui::SameLine(0, 5);
+
+		if (ImGui::Button("Clear")) {
+			clear_segments();
+		}
+
+		ImGui::End();
+	}
+}
+
+void Timer::segment() {
+	// TODO
+}
+
+void Timer::clear_segments() {
+	// TODO
 }

@@ -35,6 +35,7 @@ Settings::Settings(std::string file)
 	hide_buttons = config.value("hide_buttons", false);
 	auto_stop = config.value("auto_stop", false);
 	early_gg_threshold = config.value("early_gg_threshold", 5);
+	show_segments = config.value("show_segments", false);
 
 	this->start_key = config.value("start_key", 0);
 	std::string start_key = std::to_string(this->start_key);
@@ -55,6 +56,11 @@ Settings::Settings(std::string file)
 	std::string prepare_key = std::to_string(this->prepare_key);
 	memset(prepare_key_buffer, 0, sizeof(prepare_key_buffer));
 	prepare_key.copy(prepare_key_buffer, prepare_key.size());
+
+	this->segment_key = config.value("segment_key", 0);
+	std::string segment_key = std::to_string(this->segment_key);
+	memset(segment_key_buffer, 0, sizeof(segment_key));
+	prepare_key.copy(segment_key_buffer, segment_key.size());
 }
 
 void Settings::save() {
@@ -74,6 +80,8 @@ void Settings::save() {
 	config["prepare_key"] = prepare_key;
 	config["auto_stop"] = auto_stop;
 	config["early_gg_threshold"] = early_gg_threshold;
+	config["segment_key"] = segment_key;
+	config["show_segments"] = show_segments;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -115,10 +123,12 @@ void Settings::show_options() {
 	ImGuiEx::KeyInput("Stop Key", "##stopkey", stop_key_buffer, sizeof(stop_key_buffer), stop_key, "(not set)");
 	ImGuiEx::KeyInput("Reset Key", "##resetkey", reset_key_buffer, sizeof(reset_key_buffer), reset_key, "(not set)");
 	ImGuiEx::KeyInput("Prepare Key", "##preparekey", prepare_key_buffer, sizeof(prepare_key_buffer), prepare_key, "(not set)");
+	ImGuiEx::KeyInput("Segment Key", "##segmentkey", segment_key_buffer, sizeof(segment_key_buffer), segment_key, "(not set)");
 
 	ImGui::PopStyleVar();
 }
 
 void Settings::show_windows() {
 	ImGui::Checkbox("Timer", &show_timer);
+	ImGui::Checkbox("Timer Segments", &show_segments);
 }

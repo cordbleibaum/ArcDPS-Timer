@@ -110,6 +110,10 @@ uintptr_t mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 			log_debug("timer: preparing manually");
 			timer.prepare();
 		}
+		else if (vkey == settings.segment_key) {
+			log_debug("timer: segment manually");
+			timer.segment();
+		}
 
 		break;
 	}

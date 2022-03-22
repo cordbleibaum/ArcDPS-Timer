@@ -8,12 +8,22 @@
 #include <set>
 #include <thread>
 #include <mutex>
+#include <vector>
 
 #include "json.hpp"
 using json = nlohmann::json;
 
 enum class TimerStatus { stopped, prepared, running };
 
+struct TimeSegment {
+	bool is_set = false;
+	std::chrono::system_clock::duration duration;
+	std::chrono::system_clock::time_point start;
+	std::chrono::system_clock::time_point end;
+	std::chrono::system_clock::duration shortest_duration;
+	std::chrono::system_clock::time_point shortest_start;
+	std::chrono::system_clock::time_point shortest_end;
+};
 
 class Timer {
 public:
@@ -25,6 +35,8 @@ public:
 	void reset();
 	void prepare();
 	void sync();
+	void segment();
+	void clear_segments();
 
 	void mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision);
 	void mod_imgui();
@@ -40,6 +52,7 @@ private:
 	std::chrono::system_clock::time_point update_time;
 	std::chrono::system_clock::time_point last_update;
 	std::chrono::system_clock::time_point log_start_time;
+	std::vector<TimeSegment> segments;
 	double clockOffset = 0;
 
 	float lastPosition[3];
