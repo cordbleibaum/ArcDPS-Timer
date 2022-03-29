@@ -63,6 +63,14 @@ void Timer::start() {
 	network_thread([&] {
 		request_start();
 	});
+
+	for (auto& segment : segments) {
+		segment.is_set = false;
+	}
+
+	if (segments.size() > 0) {
+		segments[0].start = start_time;
+	}
 }
 
 void Timer::start(uint64_t time) {
@@ -74,6 +82,14 @@ void Timer::start(uint64_t time) {
 	network_thread([&] {
 		request_start();
 	});
+
+	for (auto& segment : segments) {
+		segment.is_set = false;
+	}
+
+	if (segments.size() > 0) {
+		segments[0].start = start_time;
+	}
 }
 
 void Timer::request_stop() {
@@ -92,6 +108,8 @@ void Timer::stop() {
 		network_thread([&] {
 			request_stop();
 		});
+
+		segment();
 	}
 }
 
@@ -106,6 +124,8 @@ void Timer::stop(uint64_t time) {
 		network_thread([&] {
 			request_stop();
 		});
+
+		segment();
 	}
 }
 
@@ -120,6 +140,10 @@ void Timer::reset() {
 		request["update_time"] = format_time(update_time);
 		post_serverapi("groups/" + map_code + "/reset", request);
 	});
+
+	for (auto& segment : segments) {
+		segment.is_set = false;
+	}
 }
 
 void Timer::prepare() {
@@ -423,16 +447,31 @@ void Timer::mod_imgui() {
 		ImGui::TableHeadersRow();
 
 		for (int i = 0; i < segments.size(); ++i) {
-			ImGui::TableNextRow();
+			const auto& segment = segments[i];
 
-			ImGui::TableNextColumn();
-			ImGui::Text(std::to_string(i).c_str());
+			if (segment.is_used) {
 
-			ImGui::TableNextColumn();
-			// TODO
+				ImGui::TableNextRow();
 
-			ImGui::TableNextColumn();
-			// TODO
+				ImGui::TableNextColumn();
+				ImGui::Text(std::to_string(i).c_str());
+
+				ImGui::TableNextColumn();
+				if (segment.is_set) {
+					auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+					auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+					std::string text = std::format("{0:%M:%S}", time_total) + std::format(" ({0:%M:%S})", duration_segment);
+					ImGui::Text(text.c_str());
+				}
+
+				ImGui::TableNextColumn();
+				if (segment.has_shortest) {
+					auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
+					auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
+					std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
+					ImGui::Text(text.c_str());
+				}
+			}
 		}
 
 
@@ -453,9 +492,55 @@ void Timer::mod_imgui() {
 }
 
 void Timer::segment() {
-	// TODO
+	if (status != TimerStatus::running) return;
+
+	for (int i = 0; i < segments.size(); ++i) {
+		auto& segment = segments[i];
+		if (!segment.is_set) {
+			segment.is_set = true;
+			segment.is_used = true;
+			segment.end = std::chrono::system_clock::now();
+
+			if (segments.size() == i+1) {
+				segments.push_back(TimeSegment());
+			}
+			segments[i+1].start = std::chrono::system_clock::now();
+
+			auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+			auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+
+			if (!segment.has_shortest || time_total < segment.shortest_time) {
+				segment.shortest_time = time_total;
+			}
+
+			if (!segment.has_shortest || duration_segment < segment.shortest_duration) {
+				segment.shortest_duration = duration_segment;
+			}
+			segment.has_shortest = true;
+
+			return;
+		}
+	}
+
+	TimeSegment start_segment;
+	start_segment.start = start_time;
+	start_segment.end = std::chrono::system_clock::now();
+	start_segment.is_set = true;
+	start_segment.is_used = true;
+
+	auto time_total = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_time);
+	auto duration_segment = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_segment.start);
+	start_segment.shortest_time = time_total;
+	start_segment.shortest_duration = duration_segment;
+	start_segment.has_shortest = true;
+
+	segments.push_back(start_segment);
+
+	TimeSegment next_segment;
+	next_segment.start = std::chrono::system_clock::now();
+	segments.push_back(next_segment);
 }
 
 void Timer::clear_segments() {
-	// TODO
+	segments.clear();
 }

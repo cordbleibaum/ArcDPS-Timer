@@ -17,12 +17,12 @@ enum class TimerStatus { stopped, prepared, running };
 
 struct TimeSegment {
 	bool is_set = false;
-	std::chrono::system_clock::duration duration;
+	bool is_used = false;
+	bool has_shortest = false;
 	std::chrono::system_clock::time_point start;
 	std::chrono::system_clock::time_point end;
-	std::chrono::system_clock::duration shortest_duration;
-	std::chrono::system_clock::time_point shortest_start;
-	std::chrono::system_clock::time_point shortest_end;
+	std::chrono::system_clock::duration shortest_duration = std::chrono::system_clock::duration::zero();
+	std::chrono::system_clock::duration shortest_time = std::chrono::system_clock::duration::zero();
 };
 
 class Timer {
