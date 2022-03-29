@@ -102,14 +102,14 @@ void Timer::request_stop() {
 
 void Timer::stop() {
 	if (status != TimerStatus::stopped) {
+		segment();
+
 		status = TimerStatus::stopped;
 		current_time = std::chrono::system_clock::now();
 		update_time = std::chrono::system_clock::now();
 		network_thread([&] {
 			request_stop();
 		});
-
-		segment();
 	}
 }
 
@@ -118,14 +118,16 @@ void Timer::stop(uint64_t time) {
 	std::chrono::time_point<std::chrono::system_clock> new_stop_time = std::chrono::time_point<std::chrono::system_clock>(time_ms);
 
 	if (status != TimerStatus::stopped || current_time > new_stop_time) {
+		segment();
+
 		status = TimerStatus::stopped;
 		current_time = new_stop_time;
 		update_time = std::chrono::system_clock::now();
+
+
 		network_thread([&] {
 			request_stop();
 		});
-
-		segment();
 	}
 }
 
@@ -154,6 +156,11 @@ void Timer::prepare() {
 	lastPosition[1] = mumble_link->fAvatarPosition[1];
 	lastPosition[2] = mumble_link->fAvatarPosition[2];
 	update_time = std::chrono::system_clock::now();
+
+	for (auto& segment : segments) {
+		segment.is_set = false;
+	}
+
 	network_thread([&]() {
 		json request;
 		request["update_time"] = format_time(update_time);
@@ -465,12 +472,10 @@ void Timer::mod_imgui() {
 				}
 
 				ImGui::TableNextColumn();
-				if (segment.has_shortest) {
-					auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
-					auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
-					std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
-					ImGui::Text(text.c_str());
-				}
+				auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
+				auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
+				std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
+				ImGui::Text(text.c_str());
 			}
 		}
 
@@ -494,51 +499,61 @@ void Timer::mod_imgui() {
 void Timer::segment() {
 	if (status != TimerStatus::running) return;
 
-	for (int i = 0; i < segments.size(); ++i) {
-		auto& segment = segments[i];
-		if (!segment.is_set) {
-			segment.is_set = true;
-			segment.is_used = true;
-			segment.end = std::chrono::system_clock::now();
+	if (segments.size() > 0) {
+		for (int i = 0; i < segments.size(); ++i) {
+			auto& segment = segments[i];
+			if (!segment.is_set) {
+				segment.is_set = true;
+				segment.end = std::chrono::system_clock::now();
 
-			if (segments.size() == i+1) {
-				segments.push_back(TimeSegment());
+				auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+				auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+
+				if (segment.is_used) {
+					if (time_total < segment.shortest_time) {
+						segment.shortest_time = time_total;
+					}
+					if (duration_segment < segment.shortest_duration) {
+						segment.shortest_duration = duration_segment;
+					}
+				}
+				else {
+					segment.shortest_time = time_total;
+					segment.shortest_duration = duration_segment;
+					segment.is_used = true;
+				}
+
+				if (segments.size() == i + 1) {
+					TimeSegment next_segment;
+					next_segment.start = std::chrono::system_clock::now();
+					segments.push_back(next_segment);
+				}
+				else {
+					segments[i + 1].start = std::chrono::system_clock::now();
+				}
+
+				break;
 			}
-			segments[i+1].start = std::chrono::system_clock::now();
-
-			auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
-			auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
-
-			if (!segment.has_shortest || time_total < segment.shortest_time) {
-				segment.shortest_time = time_total;
-			}
-
-			if (!segment.has_shortest || duration_segment < segment.shortest_duration) {
-				segment.shortest_duration = duration_segment;
-			}
-			segment.has_shortest = true;
-
-			return;
 		}
 	}
+	else {
+		TimeSegment start_segment;
+		start_segment.start = start_time;
+		start_segment.end = std::chrono::system_clock::now();
+		start_segment.is_set = true;
+		start_segment.is_used = true;
 
-	TimeSegment start_segment;
-	start_segment.start = start_time;
-	start_segment.end = std::chrono::system_clock::now();
-	start_segment.is_set = true;
-	start_segment.is_used = true;
+		auto time_total = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_time);
+		auto duration_segment = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_segment.start);
+		start_segment.shortest_time = time_total;
+		start_segment.shortest_duration = duration_segment;
 
-	auto time_total = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_time);
-	auto duration_segment = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_segment.start);
-	start_segment.shortest_time = time_total;
-	start_segment.shortest_duration = duration_segment;
-	start_segment.has_shortest = true;
+		segments.push_back(start_segment);
 
-	segments.push_back(start_segment);
-
-	TimeSegment next_segment;
-	next_segment.start = std::chrono::system_clock::now();
-	segments.push_back(next_segment);
+		TimeSegment next_segment;
+		next_segment.start = std::chrono::system_clock::now();
+		segments.push_back(next_segment);
+	}
 }
 
 void Timer::clear_segments() {
