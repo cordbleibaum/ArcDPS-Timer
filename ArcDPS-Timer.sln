@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Readme.md = Readme.md
 	EndProjectSection
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "ArcDPS-Timer-Server2", "ArcDPS-Timer-Server2\ArcDPS-Timer-Server2.pyproj", "{70D8C31A-F633-47FB-85FA-FB91BD25FC18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,12 @@ Global
 		{AD7AF978-BC87-491D-A901-9147BD89F621}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD7AF978-BC87-491D-A901-9147BD89F621}.Release|x64.ActiveCfg = Release|Any CPU
 		{AD7AF978-BC87-491D-A901-9147BD89F621}.Release|x86.ActiveCfg = Release|Any CPU
+		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Release|x64.ActiveCfg = Release|Any CPU
+		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
