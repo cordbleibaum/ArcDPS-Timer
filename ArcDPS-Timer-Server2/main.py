@@ -4,6 +4,7 @@ from typing import Dict
 
 import tornado.web
 import tornado.locks
+import tornado.escape
 import tornado.ioloop
 from tornado.options import define, options, parse_command_line
 
@@ -19,6 +20,12 @@ class GroupStatus(object):
 global_groups : Dict[str, GroupStatus] = {}
 
 
+class JsonHandler(tornado.web.RequestHandler):
+    def prepare(self):
+        if self.request.headers['Content-Type'] == 'application/json':
+            self.args = tornado.escape.json_decode(self.request.body)
+
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.write({
@@ -27,27 +34,27 @@ class MainHandler(tornado.web.RequestHandler):
         })
 
 
-class StartHandler(tornado.web.RequestHandler):
+class StartHandler(JsonHandler):
     def post(self, group_id: str):
         pass
 
 
-class StopHandler(tornado.web.RequestHandler):
+class StopHandler(JsonHandler):
     def post(self, group_id: str):
         pass
 
 
-class ResetHandler(tornado.web.RequestHandler):
+class ResetHandler(JsonHandler):
     def post(self, group_id: str):
         pass
 
 
-class PrepareHandler(tornado.web.RequestHandler):
+class PrepareHandler(JsonHandler):
     def post(self, group_id: str):
         pass
 
 
-class StatusHandler(tornado.web.RequestHandler):
+class StatusHandler(JsonHandler):
     async def post(self, group_id: str):
         last_update = self.get_argument("last_update", datetime.fromtimestamp(0))
 
