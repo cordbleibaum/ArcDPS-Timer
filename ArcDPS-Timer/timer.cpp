@@ -15,7 +15,7 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link) :
 	status = TimerStatus::stopped;
 
 	auto response = cpr::Get(
-		cpr::Url{ settings.server_url + "version" },
+		cpr::Url{ settings.server_url },
 		cpr::Timeout{ 1000 }
 	);
 	if (response.status_code != cpr::status::HTTP_OK) {
@@ -24,8 +24,8 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link) :
 	}
 	else {
 		auto data = json::parse(response.text);
-		constexpr int server_version = 6;
-		if (data["major"] != server_version) {
+		constexpr int server_version = 7;
+		if (data["version"] != server_version) {
 			log("timer: out of date version, going offline mode\n");
 			outOfDate = true;
 		}
