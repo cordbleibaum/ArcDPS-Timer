@@ -93,7 +93,7 @@ class StopHandler(GroupModifyHandler):
         elif self.group.status == TimerStatus.stopped:
             is_older = self.group.stop_time > self.args.time
             if is_older:
-                self.group.stop_time] = self.args.time
+                self.group.stop_time = self.args.time
 
 
 class ResetHandler(GroupModifyHandler):
