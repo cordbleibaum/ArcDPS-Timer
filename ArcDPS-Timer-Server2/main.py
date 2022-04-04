@@ -1,6 +1,5 @@
 import logging
-from datetime import datetime
-from typing import Dict
+from datetime import datetime, timedelta
 
 import tornado.web
 import tornado.locks
@@ -12,12 +11,27 @@ define("port", default=5000, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
 
 
+class SegmentStatus(object):
+    def __init__(self):
+        self.is_set = False
+        self.is_used = False
+        self.start = datetime.now()
+        self.end = datetime.now()
+        self.shortest_duration = timedelta(seconds=0)
+        self.shortest_time = timedelta(seconds=0)
+
+
 class GroupStatus(object):
     def __init__(self):
         self.update_lock = tornado.locks.Condition()
+        self.last_update = datetime.now()
+        self.start_time = datetime.now()
+        self.stop_time = datetime.now()
+        self.status = 'stopped'
+        self.segments : list[SegmentStatus] = []
 
 
-global_groups : Dict[str, GroupStatus] = {}
+global_groups : dict[str, GroupStatus] = {}
 
 
 class JsonHandler(tornado.web.RequestHandler):
@@ -62,6 +76,16 @@ class StatusHandler(JsonHandler):
         self.update_future.cancel()
 
 
+class SegmentHandler(JsonHandler):
+    def post(self, group_id: str):
+        pass
+
+
+class ClearSegmentsHandler(JsonHandler):
+    def post(self, group_id: str):
+        pass
+
+
 def cleanupGroups():
     logging.info("Running cleanup")
 
@@ -78,6 +102,8 @@ def main():
             (r"/groups/([^/]+)/stop", StopHandler),
             (r"/groups/([^/]+)/prepare", PrepareHandler),
             (r"/groups/([^/]+)/reset", ResetHandler),
+            (r"/groups/([^/]+)/segment", SegmentHandler),
+            (r"/groups/([^/]+)/clear_segment", ClearSegmentsHandler),
         ],
         debug=options.debug
     )
