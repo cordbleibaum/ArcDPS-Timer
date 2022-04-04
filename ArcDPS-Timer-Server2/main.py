@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timedelta
 from enum import Enum
 
+import asyncio
 import tornado.web
 import tornado.locks
 import tornado.escape
@@ -63,6 +64,7 @@ class GroupModifyHandler(JsonHandler):
     def on_finish(self) -> None:
         self.group.last_update = self.args.update_time
         self.group.changeSemaphore.release()
+        self.group.update_lock.notify_all()
         return super().on_finish()
 
 
@@ -107,8 +109,33 @@ class PrepareHandler(GroupModifyHandler):
 
 
 class StatusHandler(JsonHandler):
-    async def post(self, group_id: str):
+    async def prepare(self) -> None:
+        super().prepare()
+        self.group = GroupStatus()
+        group_id = self.path_args[0]
+        if group_id in global_groups:
+            self.group = global_groups[group_id]
+        else:
+            global_groups[group_id] = self.group
+
+    async def post(self):
         last_update = self.args.update_time
+        is_newer = self.group.start_time < last_update
+
+        if not is_newer:
+            self.update_future = self.group.update_lock.wait()
+            try:
+                await self.wait_future
+            except asyncio.CancelledError:
+                return
+
+        return_json = {}
+        return_json["status"] = self.group.status
+        return_json["start_time"] = self.group.start_time
+        return_json["stop_time"] = self.group.stop_time
+        if self.request.connection.stream.closed():
+            return
+        self.write(return_json)
 
     def on_connection_close(self):
         self.update_future.cancel()

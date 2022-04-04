@@ -1,3 +1,4 @@
+asyncio==3.4.3
 pip==21.2.3
 setuptools==57.4.0
 tornado==6.1
