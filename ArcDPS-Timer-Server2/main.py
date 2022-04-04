@@ -44,10 +44,22 @@ class GroupStatus(object):
 global_groups : dict[str, GroupStatus] = {}
 
 
+class RequestData(object):
+    def __init__(self):
+        self.update_time = datetime.fromtimestamp(0)
+        self.time = datetime.fromtimestamp(0)
+
+
 class JsonHandler(tornado.web.RequestHandler):
     def prepare(self) -> None:
-        if self.request.headers['Content-Type'] == 'application/json':
-            self.args = tornado.escape.json_decode(self.request.body)
+        if self.request.headers['Content-Type'].startswith('application/json'):
+            body = self.request.body.decode("utf-8")
+            args = tornado.escape.json_decode(body)
+            self.args = RequestData()
+            if 'time' in args.keys():
+                self.args.time = datetime.fromisoformat(args['time'])
+            if 'update_time' in args.keys():
+                self.args.update_time = datetime.fromisoformat(args['update_time'])
 
 
 class GroupModifyHandler(JsonHandler):
@@ -77,7 +89,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class StartHandler(GroupModifyHandler):
-    async def post(self):
+    async def post(self, group_id):
         if self.group.status == TimerStatus.running:
             is_newer = self.group.start_time < self.args.time
             if is_newer:
@@ -88,7 +100,7 @@ class StartHandler(GroupModifyHandler):
 
 
 class StopHandler(GroupModifyHandler):
-    async def post(self):
+    async def post(self, group_id):
         if self.group.status in [TimerStatus.running, TimerStatus.prepared]:
             self.group.status = TimerStatus.stopped
             self.group.stop_time = self.args.time
@@ -99,12 +111,12 @@ class StopHandler(GroupModifyHandler):
 
 
 class ResetHandler(GroupModifyHandler):
-    async def post(self):
+    async def post(self, group_id):
         self.group.status = TimerStatus.resetted
 
 
 class PrepareHandler(GroupModifyHandler):
-    async def post(self):
+    async def post(self, group_id):
         self.group.status = TimerStatus.prepared
 
 
@@ -118,7 +130,7 @@ class StatusHandler(JsonHandler):
         else:
             global_groups[group_id] = self.group
 
-    async def post(self):
+    async def post(self, group_id):
         last_update = self.args.update_time
         is_newer = self.group.start_time < last_update
 
@@ -142,12 +154,12 @@ class StatusHandler(JsonHandler):
 
 
 class SegmentHandler(GroupModifyHandler):
-    async def post(self):
+    async def post(self, group_id):
         pass
 
 
 class ClearSegmentsHandler(GroupModifyHandler):
-    async def post(self):
+    async def post(self, group_id):
         pass
 
 
