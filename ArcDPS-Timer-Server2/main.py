@@ -14,7 +14,7 @@ define("debug", default=True, help="run in debug mode")
 
 class TimerStatus(Enum):
      stopped = 0
-     started = 1
+     running = 1
      prepared = 2
      resetted = 3
 
@@ -52,14 +52,17 @@ class JsonHandler(tornado.web.RequestHandler):
 class GroupModifyHandler(JsonHandler):
     async def prepare(self) -> None:
         super().prepare()
-        self.status = GroupStatus()
+        self.group = GroupStatus()
         group_id = self.path_args[0]
         if group_id in global_groups:
-            self.status = global_groups[group_id]
-        await self.status.changeSemaphore.acquire()
+            self.group = global_groups[group_id]
+        else:
+            global_groups[group_id] = self.group
+        await self.group.changeSemaphore.acquire()
 
     def on_finish(self) -> None:
-        self.status.changeSemaphore.release()
+        self.group.last_update = self.args.update_time
+        self.group.changeSemaphore.release()
         return super().on_finish()
 
 
@@ -72,40 +75,52 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class StartHandler(GroupModifyHandler):
-    async def post(self, group_id: str):
-        pass
+    async def post(self):
+        if self.group.status == TimerStatus.running:
+            is_newer = self.group.start_time < self.args.time
+            if is_newer:
+                self.group.start_time = self.args.time
+        else:
+            self.group.status = TimerStatus.running
+            self.group.start_time = self.args.time
 
 
 class StopHandler(GroupModifyHandler):
-    async def post(self, group_id: str):
-        pass
+    async def post(self):
+        if self.group.status in [TimerStatus.running, TimerStatus.prepared]:
+            self.group.status = TimerStatus.stopped
+            self.group.stop_time = self.args.time
+        elif self.group.status == TimerStatus.stopped:
+            is_older = self.group.stop_time > self.args.time
+            if is_older:
+                self.group.stop_time] = self.args.time
 
 
 class ResetHandler(GroupModifyHandler):
-    async def post(self, group_id: str):
-        pass
+    async def post(self):
+        self.group.status = TimerStatus.resetted
 
 
 class PrepareHandler(GroupModifyHandler):
-    async def post(self, group_id: str):
-        pass
+    async def post(self):
+        self.group.status = TimerStatus.prepared
 
 
 class StatusHandler(JsonHandler):
     async def post(self, group_id: str):
-        last_update = self.get_argument("last_update", datetime.fromtimestamp(0))
+        last_update = self.args.update_time
 
     def on_connection_close(self):
         self.update_future.cancel()
 
 
 class SegmentHandler(GroupModifyHandler):
-    async def post(self, group_id: str):
+    async def post(self):
         pass
 
 
 class ClearSegmentsHandler(GroupModifyHandler):
-    async def post(self, group_id: str):
+    async def post(self):
         pass
 
 
