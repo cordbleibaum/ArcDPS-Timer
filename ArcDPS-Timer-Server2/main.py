@@ -176,6 +176,13 @@ class ClearSegmentsHandler(GroupModifyHandler):
 
 def cleanupGroups():
     logging.info("Running cleanup")
+    cleaned_global_groups : dict[str, GroupStatus] = {}
+
+    for group_id, status in global_groups.items():
+        if (atetime.utcnow() - status.last_update < timedelta(days=1): 
+            cleaned_global_groups[group_id] = status
+
+    global_groups = cleaned_global_groups
 
 
 def main():
