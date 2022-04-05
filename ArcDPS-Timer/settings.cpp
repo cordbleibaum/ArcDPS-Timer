@@ -27,7 +27,6 @@ Settings::Settings(std::string file)
 	}
 	show_timer = config.value("show_timer", true);
 	server_url = config.value("server_url", "http://164.92.229.177:5001/");
-	sync_interval = config.value("sync_interval", 1);
 	auto_prepare = config.value("auto_prepare", true);
 	is_offline_mode = config.value("is_offline_mode", false);
 	disable_outside_instances = config.value("disable_outside_instances", true);
@@ -68,7 +67,6 @@ void Settings::save() {
 	config["show_timer"] = show_timer;
 	config["server_url"] = server_url;
 	config["version"] = settings_version;
-	config["sync_interval"] = sync_interval;
 	config["auto_prepare"] = auto_prepare;
 	config["is_offline_mode"] = is_offline_mode;
 	config["disable_outside_instances"] = disable_outside_instances;
@@ -90,7 +88,6 @@ void Settings::show_options() {
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
 
 	ImGui::InputText("Server", &server_url);
-	ImGui::InputInt("Sync Interval", &sync_interval);
 	ImGui::Checkbox("Offline Mode", &is_offline_mode);
 	ImGui::Separator();
 	ImGui::Checkbox("Disable outside Instanced Content", &disable_outside_instances);

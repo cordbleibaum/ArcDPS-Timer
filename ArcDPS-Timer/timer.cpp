@@ -46,7 +46,7 @@ void Timer::post_serverapi(std::string url, const json& payload) {
 }
 
 void Timer::sync_thread() {
-	while (!stopping && !settings.is_offline_mode) {
+	while (!settings.is_offline_mode) {
 		sync();
 	}
 }

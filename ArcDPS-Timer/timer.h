@@ -41,7 +41,6 @@ public:
 	void mod_imgui();
 
 	double clock_offset = 0;
-	bool stopping = false;
 private:
 	Settings& settings;
 	GW2MumbleLink& mumble_link;

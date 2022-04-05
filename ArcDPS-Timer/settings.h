@@ -14,7 +14,6 @@ public:
 	bool show_timer;
 	bool show_segments;
 	std::string server_url;
-	int sync_interval;
 	bool auto_prepare;
 	bool is_offline_mode;
 	bool disable_outside_instances;
