@@ -309,7 +309,6 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 					std::scoped_lock<std::mutex> guard(groupcode_mutex);
 					if (selfAccountName.empty() && dst->self) {
 						selfAccountName = username;
-						log_arc(selfAccountName);
 					}
 
 					group_players.insert(username);
