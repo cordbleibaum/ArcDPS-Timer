@@ -1,4 +1,5 @@
 import logging
+import json
 from datetime import datetime, timedelta
 from enum import Enum
 
@@ -13,11 +14,11 @@ define("port", default=5000, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
 
 
-class TimerStatus(Enum):
-     stopped = 0
-     running = 1
-     prepared = 2
-     resetted = 3
+class TimerStatus(str, Enum):
+     stopped = "stopped"
+     running = "running"
+     prepared = "prepared"
+     resetted = "resetted"
 
 
 class SegmentStatus(object):
@@ -39,6 +40,20 @@ class GroupStatus(object):
         self.status = TimerStatus.stopped
         self.segments : list[SegmentStatus] = []
         self.changeSemaphore = tornado.locks.Semaphore(1)
+
+
+class GroupStatusEncoder(json.JSONEncoder):
+    def default(self, group):
+        if isinstance(group, GroupStatus):
+            json_dict = {
+                "status": group.status,
+                "start_time": group.start_time.isoformat(),
+                "stop_time": group.stop_time.isoformat()
+            }
+            return json_dict
+        else:
+            type_name = group.__class__.__name__
+            raise TypeError("Unexpected type {0}".format(type_name))
 
 
 global_groups : dict[str, GroupStatus] = {}
@@ -132,22 +147,17 @@ class StatusHandler(JsonHandler):
 
     async def post(self, group_id):
         last_update = self.args.update_time
-        is_newer = self.group.start_time < last_update
+        is_newer = self.group.last_update > last_update
 
         if not is_newer:
             self.update_future = self.group.update_lock.wait()
             try:
-                await self.wait_future
+                await self.update_future
             except asyncio.CancelledError:
                 return
-
-        return_json = {}
-        return_json["status"] = self.group.status
-        return_json["start_time"] = self.group.start_time
-        return_json["stop_time"] = self.group.stop_time
         if self.request.connection.stream.closed():
             return
-        self.write(return_json)
+        self.write(json.dumps(self.group, cls=GroupStatusEncoder))
 
     def on_connection_close(self):
         self.update_future.cancel()
