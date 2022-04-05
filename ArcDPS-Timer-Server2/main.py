@@ -175,6 +175,8 @@ class ClearSegmentsHandler(GroupModifyHandler):
 
 
 def cleanupGroups():
+    global global_groups
+
     logging.info("Running cleanup")
     cleaned_global_groups : dict[str, GroupStatus] = {}
 
