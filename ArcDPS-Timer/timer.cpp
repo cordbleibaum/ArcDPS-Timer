@@ -187,9 +187,12 @@ void Timer::prepare() {
 	}
 
 	network_thread([&]() {
-		json request;
-		request["update_time"] = format_time(update_time);
-		post_serverapi("groups/" + get_id() + "/prepare", request);
+		std::string id = get_id();
+		if (id != "") {
+			json request;
+			request["update_time"] = format_time(update_time);
+			post_serverapi("groups/" + id + "/prepare", request);
+		}
 	});
 }
 
