@@ -261,8 +261,51 @@ unsigned long long calculate_ticktime(uint64_t boot_ticks) {
 	return now_ms.time_since_epoch().count() - ticks_diff;
 }
 
+void Timer::calculate_groupcode() {
+	std::string playersConcat = "";
+
+	for (auto it = group_players.begin(); it != group_players.end(); ++it) {
+		playersConcat = playersConcat + (*it);
+	}
+
+	CRC32 crc32;
+	std::string group_code_new = crc32(playersConcat);
+	if (group_code != group_code_new) {
+		using namespace std::chrono_literals;
+		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
+	}
+	group_code = group_code_new;
+}
+
 void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision) {
-	if (ev) {
+	if (!ev) {
+		if (!src->elite) {
+			if (src->name != nullptr && src->name[0] != '\0' && dst->name != nullptr && dst->name[0] != '\0') {
+				std::string username(dst->name);
+				if (username.at(0) == ':') {
+					username.erase(0, 1);
+				}
+
+				if (src->prof) {
+					std::scoped_lock<std::mutex> guard(groupcode_mutex);
+					if (selfAccountName.empty() && dst->self) {
+						selfAccountName = username;
+					}
+
+					group_players.insert(username);
+					calculate_groupcode();
+				}
+				else {
+					if (username != selfAccountName) {
+						std::scoped_lock<std::mutex> guard(groupcode_mutex);
+						group_players.erase(username);
+						calculate_groupcode();
+					}
+				}
+			}
+		}
+	}
+	else {
 		if (settings.auto_stop) {
 			if (src && src->prof > 9) {
 				std::scoped_lock<std::mutex> guard(logagents_mutex);

@@ -58,15 +58,20 @@ private:
 	std::set<uintptr_t> log_agents;
 	unsigned long long last_damage_ticks;
 	std::string map_code;
+	std::string selfAccountName;
+	std::set<std::string> group_players;
+	std::string group_code;
 
 	mutable std::mutex mapcode_mutex;
 	mutable std::mutex logagents_mutex;
+	mutable std::mutex groupcode_mutex;
 	bool outOfDate = false;
 	bool isInstanced = false;
 
 	void request_stop();
 	void request_start();
 	void sync_thread();
+	void calculate_groupcode();
 	std::string format_time(std::chrono::system_clock::time_point time);
 	void post_serverapi(std::string url, const json& payload);
 
