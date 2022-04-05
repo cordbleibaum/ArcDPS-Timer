@@ -64,10 +64,13 @@ std::string Timer::format_time(std::chrono::system_clock::time_point time) {
 }
 
 void Timer::request_start() {
-	json request;
-	request["time"] = format_time(start_time);
-	request["update_time"] = format_time(update_time);
-	post_serverapi("groups/" + get_id() + "/start", request);
+	std::string id = get_id();
+	if (id != "") {
+		json request;
+		request["time"] = format_time(start_time);
+		request["update_time"] = format_time(update_time);
+		post_serverapi("groups/" + id + "/start", request);
+	}
 }
 
 
@@ -109,10 +112,13 @@ void Timer::start(uint64_t time) {
 }
 
 void Timer::request_stop() {
-	json request;
-	request["time"] = format_time(current_time);
-	request["update_time"] = format_time(update_time);
-	post_serverapi("groups/" + get_id() + "/stop", request);
+	std::string id = get_id();
+	if (id != "") {
+		json request;
+		request["time"] = format_time(current_time);
+		request["update_time"] = format_time(update_time);
+		post_serverapi("groups/" + id + "/stop", request);
+	}
 }
 
 
@@ -154,9 +160,12 @@ void Timer::reset() {
 	update_time = std::chrono::system_clock::now();
 
 	network_thread([&]() {
-		json request;
-		request["update_time"] = format_time(update_time);
-		post_serverapi("groups/" + get_id() + "/reset", request);
+		std::string id = get_id();
+		if (id != "") {
+			json request;
+			request["update_time"] = format_time(update_time);
+			post_serverapi("groups/" + id + "/reset", request);
+		}
 	});
 
 	for (auto& segment : segments) {
@@ -195,6 +204,7 @@ void Timer::sync() {
 
 	std::string id = get_id();
 	if (id == "") {
+		std::this_thread::sleep_for(std::chrono::seconds{ 1 });
 		return;
 	}
 
@@ -299,6 +309,7 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 					std::scoped_lock<std::mutex> guard(groupcode_mutex);
 					if (selfAccountName.empty() && dst->self) {
 						selfAccountName = username;
+						log_arc(selfAccountName);
 					}
 
 					group_players.insert(username);
