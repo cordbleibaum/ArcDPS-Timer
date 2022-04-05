@@ -1,0 +1,7 @@
+version: "3"
+
+services:
+  gw2timer:
+   build: .
+   ports:
+     - 5001:5001

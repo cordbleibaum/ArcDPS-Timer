@@ -10,7 +10,7 @@ import tornado.escape
 import tornado.ioloop
 from tornado.options import define, options, parse_command_line
 
-define("port", default=5000, help="run on the given port", type=int)
+define("port", default=5001, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
 
 
@@ -48,7 +48,8 @@ class GroupStatusEncoder(json.JSONEncoder):
             json_dict = {
                 "status": group.status,
                 "start_time": group.start_time.isoformat(),
-                "stop_time": group.stop_time.isoformat()
+                "stop_time": group.stop_time.isoformat(),
+                "update_time": group.last_update.isoformat()
             }
             return json_dict
         else:
@@ -104,7 +105,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class StartHandler(GroupModifyHandler):
-    async def post(self, group_id):
+    async def post(self, _):
         if self.group.status == TimerStatus.running:
             is_newer = self.group.start_time < self.args.time
             if is_newer:
@@ -115,7 +116,7 @@ class StartHandler(GroupModifyHandler):
 
 
 class StopHandler(GroupModifyHandler):
-    async def post(self, group_id):
+    async def post(self, _):
         if self.group.status in [TimerStatus.running, TimerStatus.prepared]:
             self.group.status = TimerStatus.stopped
             self.group.stop_time = self.args.time
@@ -126,12 +127,12 @@ class StopHandler(GroupModifyHandler):
 
 
 class ResetHandler(GroupModifyHandler):
-    async def post(self, group_id):
+    async def post(self, _):
         self.group.status = TimerStatus.resetted
 
 
 class PrepareHandler(GroupModifyHandler):
-    async def post(self, group_id):
+    async def post(self, _):
         self.group.status = TimerStatus.prepared
 
 
@@ -145,7 +146,7 @@ class StatusHandler(JsonHandler):
         else:
             global_groups[group_id] = self.group
 
-    async def post(self, group_id):
+    async def post(self, _):
         last_update = self.args.update_time
         is_newer = self.group.last_update > last_update
 
@@ -164,12 +165,12 @@ class StatusHandler(JsonHandler):
 
 
 class SegmentHandler(GroupModifyHandler):
-    async def post(self, group_id):
+    async def post(self, _):
         pass
 
 
 class ClearSegmentsHandler(GroupModifyHandler):
-    async def post(self, group_id):
+    async def post(self, _):
         pass
 
 
@@ -184,7 +185,7 @@ def main():
     app = tornado.web.Application(
         [
             (r"/", MainHandler),
-            (r"/groups/([^/]+)/", StatusHandler),
+            (r"/groups/([^/]+)", StatusHandler),
             (r"/groups/([^/]+)/start", StartHandler),
             (r"/groups/([^/]+)/stop", StopHandler),
             (r"/groups/([^/]+)/prepare", PrepareHandler),

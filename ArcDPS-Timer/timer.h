@@ -41,6 +41,7 @@ public:
 	void mod_imgui();
 
 	double clock_offset = 0;
+	bool stopping = false;
 private:
 	Settings& settings;
 	GW2MumbleLink& mumble_link;
@@ -49,7 +50,6 @@ private:
 	std::chrono::system_clock::time_point start_time;
 	std::chrono::system_clock::time_point current_time;
 	std::chrono::system_clock::time_point update_time;
-	std::chrono::system_clock::time_point last_update;
 	std::chrono::system_clock::time_point log_start_time;
 	std::vector<TimeSegment> segments;
 	double clockOffset = 0;
@@ -62,12 +62,12 @@ private:
 
 	mutable std::mutex mapcode_mutex;
 	mutable std::mutex logagents_mutex;
-
 	bool outOfDate = false;
 	bool isInstanced = false;
 
 	void request_stop();
 	void request_start();
+	void sync_thread();
 	std::string format_time(std::chrono::system_clock::time_point time);
 	void post_serverapi(std::string url, const json& payload);
 

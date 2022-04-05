@@ -30,6 +30,11 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link) :
 			outOfDate = true;
 		}
 	}
+
+	std::thread status_sync_thread([&]() {
+		sync_thread();
+	});
+	status_sync_thread.detach();
 }
 
 void Timer::post_serverapi(std::string url, const json& payload) {
@@ -38,6 +43,12 @@ void Timer::post_serverapi(std::string url, const json& payload) {
 		cpr::Body{ payload.dump() },
 		cpr::Header{ {"Content-Type", "application/json"} }
 	);
+}
+
+void Timer::sync_thread() {
+	while (!stopping && !settings.is_offline_mode) {
+		sync();
+	}
 }
 
 std::string Timer::format_time(std::chrono::system_clock::time_point time) {
@@ -185,10 +196,17 @@ void Timer::sync() {
 		mapcode_copy = map_code;
 	}
 
-	auto response = cpr::Get(cpr::Url{ settings.server_url + "groups/" + mapcode_copy });
+	json request;
+	request["update_time"] = format_time(update_time);
+	auto response =  cpr::Post(
+		cpr::Url{ settings.server_url + "groups/" + mapcode_copy },
+		cpr::Body{ request.dump() },
+		cpr::Header{ {"Content-Type", "application/json"} }
+	);
 
 	if (response.status_code != cpr::status::HTTP_OK) {
 		log("timer: failed to sync with server");
+		std::this_thread::sleep_for(std::chrono::seconds{ 5 });
 		return;
 	}
 
@@ -198,6 +216,7 @@ void Timer::sync() {
 	if (data.find("update_time") != data.end()) {
 		std::chrono::system_clock::time_point new_update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
 		isNewer = new_update_time > update_time;
+		update_time = new_update_time;
 	}
 
 	if (isNewer && data.find("status") != data.end()) {
@@ -362,13 +381,6 @@ void Timer::mod_imgui() {
 
 	if (status == TimerStatus::running) {
 		current_time = std::chrono::system_clock::now();
-	}
-
-	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_update).count() > settings.sync_interval) {
-		last_update = std::chrono::system_clock::now();
-		network_thread([&] {
-			sync();
-		});
 	}
 
 	if (settings.show_timer) {

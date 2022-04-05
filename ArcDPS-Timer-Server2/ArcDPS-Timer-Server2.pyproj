@@ -36,6 +36,8 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="docker-compose.yml" />
+    <Content Include="Dockerfile" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

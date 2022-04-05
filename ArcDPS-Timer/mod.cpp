@@ -49,6 +49,7 @@ arcdps_exports* mod_init() {
 }
 
 uintptr_t mod_release() {
+	timer.stopping = true;
 	settings.save();
 	return 0;
 }
