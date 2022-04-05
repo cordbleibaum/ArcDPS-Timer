@@ -37,12 +37,15 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link) :
 	status_sync_thread.detach();
 }
 
-void Timer::post_serverapi(std::string url, const json& payload) {
-	cpr::Post(
-		cpr::Url{ settings.server_url + url },
-		cpr::Body{ payload.dump() },
-		cpr::Header{ {"Content-Type", "application/json"} }
-	);
+void Timer::post_serverapi(std::string method, const json& payload) {
+	std::string id = get_id();
+	if (id != "") {
+		cpr::Post(
+			cpr::Url{ settings.server_url + "groups/" + id + "/" + method },
+			cpr::Body{ payload.dump() },
+			cpr::Header{ {"Content-Type", "application/json"} }
+		);
+	}
 }
 
 void Timer::sync_thread() {
@@ -64,13 +67,10 @@ std::string Timer::format_time(std::chrono::system_clock::time_point time) {
 }
 
 void Timer::request_start() {
-	std::string id = get_id();
-	if (id != "") {
-		json request;
-		request["time"] = format_time(start_time);
-		request["update_time"] = format_time(update_time);
-		post_serverapi("groups/" + id + "/start", request);
-	}
+	json request;
+	request["time"] = format_time(start_time);
+	request["update_time"] = format_time(update_time);
+	post_serverapi("start", request);
 }
 
 
@@ -112,13 +112,10 @@ void Timer::start(uint64_t time) {
 }
 
 void Timer::request_stop() {
-	std::string id = get_id();
-	if (id != "") {
-		json request;
-		request["time"] = format_time(current_time);
-		request["update_time"] = format_time(update_time);
-		post_serverapi("groups/" + id + "/stop", request);
-	}
+	json request;
+	request["time"] = format_time(current_time);
+	request["update_time"] = format_time(update_time);
+	post_serverapi("stop", request);
 }
 
 
@@ -160,12 +157,9 @@ void Timer::reset() {
 	update_time = std::chrono::system_clock::now();
 
 	network_thread([&]() {
-		std::string id = get_id();
-		if (id != "") {
-			json request;
-			request["update_time"] = format_time(update_time);
-			post_serverapi("groups/" + id + "/reset", request);
-		}
+		json request;
+		request["update_time"] = format_time(update_time);
+		post_serverapi("reset", request);
 	});
 
 	for (auto& segment : segments) {
@@ -187,12 +181,9 @@ void Timer::prepare() {
 	}
 
 	network_thread([&]() {
-		std::string id = get_id();
-		if (id != "") {
-			json request;
-			request["update_time"] = format_time(update_time);
-			post_serverapi("groups/" + id + "/prepare", request);
-		}
+		json request;
+		request["update_time"] = format_time(update_time);
+		post_serverapi("prepare", request);
 	});
 }
 
