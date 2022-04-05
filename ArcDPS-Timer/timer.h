@@ -74,6 +74,7 @@ private:
 	void calculate_groupcode();
 	std::string format_time(std::chrono::system_clock::time_point time);
 	void post_serverapi(std::string url, const json& payload);
+	std::string get_id();
 
 	template<class F> void network_thread(F&& f) {
 		if (!settings.is_offline_mode && !outOfDate) {

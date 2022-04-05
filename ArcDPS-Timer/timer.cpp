@@ -67,7 +67,7 @@ void Timer::request_start() {
 	json request;
 	request["time"] = format_time(start_time);
 	request["update_time"] = format_time(update_time);
-	post_serverapi("groups/" + map_code + "/start", request);
+	post_serverapi("groups/" + get_id() + "/start", request);
 }
 
 
@@ -112,7 +112,7 @@ void Timer::request_stop() {
 	json request;
 	request["time"] = format_time(current_time);
 	request["update_time"] = format_time(update_time);
-	post_serverapi("groups/" + map_code + "/stop", request);
+	post_serverapi("groups/" + get_id() + "/stop", request);
 }
 
 
@@ -156,7 +156,7 @@ void Timer::reset() {
 	network_thread([&]() {
 		json request;
 		request["update_time"] = format_time(update_time);
-		post_serverapi("groups/" + map_code + "/reset", request);
+		post_serverapi("groups/" + get_id() + "/reset", request);
 	});
 
 	for (auto& segment : segments) {
@@ -180,7 +180,7 @@ void Timer::prepare() {
 	network_thread([&]() {
 		json request;
 		request["update_time"] = format_time(update_time);
-		post_serverapi("groups/" + map_code + "/prepare", request);
+		post_serverapi("groups/" + get_id() + "/prepare", request);
 	});
 }
 
@@ -193,18 +193,15 @@ std::chrono::system_clock::time_point parse_time(const std::string& source) {
 void Timer::sync() {
 	std::string mapcode_copy = "";
 
-	{
-		std::scoped_lock<std::mutex> guard(mapcode_mutex);
-		if (map_code == "") {
-			return;
-		}
-		mapcode_copy = map_code;
+	std::string id = get_id();
+	if (id == "") {
+		return;
 	}
 
 	json request;
 	request["update_time"] = format_time(update_time);
 	auto response =  cpr::Post(
-		cpr::Url{ settings.server_url + "groups/" + mapcode_copy },
+		cpr::Url{ settings.server_url + "groups/" + id },
 		cpr::Body{ request.dump() },
 		cpr::Header{ {"Content-Type", "application/json"} }
 	);
@@ -275,6 +272,18 @@ void Timer::calculate_groupcode() {
 		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
 	}
 	group_code = group_code_new;
+}
+
+std::string Timer::get_id()
+{
+	if (isInstanced) {
+		std::scoped_lock<std::mutex> guard(mapcode_mutex);
+		return map_code;
+	}
+	else {
+		std::scoped_lock<std::mutex> guard(groupcode_mutex);
+		return group_code;
+	}
 }
 
 void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision) {
