@@ -18,7 +18,6 @@ class TimerStatus(str, Enum):
      stopped = "stopped"
      running = "running"
      prepared = "prepared"
-     resetted = "resetted"
 
 
 class SegmentStatus(object):
@@ -100,7 +99,7 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.write({
             'app': 'arcdps-timer-server-v2',
-            'version': 7
+            'version': 8
         })
 
 
@@ -128,7 +127,9 @@ class StopHandler(GroupModifyHandler):
 
 class ResetHandler(GroupModifyHandler):
     async def post(self, _):
-        self.group.status = TimerStatus.resetted
+        self.group.status = TimerStatus.stopped
+        self.group.start_time = datetime.now()
+        self.group.stop_time = datetime.now()
 
 
 class PrepareHandler(GroupModifyHandler):
@@ -194,7 +195,7 @@ def main():
     app = tornado.web.Application(
         [
             (r"/", MainHandler),
-            (r"/groups/([^/]+)", StatusHandler),
+            (r"/groups/([^/]+)/", StatusHandler),
             (r"/groups/([^/]+)/start", StartHandler),
             (r"/groups/([^/]+)/stop", StopHandler),
             (r"/groups/([^/]+)/prepare", PrepareHandler),

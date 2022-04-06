@@ -1,6 +1,5 @@
 #include "timer.h"
 
-#include <cpr/cpr.h>
 #include "hash-library/crc32.h"
 
 using namespace std::chrono_literals;
@@ -24,7 +23,7 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link) :
 	}
 	else {
 		auto data = json::parse(response.text);
-		constexpr int server_version = 7;
+		constexpr int server_version = 8;
 		if (data["version"] != server_version) {
 			log("timer: out of date version, going offline mode\n");
 			outOfDate = true;
@@ -37,10 +36,10 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link) :
 	status_sync_thread.detach();
 }
 
-void Timer::post_serverapi(std::string method, const json& payload) {
+cpr::Response Timer::post_serverapi(std::string method, const json& payload) {
 	std::string id = get_id();
 	if (id != "") {
-		cpr::Post(
+		return cpr::Post(
 			cpr::Url{ settings.server_url + "groups/" + id + "/" + method },
 			cpr::Body{ payload.dump() },
 			cpr::Header{ {"Content-Type", "application/json"} }
@@ -143,7 +142,6 @@ void Timer::stop(uint64_t time) {
 		current_time = new_stop_time;
 		update_time = std::chrono::system_clock::now();
 
-
 		network_thread([&] {
 			request_stop();
 		});
@@ -194,8 +192,6 @@ std::chrono::system_clock::time_point parse_time(const std::string& source) {
 }
 
 void Timer::sync() {
-	std::string mapcode_copy = "";
-
 	std::string id = get_id();
 	if (id == "") {
 		std::this_thread::sleep_for(std::chrono::seconds{ 1 });
@@ -204,11 +200,7 @@ void Timer::sync() {
 
 	json request;
 	request["update_time"] = format_time(update_time);
-	auto response =  cpr::Post(
-		cpr::Url{ settings.server_url + "groups/" + id },
-		cpr::Body{ request.dump() },
-		cpr::Header{ {"Content-Type", "application/json"} }
-	);
+	auto response = post_serverapi("", request);
 
 	if (response.status_code != cpr::status::HTTP_OK) {
 		log("timer: failed to sync with server");
@@ -217,36 +209,25 @@ void Timer::sync() {
 	}
 
 	auto data = json::parse(response.text);
+	std::chrono::system_clock::time_point new_update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+	bool isNewer = new_update_time > update_time;
 
-	bool isNewer = true;
-	if (data.find("update_time") != data.end()) {
-		std::chrono::system_clock::time_point new_update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-		isNewer = new_update_time > update_time;
+	if (isNewer) {
+		start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
 		update_time = new_update_time;
-	}
 
-	if (isNewer && data.find("status") != data.end()) {
 		if (data["status"] == "running") {
 			log_debug("timer: starting on server");
 			status = TimerStatus::running;
-			start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
 		}
 		else if (data["status"] == "stopped") {
 			log_debug("timer: stopping on server");
 			status = TimerStatus::stopped;
 			current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-			start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-		}
-		else if (data["status"] == "resetted") {
-			log_debug("timer: resetting on server");
-			status = TimerStatus::stopped;
-			start_time = std::chrono::system_clock::now();
-			current_time = std::chrono::system_clock::now();
 		}
 		else if (data["status"] == "prepared") {
 			log_debug("timer: preparing on server");
 			status = TimerStatus::prepared;
-			start_time = std::chrono::system_clock::now();
 			current_time = std::chrono::system_clock::now();
 			lastPosition[0] = mumble_link->fAvatarPosition[0];
 			lastPosition[1] = mumble_link->fAvatarPosition[1];
