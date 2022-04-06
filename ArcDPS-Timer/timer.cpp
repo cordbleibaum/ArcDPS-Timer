@@ -138,7 +138,7 @@ std::chrono::system_clock::time_point parse_time(const std::string& source) {
 
 void Timer::sync() {
 	while (true) {
-		if (!settings.is_offline_mode) {
+		if (!settings.is_offline_mode && serverStatus == ServerStatus::online) {
 			std::string id = get_id();
 			if (id == "") {
 				std::this_thread::sleep_for(std::chrono::seconds{ 1 });
