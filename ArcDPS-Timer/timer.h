@@ -29,10 +29,8 @@ struct TimeSegment {
 class Timer {
 public:
 	Timer(Settings& settings, GW2MumbleLink& mumble_link);
-	void start();
-	void start(uint64_t time);
-	void stop();
-	void stop(uint64_t time);
+	void start(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
+	void stop(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void reset();
 	void prepare();
 	void sync();
@@ -58,7 +56,7 @@ private:
 	float lastPosition[3];
 	uint32_t lastMapID = 0;
 	std::set<uintptr_t> log_agents;
-	unsigned long long last_damage_ticks;
+	std::chrono::system_clock::time_point last_damage_ticks;
 	std::string map_code;
 	std::string selfAccountName;
 	std::set<std::string> group_players;

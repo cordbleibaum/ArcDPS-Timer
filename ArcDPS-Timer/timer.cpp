@@ -72,29 +72,9 @@ void Timer::request_start() {
 	post_serverapi("start", request);
 }
 
-
-void Timer::start() {
-	start_time = std::chrono::system_clock::now();
-	update_time = std::chrono::system_clock::now();
-	current_time = std::chrono::system_clock::now();
+void Timer::start(std::chrono::system_clock::time_point time) {
 	status = TimerStatus::running;
-	network_thread([&] {
-		request_start();
-	});
-
-	for (auto& segment : segments) {
-		segment.is_set = false;
-	}
-
-	if (segments.size() > 0) {
-		segments[0].start = start_time;
-	}
-}
-
-void Timer::start(uint64_t time) {
-	status = TimerStatus::running;
-	std::chrono::milliseconds time_ms(time);
-	start_time = std::chrono::time_point<std::chrono::system_clock>(time_ms);
+	start_time = time;
 	update_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
 	network_thread([&] {
@@ -117,29 +97,12 @@ void Timer::request_stop() {
 	post_serverapi("stop", request);
 }
 
-
-void Timer::stop() {
-	if (status != TimerStatus::stopped) {
+void Timer::stop(std::chrono::system_clock::time_point time) {
+	if (status != TimerStatus::stopped || current_time > time) {
 		segment();
 
 		status = TimerStatus::stopped;
-		current_time = std::chrono::system_clock::now();
-		update_time = std::chrono::system_clock::now();
-		network_thread([&] {
-			request_stop();
-		});
-	}
-}
-
-void Timer::stop(uint64_t time) {
-	std::chrono::milliseconds time_ms(time);
-	std::chrono::time_point<std::chrono::system_clock> new_stop_time = std::chrono::time_point<std::chrono::system_clock>(time_ms);
-
-	if (status != TimerStatus::stopped || current_time > new_stop_time) {
-		segment();
-
-		status = TimerStatus::stopped;
-		current_time = new_stop_time;
+		current_time = time;
 		update_time = std::chrono::system_clock::now();
 
 		network_thread([&] {
@@ -236,11 +199,10 @@ void Timer::sync() {
 	}
 }
 
-unsigned long long calculate_ticktime(uint64_t boot_ticks) {
+std::chrono::system_clock::time_point calculate_ticktime(uint64_t boot_ticks) {
 	auto ticks_now = timeGetTime();
 	auto ticks_diff = ticks_now - boot_ticks;
-	auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-	return now_ms.time_since_epoch().count() - ticks_diff;
+	return std::chrono::system_clock::now() - std::chrono::milliseconds(ticks_diff);
 }
 
 void Timer::calculate_groupcode() {
