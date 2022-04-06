@@ -16,6 +16,7 @@ using json = nlohmann::json;
 #include <cpr/cpr.h>
 
 enum class TimerStatus { stopped, prepared, running };
+enum class ServerStatus { online, offline, outofdate };
 
 struct TimeSegment {
 	bool is_set = false;
@@ -65,7 +66,7 @@ private:
 	mutable std::mutex mapcode_mutex;
 	mutable std::mutex logagents_mutex;
 	mutable std::mutex groupcode_mutex;
-	bool outOfDate = false;
+	ServerStatus serverStatus = ServerStatus::online;
 	bool isInstanced = false;
 
 	void request_stop();
@@ -77,7 +78,7 @@ private:
 	std::string get_id();
 
 	template<class F> void network_thread(F&& f) {
-		if (!settings.is_offline_mode && !outOfDate) {
+		if (!settings.is_offline_mode && serverStatus == ServerStatus::online) {
 			std::thread thread(std::forward<F>(f));
 			thread.detach();
 		}

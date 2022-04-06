@@ -18,15 +18,15 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link) :
 		cpr::Timeout{ 1000 }
 	);
 	if (response.status_code != cpr::status::HTTP_OK) {
-		log("timer: failed to connect to timer api, enabling offline mode\n");
-		settings.is_offline_mode = true;
+		log("timer: failed to connect to timer api, forcing offline mode\n");
+		serverStatus = ServerStatus::offline;
 	}
 	else {
 		auto data = json::parse(response.text);
 		constexpr int server_version = 8;
 		if (data["version"] != server_version) {
 			log("timer: out of date version, going offline mode\n");
-			outOfDate = true;
+			serverStatus = ServerStatus::outofdate;
 		}
 	}
 
@@ -453,7 +453,7 @@ void Timer::mod_imgui() {
 			ImGui::Dummy(ImVec2(160, 0));
 		}
 
-		if (outOfDate) {
+		if (serverStatus == ServerStatus::outofdate) {
 			ImGui::TextColored(ImVec4(1, 0, 0, 1), "OFFLINE, ADDON OUT OF DATE");
 		}
 
