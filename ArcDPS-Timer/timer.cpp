@@ -66,20 +66,16 @@ std::string Timer::format_time(std::chrono::system_clock::time_point time) {
 	);
 }
 
-void Timer::request_start() {
-	json request;
-	request["time"] = format_time(start_time);
-	request["update_time"] = format_time(update_time);
-	post_serverapi("start", request);
-}
-
 void Timer::start(std::chrono::system_clock::time_point time) {
 	status = TimerStatus::running;
 	start_time = time;
 	update_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
 	network_thread([&] {
-		request_start();
+		json request;
+		request["time"] = format_time(start_time);
+		request["update_time"] = format_time(update_time);
+		post_serverapi("start", request);
 	});
 
 	for (auto& segment : segments) {
@@ -91,13 +87,6 @@ void Timer::start(std::chrono::system_clock::time_point time) {
 	}
 }
 
-void Timer::request_stop() {
-	json request;
-	request["time"] = format_time(current_time);
-	request["update_time"] = format_time(update_time);
-	post_serverapi("stop", request);
-}
-
 void Timer::stop(std::chrono::system_clock::time_point time) {
 	if (status != TimerStatus::stopped || current_time > time) {
 		segment();
@@ -107,7 +96,10 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 		update_time = std::chrono::system_clock::now();
 
 		network_thread([&] {
-			request_stop();
+			json request;
+			request["time"] = format_time(current_time);
+			request["update_time"] = format_time(update_time);
+			post_serverapi("stop", request);		
 		});
 	}
 }

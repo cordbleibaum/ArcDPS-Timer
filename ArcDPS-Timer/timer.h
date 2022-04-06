@@ -69,8 +69,6 @@ private:
 	ServerStatus serverStatus = ServerStatus::online;
 	bool isInstanced = false;
 
-	void request_stop();
-	void request_start();
 	void sync_thread();
 	void calculate_groupcode();
 	std::string format_time(std::chrono::system_clock::time_point time);
