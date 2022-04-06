@@ -45,6 +45,7 @@ cpr::Response Timer::post_serverapi(std::string method, const json& payload) {
 			cpr::Header{ {"Content-Type", "application/json"} }
 		);
 	}
+	return cpr::Response();
 }
 
 void Timer::sync_thread() {
