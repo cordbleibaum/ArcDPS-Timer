@@ -34,7 +34,6 @@ public:
 	void stop(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void reset();
 	void prepare();
-	void sync();
 	void segment();
 	void clear_segments();
 
@@ -69,7 +68,7 @@ private:
 	ServerStatus serverStatus = ServerStatus::online;
 	bool isInstanced = false;
 
-	void sync_thread();
+	void sync();
 	void calculate_groupcode();
 	std::string format_time(std::chrono::system_clock::time_point time);
 	cpr::Response post_serverapi(std::string method, const json& payload);
