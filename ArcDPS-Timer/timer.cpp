@@ -443,7 +443,6 @@ void Timer::mod_imgui() {
 			}
 		}
 
-
 		ImGui::EndTable();
 
 		if (ImGui::Button("Segment")) {

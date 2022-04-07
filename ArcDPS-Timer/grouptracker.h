@@ -18,5 +18,5 @@ private:
 	std::set<std::string> group_players;
 
 	std::string group_code;
-	mutable std::mutex groupcode_mutex;
+	std::mutex groupcode_mutex;
 };

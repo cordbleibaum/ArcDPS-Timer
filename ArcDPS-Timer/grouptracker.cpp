@@ -13,7 +13,6 @@ std::string GroupTracker::get_group_id()
 }
 
 void GroupTracker::calculate_groupcode() {
-	std::scoped_lock<std::mutex> guard(groupcode_mutex);
 	std::string playersConcat = "";
 
 	for (auto it = group_players.begin(); it != group_players.end(); ++it) {
