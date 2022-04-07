@@ -61,8 +61,8 @@ private:
 	std::string map_code;
 	std::string last_id = "";
 
-	mutable std::mutex mapcode_mutex;
-	mutable std::mutex logagents_mutex;
+	std::mutex mapcode_mutex;
+	std::mutex logagents_mutex;
 	ServerStatus serverStatus = ServerStatus::online;
 	bool isInstanced = false;
 
