@@ -22,7 +22,7 @@ void GroupTracker::calculate_groupcode() {
 	group_code = CRC32()(playersConcat);
 }
 
-void GroupTracker::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision)
+void GroupTracker::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id)
 {
 	if (!ev) {
 		if (!src->elite) {

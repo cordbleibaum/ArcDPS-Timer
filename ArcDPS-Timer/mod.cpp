@@ -84,8 +84,8 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 }
 
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision) {
-	group_tracker.mod_combat(ev, src, dst, skillname, id, revision);
-	timer.mod_combat(ev, src, dst, skillname, id, revision);
+	group_tracker.mod_combat(ev, src, dst, skillname, id);
+	timer.mod_combat(ev, src, dst, skillname, id);
 
 	return 0;
 }

@@ -38,7 +38,7 @@ public:
 	void segment();
 	void clear_segments();
 
-	void mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision);
+	void mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id);
 	void mod_imgui();
 
 	double clock_offset = 0;

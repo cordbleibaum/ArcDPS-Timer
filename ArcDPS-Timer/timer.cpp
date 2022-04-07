@@ -135,38 +135,38 @@ void Timer::sync() {
 			std::string id = get_id();
 			if (id == "") {
 				std::this_thread::sleep_for(std::chrono::seconds{ 1 });
-				return;
 			}
-
-			auto response = post_serverapi("", {{"update_time", format_time(update_time)}});
-			if (response.status_code != cpr::status::HTTP_OK) {
-				log("timer: failed to sync with server");
-				std::this_thread::sleep_for(std::chrono::seconds{ 5 });
-				return;
-			}
-
-			auto data = json::parse(response.text);
-			std::chrono::system_clock::time_point new_update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-			bool isNewer = new_update_time > update_time;
-
-			if (isNewer) {
-				start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-				update_time = new_update_time;
-
-				if (data["status"] == "running") {
-					log_debug("timer: starting on server");
-					status = TimerStatus::running;
+			else {
+				auto response = post_serverapi("", { {"update_time", format_time(update_time)} });
+				if (response.status_code != cpr::status::HTTP_OK) {
+					log("timer: failed to sync with server");
+					std::this_thread::sleep_for(std::chrono::seconds{ 5 });
 				}
-				else if (data["status"] == "stopped") {
-					log_debug("timer: stopping on server");
-					status = TimerStatus::stopped;
-					current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-				}
-				else if (data["status"] == "prepared") {
-					log_debug("timer: preparing on server");
-					status = TimerStatus::prepared;
-					current_time = std::chrono::system_clock::now();
-					std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
+				else {
+					auto data = json::parse(response.text);
+					std::chrono::system_clock::time_point new_update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+					bool isNewer = new_update_time > update_time;
+
+					if (isNewer) {
+						start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+						update_time = new_update_time;
+
+						if (data["status"] == "running") {
+							log_debug("timer: starting on server");
+							status = TimerStatus::running;
+						}
+						else if (data["status"] == "stopped") {
+							log_debug("timer: stopping on server");
+							status = TimerStatus::stopped;
+							current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+						}
+						else if (data["status"] == "prepared") {
+							log_debug("timer: preparing on server");
+							status = TimerStatus::prepared;
+							current_time = std::chrono::system_clock::now();
+							std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
+						}
+					}
 				}
 			}
 		}
@@ -177,8 +177,7 @@ void Timer::sync() {
 }
 
 std::chrono::system_clock::time_point calculate_ticktime(uint64_t boot_ticks) {
-	auto ticks_now = timeGetTime();
-	auto ticks_diff = ticks_now - boot_ticks;
+	auto ticks_diff = timeGetTime() - boot_ticks;
 	return std::chrono::system_clock::now() - std::chrono::milliseconds(ticks_diff);
 }
 
@@ -200,7 +199,7 @@ std::string Timer::get_id()
 	return id;
 }
 
-void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision) {
+void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id) {
 	if (ev) {
 		if (settings.auto_stop) {
 			if (src && src->prof > 9) {
@@ -478,9 +477,7 @@ void Timer::segment() {
 				}
 
 				if (segments.size() == i + 1) {
-					TimeSegment next_segment;
-					next_segment.start = std::chrono::system_clock::now();
-					segments.push_back(next_segment);
+					segments.emplace_back();
 				}
 				else {
 					segments[i + 1].start = std::chrono::system_clock::now();
@@ -493,20 +490,12 @@ void Timer::segment() {
 	else {
 		TimeSegment start_segment;
 		start_segment.start = start_time;
-		start_segment.end = std::chrono::system_clock::now();
 		start_segment.is_set = true;
 		start_segment.is_used = true;
-
-		auto time_total = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_time);
-		auto duration_segment = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_segment.start);
-		start_segment.shortest_time = time_total;
-		start_segment.shortest_duration = duration_segment;
-
+		start_segment.shortest_time = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_time);
+		start_segment.shortest_duration = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_segment.start);
 		segments.push_back(start_segment);
-
-		TimeSegment next_segment;
-		next_segment.start = std::chrono::system_clock::now();
-		segments.push_back(next_segment);
+		segments.emplace_back();
 	}
 }
 
