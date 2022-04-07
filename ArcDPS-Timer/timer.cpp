@@ -86,7 +86,7 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 		network_thread([&] {
 			post_serverapi("stop", {
 				{"time", format_time(current_time)},
-				{"", format_time(update_time)}
+				{"update_time", format_time(update_time)}
 			});
 		});
 	}
