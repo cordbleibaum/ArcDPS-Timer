@@ -62,10 +62,10 @@ void Timer::start(std::chrono::system_clock::time_point time) {
 	update_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
 	network_thread([&] {
-		json request;
-		request["time"] = format_time(start_time);
-		request["update_time"] = format_time(update_time);
-		post_serverapi("start", request);
+		post_serverapi("stop", {
+			{"time", format_time(start_time)},
+			{"", format_time(update_time)}
+		});
 	});
 
 	for (auto& segment : segments) {
@@ -86,10 +86,10 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 		update_time = std::chrono::system_clock::now();
 
 		network_thread([&] {
-			json request;
-			request["time"] = format_time(current_time);
-			request["update_time"] = format_time(update_time);
-			post_serverapi("stop", request);		
+			post_serverapi("stop", {
+				{"time", format_time(current_time)},
+				{"", format_time(update_time)}
+			});
 		});
 	}
 }
@@ -101,9 +101,7 @@ void Timer::reset() {
 	update_time = std::chrono::system_clock::now();
 
 	network_thread([&]() {
-		json request;
-		request["update_time"] = format_time(update_time);
-		post_serverapi("reset", request);
+		post_serverapi("reset", {{"update_time", format_time(update_time)}});
 	});
 
 	for (auto& segment : segments) {
@@ -123,9 +121,7 @@ void Timer::prepare() {
 	}
 
 	network_thread([&]() {
-		json request;
-		request["update_time"] = format_time(update_time);
-		post_serverapi("prepare", request);
+		post_serverapi("prepare", {{"update_time", format_time(update_time)}});
 	});
 }
 
@@ -144,10 +140,7 @@ void Timer::sync() {
 				return;
 			}
 
-			json request;
-			request["update_time"] = format_time(update_time);
-			auto response = post_serverapi("", request);
-
+			auto response = post_serverapi("", {{"update_time", format_time(update_time)}});
 			if (response.status_code != cpr::status::HTTP_OK) {
 				log("timer: failed to sync with server");
 				std::this_thread::sleep_for(std::chrono::seconds{ 5 });
