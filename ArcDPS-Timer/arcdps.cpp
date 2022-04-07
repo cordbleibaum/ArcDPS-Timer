@@ -1,5 +1,5 @@
 #include "arcdps.h"
-#include "timer.h"
+#include "mod.h"
 
 arcdps_exports arc_exports;
 

@@ -33,7 +33,7 @@ class SegmentStatus(object):
 class GroupStatus(object):
     def __init__(self):
         self.update_lock = tornado.locks.Condition()
-        self.last_update = datetime.fromtimestamp(0)
+        self.update_time = datetime.fromtimestamp(0)
         self.start_time = datetime.fromtimestamp(0)
         self.stop_time = datetime.fromtimestamp(0)
         self.status = TimerStatus.stopped
@@ -48,7 +48,7 @@ class GroupStatusEncoder(json.JSONEncoder):
                 "status": group.status,
                 "start_time": group.start_time.isoformat(),
                 "stop_time": group.stop_time.isoformat(),
-                "update_time": group.last_update.isoformat()
+                "update_time": group.update_time.isoformat()
             }
             return json_dict
         else:
@@ -89,7 +89,7 @@ class GroupModifyHandler(JsonHandler):
         await self.group.changeSemaphore.acquire()
 
     def on_finish(self) -> None:
-        self.group.last_update = self.args.update_time
+        self.group.update_time = self.args.update_time
         self.group.changeSemaphore.release()
         self.group.update_lock.notify_all()
         return super().on_finish()
@@ -148,8 +148,7 @@ class StatusHandler(JsonHandler):
             global_groups[group_id] = self.group
 
     async def post(self, _):
-        last_update = self.args.update_time
-        is_newer = self.group.last_update > last_update
+        is_newer = self.group.update_time > self.args.update_time
 
         if not is_newer:
             self.update_future = self.group.update_lock.wait()
@@ -182,7 +181,7 @@ def cleanupGroups():
     cleaned_global_groups : dict[str, GroupStatus] = {}
 
     for group_id, status in global_groups.items():
-        if datetime.utcnow() - status.last_update < timedelta(days=1): 
+        if datetime.utcnow() - status.update_time < timedelta(days=1): 
             cleaned_global_groups[group_id] = status
 
     global_groups = cleaned_global_groups
