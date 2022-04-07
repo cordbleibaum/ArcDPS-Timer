@@ -152,16 +152,13 @@ void Timer::sync() {
 						update_time = new_update_time;
 
 						if (data["status"] == "running") {
-							log_debug("timer: starting on server");
 							status = TimerStatus::running;
 						}
 						else if (data["status"] == "stopped") {
-							log_debug("timer: stopping on server");
 							status = TimerStatus::stopped;
 							current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
 						}
 						else if (data["status"] == "prepared") {
-							log_debug("timer: preparing on server");
 							status = TimerStatus::prepared;
 							current_time = std::chrono::system_clock::now();
 							std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
@@ -294,14 +291,11 @@ void Timer::mod_imgui() {
 	if (lastMapID != mumble_link->getMumbleContext()->mapId) {
 		std::scoped_lock<std::mutex> guard(mapcode_mutex);
 
-		CRC32 crc32;
-		map_code = crc32(mumble_link->getMumbleContext()->serverAddress, sizeof(sockaddr_in));
+		map_code = CRC32()(mumble_link->getMumbleContext()->serverAddress, sizeof(sockaddr_in));
 		lastMapID = mumble_link->getMumbleContext()->mapId;
 		isInstanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
 
-		bool doAutoPrepare = settings.auto_prepare;
-		doAutoPrepare &= isInstanced | !settings.disable_outside_instances;
-
+		bool doAutoPrepare = settings.auto_prepare && (isInstanced || !settings.disable_outside_instances);
 		if (doAutoPrepare) {
 			log_debug("timer: preparing on map change");
 			prepare();
