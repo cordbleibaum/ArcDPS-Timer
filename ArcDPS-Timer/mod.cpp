@@ -14,7 +14,8 @@
 Settings settings("addons/arcdps/timer.json");
 GW2MumbleLink mumble_link;
 NTPClient ntp("pool.ntp.org");
-Timer timer(settings, mumble_link);
+GroupTracker group_tracker;
+Timer timer(settings, mumble_link, group_tracker);
 
 std::chrono::system_clock::time_point last_ntp_sync;
 
@@ -83,6 +84,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 }
 
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision) {
+	group_tracker.mod_combat(ev, src, dst, skillname, id, revision);
 	timer.mod_combat(ev, src, dst, skillname, id, revision);
 
 	return 0;

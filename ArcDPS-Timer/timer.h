@@ -3,6 +3,7 @@
 #include "arcdps.h"
 #include "settings.h"
 #include "mumble_link.h"
+#include "grouptracker.h"
 
 #include <chrono>
 #include <set>
@@ -29,7 +30,7 @@ struct TimeSegment {
 
 class Timer {
 public:
-	Timer(Settings& settings, GW2MumbleLink& mumble_link);
+	Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker);
 	void start(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void stop(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void reset();
@@ -44,6 +45,7 @@ public:
 private:
 	Settings& settings;
 	GW2MumbleLink& mumble_link;
+	GroupTracker& group_tracker;
 
 	TimerStatus status;
 	std::chrono::system_clock::time_point start_time;
@@ -51,25 +53,20 @@ private:
 	std::chrono::system_clock::time_point update_time;
 	std::chrono::system_clock::time_point log_start_time;
 	std::vector<TimeSegment> segments;
-	double clockOffset = 0;
 
 	float lastPosition[3];
 	uint32_t lastMapID = 0;
 	std::set<uintptr_t> log_agents;
 	std::chrono::system_clock::time_point last_damage_ticks;
 	std::string map_code;
-	std::string selfAccountName;
-	std::set<std::string> group_players;
-	std::string group_code;
+	std::string last_id = "";
 
 	mutable std::mutex mapcode_mutex;
 	mutable std::mutex logagents_mutex;
-	mutable std::mutex groupcode_mutex;
 	ServerStatus serverStatus = ServerStatus::online;
 	bool isInstanced = false;
 
 	void sync();
-	void calculate_groupcode();
 	std::string format_time(std::chrono::system_clock::time_point time);
 	cpr::Response post_serverapi(std::string method, const json& payload);
 	std::string get_id();

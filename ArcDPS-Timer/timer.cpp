@@ -4,9 +4,10 @@
 
 using namespace std::chrono_literals;
 
-Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link) : 
+Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker) :
 	settings(settings),
-	mumble_link(mumble_link)
+	mumble_link(mumble_link),
+	group_tracker(group_tracker)
 {
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -114,9 +115,7 @@ void Timer::prepare() {
 	status = TimerStatus::prepared;
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
-	lastPosition[0] = mumble_link->fAvatarPosition[0];
-	lastPosition[1] = mumble_link->fAvatarPosition[1];
-	lastPosition[2] = mumble_link->fAvatarPosition[2];
+	std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
 	update_time = std::chrono::system_clock::now();
 
 	for (auto& segment : segments) {
@@ -176,9 +175,7 @@ void Timer::sync() {
 					log_debug("timer: preparing on server");
 					status = TimerStatus::prepared;
 					current_time = std::chrono::system_clock::now();
-					lastPosition[0] = mumble_link->fAvatarPosition[0];
-					lastPosition[1] = mumble_link->fAvatarPosition[1];
-					lastPosition[2] = mumble_link->fAvatarPosition[2];
+					std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
 				}
 			}
 		}
@@ -194,63 +191,26 @@ std::chrono::system_clock::time_point calculate_ticktime(uint64_t boot_ticks) {
 	return std::chrono::system_clock::now() - std::chrono::milliseconds(ticks_diff);
 }
 
-void Timer::calculate_groupcode() {
-	std::string playersConcat = "";
-
-	for (auto it = group_players.begin(); it != group_players.end(); ++it) {
-		playersConcat = playersConcat + (*it);
+std::string Timer::get_id()
+{
+	std::string id = "";
+	if (isInstanced) {
+		std::scoped_lock<std::mutex> guard(mapcode_mutex);
+		id = map_code;
 	}
-
-	CRC32 crc32;
-	std::string group_code_new = crc32(playersConcat);
-	if (group_code != group_code_new) {
+	else {
+		id = group_tracker.get_group_id();
+	}
+	if (id != last_id) {
+		last_id = id;
 		using namespace std::chrono_literals;
 		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
 	}
-	group_code = group_code_new;
-}
-
-std::string Timer::get_id()
-{
-	if (isInstanced) {
-		std::scoped_lock<std::mutex> guard(mapcode_mutex);
-		return map_code;
-	}
-	else {
-		std::scoped_lock<std::mutex> guard(groupcode_mutex);
-		return group_code;
-	}
+	return id;
 }
 
 void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision) {
-	if (!ev) {
-		if (!src->elite) {
-			if (src->name != nullptr && src->name[0] != '\0' && dst->name != nullptr && dst->name[0] != '\0') {
-				std::string username(dst->name);
-				if (username.at(0) == ':') {
-					username.erase(0, 1);
-				}
-
-				if (src->prof) {
-					std::scoped_lock<std::mutex> guard(groupcode_mutex);
-					if (selfAccountName.empty() && dst->self) {
-						selfAccountName = username;
-					}
-
-					group_players.insert(username);
-					calculate_groupcode();
-				}
-				else {
-					if (username != selfAccountName) {
-						std::scoped_lock<std::mutex> guard(groupcode_mutex);
-						group_players.erase(username);
-						calculate_groupcode();
-					}
-				}
-			}
-		}
-	}
-	else {
+	if (ev) {
 		if (settings.auto_stop) {
 			if (src && src->prof > 9) {
 				std::scoped_lock<std::mutex> guard(logagents_mutex);
@@ -346,7 +306,6 @@ void Timer::mod_imgui() {
 
 		CRC32 crc32;
 		map_code = crc32(mumble_link->getMumbleContext()->serverAddress, sizeof(sockaddr_in));
-		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
 		lastMapID = mumble_link->getMumbleContext()->mapId;
 		isInstanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
 
