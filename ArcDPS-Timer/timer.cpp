@@ -2,8 +2,6 @@
 
 #include "hash-library/crc32.h"
 
-using namespace std::chrono_literals;
-
 Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker) :
 	settings(settings),
 	mumble_link(mumble_link),
