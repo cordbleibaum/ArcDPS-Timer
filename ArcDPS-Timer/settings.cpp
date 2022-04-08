@@ -12,9 +12,10 @@ using json = nlohmann::json;
 
 constexpr int settings_version = 8;
 
-Settings::Settings(std::string file)
+Settings::Settings(std::string file, Translation& translation)
 :	settings_version(settings_version),
-	config_file(file)
+	config_file(file),
+	translation(translation)
 {
 	json config;
 	config["filler"] = "empty";
@@ -87,45 +88,45 @@ void Settings::save() {
 void Settings::show_options() {
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
 
-	ImGui::InputText("Server", &server_url);
-	ImGui::Checkbox("Offline Mode", &is_offline_mode);
+	ImGui::InputText(translation.get("InputServer").c_str(), &server_url);
+	ImGui::Checkbox(translation.get("InputOfflineMode").c_str(), &is_offline_mode);
 	ImGui::Separator();
-	ImGui::Checkbox("Disable outside Instanced Content", &disable_outside_instances);
+	ImGui::Checkbox(translation.get("InputOnlyInstance").c_str(), &disable_outside_instances);
 
-	ImGui::Checkbox("Auto Prepare", &auto_prepare);
+	ImGui::Checkbox(translation.get("InputAutoprepare").c_str(), &auto_prepare);
 	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("Tries to automatically set the timer to prepared,\nand start on movement/skillcast. Still has a few limitations");
+		ImGui::SetTooltip(translation.get("TooltipAutoPrepare").c_str());
 	}
 
-	ImGui::Checkbox("Auto Stop", &auto_stop);
+	ImGui::Checkbox(translation.get("InputAutostop").c_str(), &auto_stop);
 	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("Tries to automatically stop the timer. Still experimental");
+		ImGui::SetTooltip(translation.get("TooltipAutoStop").c_str());
 	}
 
-	ImGui::InputInt("Early /gg threshold", &early_gg_threshold);
+	ImGui::InputInt(translation.get("InputEarlyGG").c_str(), &early_gg_threshold);
 	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("Seconds threshold for min duration of a boss kill, \neverything lower gets ignored for auto stop");
+		ImGui::SetTooltip(translation.get("TooltipEarlyGG").c_str());
 	}
 
 	ImGui::Separator();
 	
-	ImGui::InputText("Time formatter", &time_formatter);
+	ImGui::InputText(translation.get("InputTimeFormatter").c_str(), &time_formatter);
 	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("Format for timer time, see https://en.cppreference.com/w/cpp/chrono/duration/formatter");
+		ImGui::SetTooltip(translation.get("TooltipTimerFormatter").c_str());
 	}
 
-	ImGui::Checkbox("Hide buttons", &hide_buttons);
+	ImGui::Checkbox(translation.get("InputHideButtons").c_str(), &hide_buttons);
 
-	ImGuiEx::KeyInput("Start Key", "##startkey", start_key_buffer, sizeof(start_key_buffer), start_key, "(not set)");
-	ImGuiEx::KeyInput("Stop Key", "##stopkey", stop_key_buffer, sizeof(stop_key_buffer), stop_key, "(not set)");
-	ImGuiEx::KeyInput("Reset Key", "##resetkey", reset_key_buffer, sizeof(reset_key_buffer), reset_key, "(not set)");
-	ImGuiEx::KeyInput("Prepare Key", "##preparekey", prepare_key_buffer, sizeof(prepare_key_buffer), prepare_key, "(not set)");
-	ImGuiEx::KeyInput("Segment Key", "##segmentkey", segment_key_buffer, sizeof(segment_key_buffer), segment_key, "(not set)");
+	ImGuiEx::KeyInput(translation.get("InputStartKey").c_str(), "##startkey", start_key_buffer, sizeof(start_key_buffer), start_key, translation.get("TextKeyNotSet").c_str());
+	ImGuiEx::KeyInput(translation.get("InputStopKey").c_str(), "##stopkey", stop_key_buffer, sizeof(stop_key_buffer), stop_key, translation.get("TextKeyNotSet").c_str());
+	ImGuiEx::KeyInput(translation.get("InputResetKey").c_str(), "##resetkey", reset_key_buffer, sizeof(reset_key_buffer), reset_key, translation.get("TextKeyNotSet").c_str());
+	ImGuiEx::KeyInput(translation.get("InputPrepareKey").c_str(), "##preparekey", prepare_key_buffer, sizeof(prepare_key_buffer), prepare_key, translation.get("TextKeyNotSet").c_str());
+	ImGuiEx::KeyInput(translation.get("InputSegmentKey").c_str(), "##segmentkey", segment_key_buffer, sizeof(segment_key_buffer), segment_key, translation.get("TextKeyNotSet").c_str());
 
 	ImGui::PopStyleVar();
 }
 
 void Settings::show_windows() {
-	ImGui::Checkbox("Timer", &show_timer);
-	ImGui::Checkbox("Timer Segments", &show_segments);
+	ImGui::Checkbox(translation.get("WindowOptionTimer").c_str(), &show_timer);
+	ImGui::Checkbox(translation.get("WindowOptionSegments").c_str(), &show_segments);
 }

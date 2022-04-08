@@ -4,6 +4,7 @@
 #include "settings.h"
 #include "mumble_link.h"
 #include "grouptracker.h"
+#include "lang.h"
 
 #include <chrono>
 #include <set>
@@ -30,7 +31,7 @@ struct TimeSegment {
 
 class Timer {
 public:
-	Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker);
+	Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker, Translation& translation);
 	void start(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void stop(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void reset();
@@ -46,6 +47,7 @@ private:
 	Settings& settings;
 	GW2MumbleLink& mumble_link;
 	GroupTracker& group_tracker;
+	Translation& translation;
 
 	TimerStatus status;
 	std::chrono::system_clock::time_point start_time;

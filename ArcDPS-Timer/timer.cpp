@@ -2,10 +2,11 @@
 
 #include "hash-library/crc32.h"
 
-Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker) :
-	settings(settings),
+Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker, Translation& translation)
+:	settings(settings),
 	mumble_link(mumble_link),
-	group_tracker(group_tracker)
+	group_tracker(group_tracker),
+	translation(translation)
 {
 	start_time = std::chrono::system_clock::now();
 	current_time = std::chrono::system_clock::now();
@@ -331,19 +332,19 @@ void Timer::mod_imgui() {
 			time_string = std::format(settings.time_formatter, duration);
 		}
 		catch ([[maybe_unused]] const std::exception& e) {
-			time_string = "INVALID";
+			time_string = translation.get("TimeFormatterInvalid");
 		}
 
 		ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x + 3);
 		switch (status) {
 		case TimerStatus::stopped:
-			ImGui::TextColored(ImVec4(1, 0.2f, 0.2f, 1), "S");
+			ImGui::TextColored(ImVec4(1, 0.2f, 0.2f, 1), translation.get("MarkerStopped").c_str());
 			break;
 		case TimerStatus::prepared:
-			ImGui::TextColored(ImVec4(1, 1, 0.2f, 1), "P");
+			ImGui::TextColored(ImVec4(1, 1, 0.2f, 1), translation.get("MarkerPrepared").c_str());
 			break;
 		case TimerStatus::running:
-			ImGui::TextColored(ImVec4(0.2f, 1, 0.2f, 1), "R");
+			ImGui::TextColored(ImVec4(0.2f, 1, 0.2f, 1), translation.get("MarkerRunning").c_str());
 			break;
 		}
 
@@ -356,26 +357,26 @@ void Timer::mod_imgui() {
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
 		if (!settings.hide_buttons) {
-			if (ImGui::Button("Prepare", ImVec2(190, ImGui::GetFontSize() * 1.5f))) {
+			if (ImGui::Button(translation.get("ButtonPrepare").c_str(), ImVec2(190, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: preparing manually");
 				prepare();
 			}
 
-			if (ImGui::Button("Start", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
+			if (ImGui::Button(translation.get("ButtonStart").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: starting manually");
 				start();
 			}
 
 			ImGui::SameLine(0, 5);
 
-			if (ImGui::Button("Stop", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
+			if (ImGui::Button(translation.get("TextStop").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: stopping manually");
 				stop();
 			}
 
 			ImGui::SameLine(0, 5);
 
-			if (ImGui::Button("Reset", ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
+			if (ImGui::Button(translation.get("TextReset").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: resetting manually");
 				reset();
 			}
@@ -385,23 +386,23 @@ void Timer::mod_imgui() {
 		}
 
 		if (serverStatus == ServerStatus::outofdate) {
-			ImGui::TextColored(ImVec4(1, 0, 0, 1), "OFFLINE, ADDON OUT OF DATE");
+			ImGui::TextColored(ImVec4(1, 0, 0, 1), translation.get("TextOutOfDate").c_str());
 		}
 
 		ImGui::End();
 	}
 
 	if (settings.show_segments) {
-		ImGui::Begin("Segments", &settings.show_timer, ImGuiWindowFlags_AlwaysAutoResize);
+		ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_timer, ImGuiWindowFlags_AlwaysAutoResize);
 
 		ImGui::BeginTable("##segmenttable", 3);
 
-		ImGui::TableSetupColumn("#");
-		ImGui::TableSetupColumn("Last Time (Duration)");
-		ImGui::TableSetupColumn("Best Time (Duration)");
+		ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
+		ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
+		ImGui::TableSetupColumn(translation.get("HeaderBestColumn").c_str());
 		ImGui::TableHeadersRow();
 
-		for (int i = 0; i < segments.size(); ++i) {
+		for (size_t i = 0; i < segments.size(); ++i) {
 			const auto& segment = segments[i];
 
 			if (segment.is_used) {
@@ -429,13 +430,13 @@ void Timer::mod_imgui() {
 
 		ImGui::EndTable();
 
-		if (ImGui::Button("Segment")) {
+		if (ImGui::Button(translation.get("ButtonSegment").c_str())) {
 			segment();
 		}
 
 		ImGui::SameLine(0, 5);
 
-		if (ImGui::Button("Clear")) {
+		if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
 			clear_segments();
 		}
 

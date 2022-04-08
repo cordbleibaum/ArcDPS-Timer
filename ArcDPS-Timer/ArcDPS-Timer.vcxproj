@@ -183,6 +183,7 @@
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui_stdlib.h" />
     <ClInclude Include="json.hpp" />
+    <ClInclude Include="lang.h" />
     <ClInclude Include="mod.h" />
     <ClInclude Include="mumble_link.h" />
     <ClInclude Include="ntp.h" />
@@ -199,6 +200,7 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="imgui_stdlib.cpp" />
+    <ClCompile Include="lang.cpp" />
     <ClCompile Include="mumble_link.cpp" />
     <ClCompile Include="ntp.cpp" />
     <ClCompile Include="settings.cpp" />

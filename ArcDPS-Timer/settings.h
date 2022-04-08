@@ -1,12 +1,13 @@
 #pragma once
 
-#include <Windows.h>
+#include "lang.h"
 
+#include <Windows.h>
 #include <string>
 
 class Settings {
 public:
-	Settings(std::string file);
+	Settings(std::string file, Translation& translation);
 	void save();
 	void show_options();
 	void show_windows();
@@ -27,6 +28,8 @@ public:
 	int early_gg_threshold;
 	WPARAM segment_key;
 private:
+	Translation& translation;
+
 	int settings_version;
 	std::string config_file;
 
