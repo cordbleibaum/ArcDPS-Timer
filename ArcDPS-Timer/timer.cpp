@@ -8,9 +8,7 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group
 	group_tracker(group_tracker),
 	translation(translation)
 {
-	start_time = std::chrono::system_clock::now();
-	current_time = std::chrono::system_clock::now();
-	update_time = std::chrono::system_clock::now();
+	start_time = current_time = update_time = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
 
 	auto response = cpr::Get(
@@ -58,8 +56,7 @@ std::string Timer::format_time(std::chrono::system_clock::time_point time) {
 void Timer::start(std::chrono::system_clock::time_point time) {
 	status = TimerStatus::running;
 	start_time = time;
-	update_time = std::chrono::system_clock::now();
-	current_time = std::chrono::system_clock::now();
+	update_time = current_time = std::chrono::system_clock::now();
 	network_thread([&] {
 		post_serverapi("stop", {
 			{"time", format_time(start_time)},
@@ -95,9 +92,7 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 
 void Timer::reset() {
 	status = TimerStatus::stopped;
-	start_time = std::chrono::system_clock::now();
-	current_time = std::chrono::system_clock::now();
-	update_time = std::chrono::system_clock::now();
+	start_time = current_time = update_time = std::chrono::system_clock::now();
 
 	network_thread([&]() {
 		post_serverapi("reset", {{"update_time", format_time(update_time)}});
@@ -110,10 +105,8 @@ void Timer::reset() {
 
 void Timer::prepare() {
 	status = TimerStatus::prepared;
-	start_time = std::chrono::system_clock::now();
-	current_time = std::chrono::system_clock::now();
+	start_time = current_time = update_time = std::chrono::system_clock::now();
 	std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
-	update_time = std::chrono::system_clock::now();
 
 	for (auto& segment : segments) {
 		segment.is_set = false;
