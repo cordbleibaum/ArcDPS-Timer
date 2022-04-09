@@ -489,4 +489,8 @@ void Timer::segment() {
 
 void Timer::clear_segments() {
 	segments.clear();
+
+	network_thread([&]() {
+		post_serverapi("clear_segment", { {"update_time", format_time(update_time)} });
+	});
 }

@@ -10,7 +10,7 @@
 
 using json = nlohmann::json;
 
-constexpr int settings_version = 8;
+constexpr int settings_version = 9;
 
 Settings::Settings(std::string file, Translation& translation)
 :	settings_version(settings_version),
@@ -27,7 +27,7 @@ Settings::Settings(std::string file, Translation& translation)
 		}
 	}
 	show_timer = config.value("show_timer", true);
-	server_url = config.value("server_url", "http://164.92.229.177:5001/");
+	server_url = config.value("server_url", "http://3.72.94.166:5001/");
 	auto_prepare = config.value("auto_prepare", true);
 	is_offline_mode = config.value("is_offline_mode", false);
 	disable_outside_instances = config.value("disable_outside_instances", true);
