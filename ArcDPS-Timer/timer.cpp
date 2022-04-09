@@ -1,4 +1,5 @@
 #include "timer.h"
+#include "util.h"
 
 #include "hash-library/crc32.h"
 
@@ -31,10 +32,7 @@ cpr::Response Timer::post_serverapi(std::string method, const json& payload) {
 }
 
 std::string Timer::format_time(std::chrono::system_clock::time_point time) {
-	return std::format(
-		"{:%FT%T}",
-		std::chrono::floor<std::chrono::milliseconds>(time + std::chrono::milliseconds((int)(clock_offset * 1000.0)))
-	);
+	return std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(time + std::chrono::milliseconds((int)(clock_offset * 1000.0))));
 }
 
 void Timer::start(std::chrono::system_clock::time_point time) {
@@ -101,15 +99,7 @@ void Timer::prepare() {
 	});
 }
 
-std::chrono::system_clock::time_point parse_time(const std::string& source) {
-	std::chrono::sys_time<std::chrono::microseconds> timePoint;
-	std::istringstream(source) >> std::chrono::parse(std::string("%FT%T"), timePoint);
-	return timePoint;
-}
-
 void Timer::sync() {
-	bool cancel_current_request = false;
-
 	while (true) {
 		if (!settings.is_offline_mode && serverStatus == ServerStatus::online) {
 			std::string id = get_id();
@@ -125,29 +115,17 @@ void Timer::sync() {
 				cpr::Body{ payload.dump() },
 				cpr::Header{{"Content-Type", "application/json"}},
 				cpr::ProgressCallback([&](cpr::cpr_off_t downloadTotal, cpr::cpr_off_t downloadNow, cpr::cpr_off_t uploadTotal, cpr::cpr_off_t uploadNow, intptr_t userdata) {
-					if (cancel_current_request) {
-						cancel_current_request = false;
+					if (id != get_id() || url != settings.server_url || settings.is_offline_mode) {
 						return false;
 					}
 					return true;
 				})
 			);
 
-			bool should_redo = false;
-			while (response_future.wait_for(std::chrono::milliseconds{ 500 }) == std::future_status::timeout) {
-				if (id != get_id() || url != settings.server_url || settings.is_offline_mode) {
-					should_redo = true;
-					break;
-				}
-			}
-
-			if (should_redo) {
-				cancel_current_request = true;
-				response_future.wait();
+			auto response = response_future.get();
+			if (response.error.code == cpr::ErrorCode::REQUEST_CANCELLED) {
 				continue;
 			}
-
-			auto response = response_future.get();
 			if (response.status_code != cpr::status::HTTP_OK) {
 				log("timer: failed to sync with server");
 				serverStatus = ServerStatus::offline;
@@ -206,11 +184,6 @@ void Timer::check_serverstatus() {
 	}
 }
 
-std::chrono::system_clock::time_point calculate_ticktime(uint64_t boot_ticks) {
-	auto ticks_diff = timeGetTime() - boot_ticks;
-	return std::chrono::system_clock::now() - std::chrono::milliseconds(ticks_diff);
-}
-
 std::string Timer::get_id()
 {
 	std::string id = "";
@@ -236,7 +209,7 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 				std::scoped_lock<std::mutex> guard(logagents_mutex);
 				log_agents.insert(src->prof);
 			}
-			if (dst && dst->prof > 9) {
+			if (dst && dst->prof > 9) { // TODO: make sure minions, pets, etc get excluded
 				std::scoped_lock<std::mutex> guard(logagents_mutex);
 				log_agents.insert(dst->prof);
 
@@ -261,7 +234,6 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 				uintptr_t log_species_id = ev->src_agent;
 
 				auto log_duration = std::chrono::system_clock::now() - log_start_time;
-
 				if (log_duration > std::chrono::seconds(settings.early_gg_threshold)) {
 					std::set<uintptr_t> last_bosses = {
 						11265, // Swampland - Bloomhunger 
@@ -308,16 +280,10 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 				}
 			}
 			else if (ev->is_statechange == cbtstatechange::CBTS_LOGSTART) {
-				auto ticks_now = timeGetTime();
-				auto ticks_diff = ticks_now - ev->time;
-				log_start_time = std::chrono::system_clock::now() - std::chrono::milliseconds{ ticks_diff };
+				log_start_time = std::chrono::system_clock::now() - std::chrono::milliseconds{ timeGetTime() - ev->time };
 			}
 		}
 	}
-}
-
-bool checkDelta(float a, float b, float delta) {
-	return std::abs(a - b) > delta;
 }
 
 void Timer::mod_imgui() {
@@ -358,7 +324,6 @@ void Timer::mod_imgui() {
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
 		auto duration = std::chrono::round<std::chrono::milliseconds>(current_time - start_time);
-
 		std::string time_string = "";
 		try {
 			time_string = std::format(settings.time_formatter, duration);
@@ -380,10 +345,9 @@ void Timer::mod_imgui() {
 			break;
 		}
 
-		auto windowWidth = ImGui::GetWindowSize().x;
 		auto textWidth = ImGui::CalcTextSize(time_string.c_str()).x;
 		ImGui::SameLine(0, 0);
-		ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textWidth) * 0.5f);
 		ImGui::Text(time_string.c_str());
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
@@ -400,14 +364,12 @@ void Timer::mod_imgui() {
 			}
 
 			ImGui::SameLine(0, 5);
-
 			if (ImGui::Button(translation.get("TextStop").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: stopping manually");
 				stop();
 			}
 
 			ImGui::SameLine(0, 5);
-
 			if (ImGui::Button(translation.get("TextReset").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: resetting manually");
 				reset();
@@ -467,7 +429,6 @@ void Timer::mod_imgui() {
 		}
 
 		ImGui::SameLine(0, 5);
-
 		if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
 			clear_segments();
 		}
@@ -488,7 +449,6 @@ void Timer::segment() {
 
 				auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
 				auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
-
 				if (segment.is_used) {
 					if (time_total < segment.shortest_time) {
 						segment.shortest_time = time_total;

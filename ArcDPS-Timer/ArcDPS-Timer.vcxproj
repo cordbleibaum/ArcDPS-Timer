@@ -189,6 +189,7 @@
     <ClInclude Include="ntp.h" />
     <ClInclude Include="settings.h" />
     <ClInclude Include="timer.h" />
+    <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="arcdps-extension\Widgets.cpp" />
