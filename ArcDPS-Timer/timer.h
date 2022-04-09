@@ -69,6 +69,7 @@ private:
 	bool isInstanced = false;
 
 	void sync();
+	void check_serverstatus();
 	std::string format_time(std::chrono::system_clock::time_point time);
 	cpr::Response post_serverapi(std::string method, const json& payload);
 	std::string get_id();

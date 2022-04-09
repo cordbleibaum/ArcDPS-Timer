@@ -10,23 +10,7 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group
 {
 	start_time = current_time = update_time = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
-
-	auto response = cpr::Get(
-		cpr::Url{ settings.server_url },
-		cpr::Timeout{ 1000 }
-	);
-	if (response.status_code != cpr::status::HTTP_OK) {
-		log("timer: failed to connect to timer api, forcing offline mode\n");
-		serverStatus = ServerStatus::offline;
-	}
-	else {
-		auto data = json::parse(response.text);
-		constexpr int server_version = 8;
-		if (data["version"] != server_version) {
-			log("timer: out of date version, going offline mode\n");
-			serverStatus = ServerStatus::outofdate;
-		}
-	}
+	check_serverstatus();
 
 	std::thread status_sync_thread([&]() {
 		sync();
@@ -124,45 +108,100 @@ std::chrono::system_clock::time_point parse_time(const std::string& source) {
 }
 
 void Timer::sync() {
+	bool cancel_current_request = false;
+
 	while (true) {
 		if (!settings.is_offline_mode && serverStatus == ServerStatus::online) {
 			std::string id = get_id();
 			if (id == "") {
 				std::this_thread::sleep_for(std::chrono::seconds{ 1 });
+				continue;
 			}
-			else {
-				auto response = post_serverapi("", { {"update_time", format_time(update_time)} });
-				if (response.status_code != cpr::status::HTTP_OK) {
-					log("timer: failed to sync with server");
-					std::this_thread::sleep_for(std::chrono::seconds{ 5 });
-				}
-				else {
-					auto data = json::parse(response.text);
-					std::chrono::system_clock::time_point new_update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-					bool isNewer = new_update_time > update_time;
 
-					if (isNewer) {
-						start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-						update_time = new_update_time;
-
-						if (data["status"] == "running") {
-							status = TimerStatus::running;
-						}
-						else if (data["status"] == "stopped") {
-							status = TimerStatus::stopped;
-							current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-						}
-						else if (data["status"] == "prepared") {
-							status = TimerStatus::prepared;
-							current_time = std::chrono::system_clock::now();
-							std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
-						}
+			std::string url = settings.server_url;
+			json payload{ {"update_time", format_time(update_time) } };
+			cpr::AsyncResponse response_future = cpr::PostAsync(
+				cpr::Url{ url + "groups/" + id + "/" },
+				cpr::Body{ payload.dump() },
+				cpr::Header{{"Content-Type", "application/json"}},
+				cpr::ProgressCallback([&](cpr::cpr_off_t downloadTotal, cpr::cpr_off_t downloadNow, cpr::cpr_off_t uploadTotal, cpr::cpr_off_t uploadNow, intptr_t userdata) {
+					if (cancel_current_request) {
+						cancel_current_request = false;
+						return false;
 					}
+					return true;
+				})
+			);
+
+			bool should_redo = false;
+			while (response_future.wait_for(std::chrono::milliseconds{ 500 }) == std::future_status::timeout) {
+				if (id != get_id() || url != settings.server_url || settings.is_offline_mode) {
+					should_redo = true;
+					break;
+				}
+			}
+
+			if (should_redo) {
+				cancel_current_request = true;
+				response_future.wait();
+				continue;
+			}
+
+			auto response = response_future.get();
+			if (response.status_code != cpr::status::HTTP_OK) {
+				log("timer: failed to sync with server");
+				serverStatus = ServerStatus::offline;
+				continue;
+			}
+
+			auto data = json::parse(response.text);
+			std::chrono::system_clock::time_point new_update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+
+			if (new_update_time > update_time) {
+				start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+				update_time = new_update_time;
+
+				if (data["status"] == "running") {
+					status = TimerStatus::running;
+				}
+				else if (data["status"] == "stopped") {
+					status = TimerStatus::stopped;
+					current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+				}
+				else if (data["status"] == "prepared") {
+					status = TimerStatus::prepared;
+					current_time = std::chrono::system_clock::now();
+					std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
 				}
 			}
 		}
 		else {
-			std::this_thread::sleep_for(std::chrono::seconds{ 2 });
+			std::this_thread::sleep_for(std::chrono::seconds{ 3 });
+			if (serverStatus == ServerStatus::offline && !settings.is_offline_mode) {
+				check_serverstatus();
+			}
+		}
+	}
+}
+
+void Timer::check_serverstatus() {
+	auto response = cpr::Get(
+		cpr::Url{ settings.server_url },
+		cpr::Timeout{ 1000 }
+	);
+	if (response.status_code != cpr::status::HTTP_OK) {
+		log("timer: failed to connect to timer api, forcing offline mode\n");
+		serverStatus = ServerStatus::offline;
+	}
+	else {
+		auto data = json::parse(response.text);
+		constexpr int server_version = 8;
+		if (data["version"] != server_version) {
+			log("timer: out of date version, going offline mode\n");
+			serverStatus = ServerStatus::outofdate;
+		}
+		else {
+			serverStatus = ServerStatus::online;
 		}
 	}
 }
@@ -289,7 +328,7 @@ void Timer::mod_imgui() {
 		lastMapID = mumble_link->getMumbleContext()->mapId;
 		isInstanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
 
-		bool doAutoPrepare = settings.auto_prepare && (isInstanced || !settings.disable_outside_instances);
+		bool doAutoPrepare = settings.auto_prepare && isInstanced;
 		if (doAutoPrepare) {
 			log_debug("timer: preparing on map change");
 			prepare();
