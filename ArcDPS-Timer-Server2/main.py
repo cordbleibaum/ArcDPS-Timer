@@ -214,6 +214,10 @@ class SegmentHandler(GroupModifyHandler):
 
         shortest_time : timedelta = segment.end - self.group.start_time
         shortest_duration : timedelta = segment.end - segment.start
+        print(shortest_time)
+        print(segment.shortest_time)
+        print(shortest_time < segment.shortest_time)
+        print(shortest_time > segment.shortest_time)
 
         if is_new_segment or (shortest_time < segment.shortest_time):
             segment.shortest_time = shortest_time
