@@ -93,13 +93,16 @@ class JsonHandler(tornado.web.RequestHandler):
 
 class GroupModifyHandler(JsonHandler):
     async def prepare(self) -> None:
+        global global_groups
+
         super().prepare()
-        self.group = GroupStatus()
+        self.group = None
         group_id = self.path_args[0]
         if group_id in global_groups:
             self.group = global_groups[group_id]
         else:
             logger.info(f'registering group {group_id}')
+            self.group = GroupStatus()
             global_groups[group_id] = self.group
         await self.group.changeSemaphore.acquire()
 
