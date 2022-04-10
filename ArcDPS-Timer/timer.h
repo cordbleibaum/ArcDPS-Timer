@@ -22,7 +22,6 @@ enum class ServerStatus { online, offline, outofdate };
 
 struct TimeSegment {
 	bool is_set = false;
-	bool is_used = false;
 	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 	std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
 	std::chrono::system_clock::duration shortest_duration = std::chrono::system_clock::duration::zero();

@@ -398,27 +398,24 @@ void Timer::mod_imgui() {
 		for (size_t i = 0; i < segments.size(); ++i) {
 			const auto& segment = segments[i];
 
-			if (segment.is_used) {
+			ImGui::TableNextRow();
 
-				ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::Text(std::to_string(i).c_str());
 
-				ImGui::TableNextColumn();
-				ImGui::Text(std::to_string(i).c_str());
-
-				ImGui::TableNextColumn();
-				if (segment.is_set) {
-					auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
-					auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
-					std::string text = std::format("{0:%M:%S}", time_total) + std::format(" ({0:%M:%S})", duration_segment);
-					ImGui::Text(text.c_str());
-				}
-
-				ImGui::TableNextColumn();
-				auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
-				auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
-				std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
+			ImGui::TableNextColumn();
+			if (segment.is_set) {
+				auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+				auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+				std::string text = std::format("{0:%M:%S}", time_total) + std::format(" ({0:%M:%S})", duration_segment);
 				ImGui::Text(text.c_str());
 			}
+
+			ImGui::TableNextColumn();
+			auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
+			auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
+			std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
+			ImGui::Text(text.c_str());
 		}
 
 		ImGui::EndTable();
@@ -439,63 +436,34 @@ void Timer::mod_imgui() {
 void Timer::segment() {
 	if (status != TimerStatus::running) return;
 
+	int segment_num = 0;
 	if (segments.size() > 0) {
-		for (int i = 0; i < segments.size(); ++i) {
-			auto& segment = segments[i];
-			if (!segment.is_set) {
-				segment.is_set = true;
-				segment.end = current_time;
-
-				auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
-				auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
-				if (segment.is_used) {
-					if (time_total < segment.shortest_time) {
-						segment.shortest_time = time_total;
-					}
-					if (duration_segment < segment.shortest_duration) {
-						segment.shortest_duration = duration_segment;
-					}
-				}
-				else {
-					segment.shortest_time = time_total;
-					segment.shortest_duration = duration_segment;
-					segment.is_used = true;
-				}
-
-				if (segments.size() == i + 1) {
-					segments.emplace_back();
-				}
-				else {
-					segments[i + 1].start = std::chrono::system_clock::now();
-				}
-
-				post_serverapi("segment", {
-					{"update_time", format_time(update_time)},
-					{"segment_num", i},
-					{"time", format_time(segment.end)}
-				});
-
+		for (segment_num = 0; segment_num < segments.size(); ++segment_num) {
+			if (!segments[segment_num].is_set) {
 				break;
 			}
 		}
 	}
-	else {
-		TimeSegment start_segment;
-		start_segment.start = start_time;
-		start_segment.end = current_time;
-		start_segment.is_set = true;
-		start_segment.is_used = true;
-		start_segment.shortest_time = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_time);
-		start_segment.shortest_duration = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_segment.start);
-		segments.push_back(start_segment);
-		segments.emplace_back();
 
-		post_serverapi("segment", {
-			{"update_time", format_time(update_time)},
-			{"segment_num", 0},
-			{"time", format_time(start_segment.end)}
-		});
+	if (segment_num == segments.size()) {
+		segments.emplace_back();
 	}
+
+	auto& segment = segments[segment_num];
+	segment.is_set = true;
+	segment.end = current_time;
+	if (segment_num > 0) {
+		segment.start = segments[segment_num - 1].end;
+	}
+
+	segment.shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+	segment.shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+
+	post_serverapi("segment", {
+		{"update_time", format_time(update_time)},
+		{"segment_num", segment_num},
+		{"time", format_time(segment.end)}
+	});
 }
 
 void Timer::clear_segments() {
