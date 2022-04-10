@@ -203,16 +203,23 @@ class SegmentHandler(GroupModifyHandler):
         if self.args.segment_num <  len(self.group.segments) - 1:
             adjust_segment = self.group.segments[self.args.segment_num + 1]
             adjust_segment.start = self.group.segments[self.args.segment_num].end
-            adjust_segment.shortest_time = adjust_segment.end - self.group.start_time
-            adjust_segment.shortest_duration = adjust_segment.end - adjust_segment.start
+            shortest_duration = adjust_segment.end - adjust_segment.start
+            if shortest_duration < adjust_segment.shortest_duration:
+                adjust_segment.shortest_duration = shortest_duration
 
         if self.args.segment_num > 0:
             segment.start = self.group.segments[self.args.segment_num-1].end
         else:
             segment.start = self.group.start_time
 
-        segment.shortest_time = segment.end - self.group.start_time
-        segment.shortest_duration = segment.end - segment.start
+        shortest_time : timedelta = segment.end - self.group.start_time
+        shortest_duration : timedelta = segment.end - segment.start
+
+        if is_new_segment or shortest_time < segment.shortest_time:
+            segment.shortest_time = shortest_time
+
+        if is_new_segment or shortest_duration < segment.shortest_duration:
+            segment.shortest_duration = shortest_duration
 
 
 class ClearSegmentsHandler(GroupModifyHandler):
