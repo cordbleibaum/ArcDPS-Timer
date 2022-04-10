@@ -215,11 +215,10 @@ class SegmentHandler(GroupModifyHandler):
         shortest_time : timedelta = segment.end - self.group.start_time
         shortest_duration : timedelta = segment.end - segment.start
 
-        if is_new_segment or shortest_time < segment.shortest_time:
-            logging.info("shorter")
+        if is_new_segment or (shortest_time < segment.shortest_time):
             segment.shortest_time = shortest_time
 
-        if is_new_segment or shortest_duration < segment.shortest_duration:
+        if is_new_segment or (shortest_duration < segment.shortest_duration):
             segment.shortest_duration = shortest_duration
 
 
