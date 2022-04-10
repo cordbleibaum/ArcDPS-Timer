@@ -180,8 +180,7 @@ void Timer::check_serverstatus() {
 	}
 }
 
-std::string Timer::get_id()
-{
+std::string Timer::get_id() {
 	std::string id = "";
 	if (isInstanced) {
 		std::scoped_lock<std::mutex> guard(mapcode_mutex);

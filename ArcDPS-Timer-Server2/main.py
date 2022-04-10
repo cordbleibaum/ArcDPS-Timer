@@ -48,8 +48,19 @@ class GroupStatusEncoder(json.JSONEncoder):
                 "status": group.status,
                 "start_time": group.start_time.isoformat(),
                 "stop_time": group.stop_time.isoformat(),
-                "update_time": group.update_time.isoformat()
+                "update_time": group.update_time.isoformat(),
+                "segments": []
             }
+
+            for segment in group.segments:
+                json_dict["segments"].append({
+                    "is_set": str(segment.is_set),
+                    "start": segment.start.isoformat(),
+                    "end": segment.end.isoformat(),
+                    "shortest_duration": segment.shortest_duration/timedelta(milliseconds=1),
+                    "shortest_time": segment.shortest_time/timedelta(milliseconds=1)
+                })
+
             return json_dict
         else:
             type_name = group.__class__.__name__
@@ -195,13 +206,13 @@ class SegmentHandler(GroupModifyHandler):
             adjust_segment.shortest_time = adjust_segment.end - self.group.start_time
             adjust_segment.shortest_duration = adjust_segment.end - adjust_segment.start
 
-        segment.shortest_time = segment.end - self.group.start_time
-        segment.shortest_duration = segment.end - segment.start
-
         if self.args.segment_num > 0:
             segment.start = self.group.segments[self.args.segment_num-1].end
         else:
             segment.start = self.group.start_time
+
+        segment.shortest_time = segment.end - self.group.start_time
+        segment.shortest_duration = segment.end - segment.start
 
 
 class ClearSegmentsHandler(GroupModifyHandler):
