@@ -444,7 +444,7 @@ void Timer::segment() {
 			auto& segment = segments[i];
 			if (!segment.is_set) {
 				segment.is_set = true;
-				segment.end = std::chrono::system_clock::now();
+				segment.end = current_time;
 
 				auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
 				auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
@@ -482,6 +482,7 @@ void Timer::segment() {
 	else {
 		TimeSegment start_segment;
 		start_segment.start = start_time;
+		start_segment.end = current_time;
 		start_segment.is_set = true;
 		start_segment.is_used = true;
 		start_segment.shortest_time = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_time);

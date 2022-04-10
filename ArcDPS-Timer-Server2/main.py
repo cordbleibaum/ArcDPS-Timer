@@ -171,7 +171,7 @@ class SegmentHandler(GroupModifyHandler):
 
 class ClearSegmentsHandler(GroupModifyHandler):
     async def post(self, _):
-        pass
+        self.group.segments.clear()
 
 
 def cleanupGroups():
