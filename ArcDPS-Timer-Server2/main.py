@@ -93,17 +93,16 @@ class JsonHandler(tornado.web.RequestHandler):
 
 class GroupModifyHandler(JsonHandler):
     async def prepare(self) -> None:
-        global global_groups
-
         super().prepare()
-        self.group = None
+        self.group = GroupStatus()
         group_id = self.path_args[0]
         if group_id in global_groups:
             self.group = global_groups[group_id]
         else:
             logger.info(f'registering group {group_id}')
-            self.group = GroupStatus()
             global_groups[group_id] = self.group
+        logging.info(self.group.start_time)
+        logging.info(self.group.start_time.isoformat())
         await self.group.changeSemaphore.acquire()
 
     def on_finish(self) -> None:
@@ -175,9 +174,6 @@ class StatusHandler(JsonHandler):
             global_groups[group_id] = self.group
 
     async def post(self, _):
-        logging.info(self.group.start_time)
-        logging.info(self.group.start_time.isoformat())
-
         is_newer = self.group.update_time > self.args.update_time
 
         if not is_newer:
@@ -196,7 +192,6 @@ class StatusHandler(JsonHandler):
 
 class SegmentHandler(GroupModifyHandler):
     async def post(self, _):
-        logging.info(self.group.start_time)
         is_new_segment = False
         if self.args.segment_num == len(self.group.segments):
             self.group.segments.append(SegmentStatus())
