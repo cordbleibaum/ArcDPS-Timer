@@ -147,6 +147,17 @@ void Timer::sync() {
 					current_time = std::chrono::system_clock::now();
 					std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
 				}
+
+				segments.clear();
+				for (json::iterator it = data["segments"].begin(); it != data["segments"].end(); ++it) {
+					TimeSegment segment;
+					segment.is_set = (*it)["is_set"];
+					segment.start = parse_time((*it)["start"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+					segment.end = parse_time((*it)["end"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+					segment.shortest_time = std::chrono::milliseconds{ (*it)["shortest_time"] };
+					segment.shortest_duration = std::chrono::milliseconds{ (*it)["shortest_duration"] };
+					segments.push_back(segment);
+				}
 			}
 		}
 		else {

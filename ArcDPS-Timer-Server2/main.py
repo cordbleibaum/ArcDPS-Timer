@@ -54,7 +54,7 @@ class GroupStatusEncoder(json.JSONEncoder):
 
             for segment in group.segments:
                 json_dict["segments"].append({
-                    "is_set": str(segment.is_set),
+                    "is_set": segment.is_set,
                     "start": segment.start.isoformat(),
                     "end": segment.end.isoformat(),
                     "shortest_duration": segment.shortest_duration/timedelta(milliseconds=1),
