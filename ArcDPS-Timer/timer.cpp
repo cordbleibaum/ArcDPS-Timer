@@ -49,10 +49,6 @@ void Timer::start(std::chrono::system_clock::time_point time) {
 	for (auto& segment : segments) {
 		segment.is_set = false;
 	}
-
-	if (segments.size() > 0) {
-		segments[0].start = start_time;
-	}
 }
 
 void Timer::stop(std::chrono::system_clock::time_point time) {
@@ -455,6 +451,9 @@ void Timer::segment() {
 	if (segment_num > 0) {
 		segment.start = segments[segment_num - 1].end;
 	}
+	else {
+		segment.start = start_time;
+	}
 
 	segment.shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
 	segment.shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
@@ -470,6 +469,6 @@ void Timer::clear_segments() {
 	segments.clear();
 
 	network_thread([&]() {
-		post_serverapi("clear_segment", { {"update_time", format_time(update_time)} });
+		post_serverapi("clear_segment", {{"update_time", format_time(update_time)} });
 	});
 }

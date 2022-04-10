@@ -63,6 +63,7 @@ class RequestData(object):
     def __init__(self):
         self.update_time = datetime.fromtimestamp(0)
         self.time = datetime.fromtimestamp(0)
+        self.segment_num = 0
 
 
 class JsonHandler(tornado.web.RequestHandler):
@@ -75,6 +76,8 @@ class JsonHandler(tornado.web.RequestHandler):
                 self.args.time = datetime.fromisoformat(args['time'])
             if 'update_time' in args.keys():
                 self.args.update_time = datetime.fromisoformat(args['update_time'])
+            if 'segment_num' in args.keys():
+                self.args.segment_num = int(args['segment_num'])
 
 
 class GroupModifyHandler(JsonHandler):
@@ -113,6 +116,9 @@ class StartHandler(GroupModifyHandler):
             self.group.status = TimerStatus.running
             self.group.start_time = self.args.time
 
+            for segment in self.group.segments:
+                segment.is_set = False
+
 
 class StopHandler(GroupModifyHandler):
     async def post(self, _):
@@ -131,10 +137,16 @@ class ResetHandler(GroupModifyHandler):
         self.group.start_time = datetime.now()
         self.group.stop_time = datetime.now()
 
+        for segment in self.group.segments:
+            segment.is_set = False
+
 
 class PrepareHandler(GroupModifyHandler):
     async def post(self, _):
         self.group.status = TimerStatus.prepared
+
+        for segment in self.group.segments:
+            segment.is_set = False
 
 
 class StatusHandler(JsonHandler):
@@ -166,7 +178,30 @@ class StatusHandler(JsonHandler):
 
 class SegmentHandler(GroupModifyHandler):
     async def post(self, _):
-        pass
+        is_new_segment = False
+        if self.args.segment_num == len(self.group.segments):
+            self.group.segments.append(SegmentStatus())
+            is_new_segment = True
+
+        segment = self.group.segments[self.args.segment_num]
+        segment.is_set = True
+
+        if is_new_segment or self.args.time > segment.end:
+            segment.end = self.args.time
+
+        if self.args.segment_num <  len(self.group.segments) - 1:
+            adjust_segment = self.group.segments[self.args.segment_num + 1]
+            adjust_segment.start = self.group.segments[self.args.segment_num].end
+            adjust_segment.shortest_time = adjust_segment.end - self.group.start_time
+            adjust_segment.shortest_duration = adjust_segment.end - adjust_segment.start
+
+        segment.shortest_time = segment.end - self.group.start_time
+        segment.shortest_duration = segment.end - segment.start
+
+        if self.args.segment_num > 0:
+            segment.start = self.group.segments[self.args.segment_num-1].end
+        else:
+            segment.start = self.group.start_time
 
 
 class ClearSegmentsHandler(GroupModifyHandler):
