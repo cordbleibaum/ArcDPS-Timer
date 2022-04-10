@@ -173,6 +173,7 @@ class StatusHandler(JsonHandler):
 
     async def post(self, _):
         logging.info(self.group.start_time)
+        logging.info(self.group.start_time.isoformat())
 
         is_newer = self.group.update_time > self.args.update_time
 
