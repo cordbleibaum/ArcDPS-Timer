@@ -390,7 +390,6 @@ void Timer::mod_imgui() {
 		ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_segments, ImGuiWindowFlags_AlwaysAutoResize);
 
 		ImGui::BeginTable("##segmenttable", 3);
-
 		ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
 		ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
 		ImGui::TableSetupColumn(translation.get("HeaderBestColumn").c_str());
