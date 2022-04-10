@@ -99,6 +99,7 @@ class GroupModifyHandler(JsonHandler):
         if group_id in global_groups:
             self.group = global_groups[group_id]
         else:
+            logger.info(f'registering group {group_id}')
             global_groups[group_id] = self.group
         await self.group.changeSemaphore.acquire()
 
@@ -214,12 +215,8 @@ class SegmentHandler(GroupModifyHandler):
 
         shortest_time : timedelta = segment.end - self.group.start_time
         shortest_duration : timedelta = segment.end - segment.start
-        logging.info(segment.end)
         logging.info(self.group.start_time)
-        logging.info(shortest_time)
-        logging.info(segment.shortest_time)
-        logging.info(shortest_time < segment.shortest_time)
-        logging.info(shortest_time > segment.shortest_time)
+
 
         if is_new_segment or (shortest_time < segment.shortest_time):
             segment.shortest_time = shortest_time
