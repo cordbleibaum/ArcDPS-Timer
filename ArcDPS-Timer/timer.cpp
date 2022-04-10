@@ -387,7 +387,7 @@ void Timer::mod_imgui() {
 	}
 
 	if (settings.show_segments) {
-		ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_timer, ImGuiWindowFlags_AlwaysAutoResize);
+		ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_segments, ImGuiWindowFlags_AlwaysAutoResize);
 
 		ImGui::BeginTable("##segmenttable", 3);
 
