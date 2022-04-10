@@ -172,6 +172,8 @@ class StatusHandler(JsonHandler):
             global_groups[group_id] = self.group
 
     async def post(self, _):
+        logging.info(self.group.start_time)
+
         is_newer = self.group.update_time > self.args.update_time
 
         if not is_newer:
@@ -190,6 +192,7 @@ class StatusHandler(JsonHandler):
 
 class SegmentHandler(GroupModifyHandler):
     async def post(self, _):
+        logging.info(self.group.start_time)
         is_new_segment = False
         if self.args.segment_num == len(self.group.segments):
             self.group.segments.append(SegmentStatus())
