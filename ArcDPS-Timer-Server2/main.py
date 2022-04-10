@@ -221,7 +221,6 @@ class SegmentHandler(GroupModifyHandler):
         logging.info(shortest_time < segment.shortest_time)
         logging.info(shortest_time > segment.shortest_time)
 
-        is_shorter = 
         if is_new_segment or (shortest_time < segment.shortest_time):
             segment.shortest_time = shortest_time
 
