@@ -448,13 +448,7 @@ void Timer::segment() {
 	auto& segment = segments[segment_num];
 	segment.is_set = true;
 	segment.end = current_time;
-	if (segment_num > 0) {
-		segment.start = segments[segment_num - 1].end;
-	}
-	else {
-		segment.start = start_time;
-	}
-
+	segment.start = segment_num > 0 ? segments[segment_num - 1].end : start_time;
 	segment.shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
 	segment.shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
 
