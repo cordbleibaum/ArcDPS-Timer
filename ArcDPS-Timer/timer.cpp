@@ -469,6 +469,12 @@ void Timer::segment() {
 					segments[i + 1].start = std::chrono::system_clock::now();
 				}
 
+				post_serverapi("segment", {
+					{"update_time", format_time(update_time)},
+					{"segment_num", i},
+					{"time", format_time(segment.end)}
+				});
+
 				break;
 			}
 		}
@@ -482,6 +488,12 @@ void Timer::segment() {
 		start_segment.shortest_duration = std::chrono::round<std::chrono::milliseconds>(start_segment.end - start_segment.start);
 		segments.push_back(start_segment);
 		segments.emplace_back();
+
+		post_serverapi("segment", {
+			{"update_time", format_time(update_time)},
+			{"segment_num", 0},
+			{"time", format_time(start_segment.end)}
+		});
 	}
 }
 
