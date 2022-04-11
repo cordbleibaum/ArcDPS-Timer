@@ -42,7 +42,7 @@ void Timer::start(std::chrono::system_clock::time_point time) {
 	network_thread([&] {
 		post_serverapi("start", {
 			{"time", format_time(start_time)},
-			{"", format_time(update_time)}
+			{"update_time", format_time(update_time)}
 		});
 	});
 
