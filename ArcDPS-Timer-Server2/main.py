@@ -103,6 +103,7 @@ class GroupModifyHandler(JsonHandler):
             global_groups[group_id] = self.group
         logging.info(self.group.start_time)
         logging.info(self.group.start_time.isoformat())
+        logging.info(json.dumps(self.group, cls=GroupStatusEncoder))
         await self.group.changeSemaphore.acquire()
 
     def on_finish(self) -> None:
