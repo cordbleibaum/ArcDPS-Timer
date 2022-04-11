@@ -101,8 +101,6 @@ class GroupModifyHandler(JsonHandler):
         else:
             logging.info(f'registering group {group_id}')
             global_groups[group_id] = self.group
-        logging.info(json.dumps(self.group, cls=GroupStatusEncoder))
-        logging.info(self.args.time)
         await self.group.changeSemaphore.acquire()
 
     def on_finish(self) -> None:
@@ -122,6 +120,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 class StartHandler(GroupModifyHandler):
     async def post(self, _):
+        logging.info(self.args.time)
         if self.group.status == TimerStatus.running:
             is_newer = self.group.start_time < self.args.time
             if is_newer:
