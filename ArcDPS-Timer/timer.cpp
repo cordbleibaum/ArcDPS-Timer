@@ -388,46 +388,48 @@ void Timer::mod_imgui() {
 	}
 
 	if (settings.show_segments) {
-		ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_segments, ImGuiWindowFlags_AlwaysAutoResize);
+		bool is_visible = ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_segments, ImGuiWindowFlags_AlwaysAutoResize);
 
-		ImGui::BeginTable("##segmenttable", 3);
-		ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
-		ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
-		ImGui::TableSetupColumn(translation.get("HeaderBestColumn").c_str());
-		ImGui::TableHeadersRow();
+		if (is_visible) {
+			ImGui::BeginTable("##segmenttable", 3);
+			ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
+			ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
+			ImGui::TableSetupColumn(translation.get("HeaderBestColumn").c_str());
+			ImGui::TableHeadersRow();
 
-		for (size_t i = 0; i < segments.size(); ++i) {
-			const auto& segment = segments[i];
+			for (size_t i = 0; i < segments.size(); ++i) {
+				const auto& segment = segments[i];
 
-			ImGui::TableNextRow();
+				ImGui::TableNextRow();
 
-			ImGui::TableNextColumn();
-			ImGui::Text(std::to_string(i).c_str());
+				ImGui::TableNextColumn();
+				ImGui::Text(std::to_string(i).c_str());
 
-			ImGui::TableNextColumn();
-			if (segment.is_set) {
-				auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
-				auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
-				std::string text = std::format("{0:%M:%S}", time_total) + std::format(" ({0:%M:%S})", duration_segment);
+				ImGui::TableNextColumn();
+				if (segment.is_set) {
+					auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+					auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+					std::string text = std::format("{0:%M:%S}", time_total) + std::format(" ({0:%M:%S})", duration_segment);
+					ImGui::Text(text.c_str());
+				}
+
+				ImGui::TableNextColumn();
+				auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
+				auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
+				std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
 				ImGui::Text(text.c_str());
 			}
 
-			ImGui::TableNextColumn();
-			auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
-			auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
-			std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
-			ImGui::Text(text.c_str());
-		}
+			ImGui::EndTable();
 
-		ImGui::EndTable();
+			if (ImGui::Button(translation.get("ButtonSegment").c_str())) {
+				segment();
+			}
 
-		if (ImGui::Button(translation.get("ButtonSegment").c_str())) {
-			segment();
-		}
-
-		ImGui::SameLine(0, 5);
-		if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
-			clear_segments();
+			ImGui::SameLine(0, 5);
+			if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
+				clear_segments();
+			}
 		}
 
 		ImGui::End();
