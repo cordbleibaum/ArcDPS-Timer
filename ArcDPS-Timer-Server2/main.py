@@ -166,7 +166,7 @@ class PrepareHandler(GroupModifyHandler):
 
 class StatusHandler(JsonHandler):
     async def prepare(self) -> None:
-        await super().prepare()
+        super().prepare()
         self.group = GroupStatus()
         group_id = self.path_args[0]
         if group_id in global_groups:
