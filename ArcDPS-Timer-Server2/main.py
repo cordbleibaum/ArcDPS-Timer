@@ -92,7 +92,7 @@ class JsonHandler(tornado.web.RequestHandler):
 
 
 class GroupModifyHandler(JsonHandler):
-     async def prepare(self) -> None:
+    async def prepare(self) -> None:
         super().prepare()
         self.group = GroupStatus()
         group_id = self.path_args[0]
