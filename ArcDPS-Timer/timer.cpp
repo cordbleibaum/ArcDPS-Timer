@@ -40,7 +40,7 @@ void Timer::start(std::chrono::system_clock::time_point time) {
 	start_time = time;
 	update_time = current_time = std::chrono::system_clock::now();
 	network_thread([&] {
-		post_serverapi("stop", {
+		post_serverapi("start", {
 			{"time", format_time(start_time)},
 			{"", format_time(update_time)}
 		});

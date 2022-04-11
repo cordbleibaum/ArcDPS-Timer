@@ -120,7 +120,6 @@ class MainHandler(tornado.web.RequestHandler):
 
 class StartHandler(GroupModifyHandler):
     async def post(self, _):
-        logging.info(self.args.time)
         if self.group.status == TimerStatus.running:
             is_newer = self.group.start_time < self.args.time
             if is_newer:
