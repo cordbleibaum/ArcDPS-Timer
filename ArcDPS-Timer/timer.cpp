@@ -443,13 +443,7 @@ void Timer::segment() {
 	if (status != TimerStatus::running) return;
 
 	int segment_num = 0;
-	if (segments.size() > 0) {
-		for (segment_num = 0; segment_num < segments.size(); ++segment_num) {
-			if (!segments[segment_num].is_set) {
-				break;
-			}
-		}
-	}
+	for (segment_num = 0; segment_num < segments.size() && segments[segment_num].is_set; ++segment_num) {}
 
 	bool is_new = false;
 	if (segment_num == segments.size()) {
@@ -464,7 +458,6 @@ void Timer::segment() {
 
 	auto time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
 	auto duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
-
 	if (is_new || time < segment.shortest_time) {
 		segment.shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
 	}
