@@ -78,7 +78,7 @@ class RequestData(object):
 
 
 class JsonHandler(tornado.web.RequestHandler):
-    async def prepare(self) -> None:
+    def prepare(self) -> None:
         if self.request.headers['Content-Type'].startswith('application/json'):
             body = self.request.body.decode("utf-8")
             args = tornado.escape.json_decode(body)
@@ -92,7 +92,7 @@ class JsonHandler(tornado.web.RequestHandler):
 
 
 class GroupModifyHandler(JsonHandler):
-    async def prepare(self) -> None:
+     def prepare(self) -> None:
         super().prepare()
         self.group = GroupStatus()
         group_id = self.path_args[0]
