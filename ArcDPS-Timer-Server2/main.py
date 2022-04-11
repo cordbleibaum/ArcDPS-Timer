@@ -89,6 +89,7 @@ class JsonHandler(tornado.web.RequestHandler):
                 self.args.update_time = datetime.fromisoformat(args['update_time'])
             if 'segment_num' in args.keys():
                 self.args.segment_num = int(args['segment_num'])
+            logging.info(self.args.time)
 
 
 class GroupModifyHandler(JsonHandler):
@@ -99,7 +100,7 @@ class GroupModifyHandler(JsonHandler):
         if group_id in global_groups:
             self.group = global_groups[group_id]
         else:
-            logger.info(f'registering group {group_id}')
+            logging.info(f'registering group {group_id}')
             global_groups[group_id] = self.group
         logging.info(self.group.start_time)
         logging.info(self.group.start_time.isoformat())
@@ -218,8 +219,6 @@ class SegmentHandler(GroupModifyHandler):
 
         shortest_time : timedelta = segment.end - self.group.start_time
         shortest_duration : timedelta = segment.end - segment.start
-        logging.info(self.group.start_time)
-
 
         if is_new_segment or (shortest_time < segment.shortest_time):
             segment.shortest_time = shortest_time
