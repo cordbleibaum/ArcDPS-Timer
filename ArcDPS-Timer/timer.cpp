@@ -451,16 +451,26 @@ void Timer::segment() {
 		}
 	}
 
+	bool is_new = false;
 	if (segment_num == segments.size()) {
 		segments.emplace_back();
+		is_new = true;
 	}
 
 	auto& segment = segments[segment_num];
 	segment.is_set = true;
 	segment.end = current_time;
 	segment.start = segment_num > 0 ? segments[segment_num - 1].end : start_time;
-	segment.shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
-	segment.shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+
+	auto time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+	auto duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+
+	if (is_new || time < segment.shortest_time) {
+		segment.shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+	}
+	if (is_new || duration < segment.shortest_duration) {
+		segment.shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+	}
 
 	post_serverapi("segment", {
 		{"update_time", format_time(update_time)},
