@@ -13,9 +13,7 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group
 	status = TimerStatus::stopped;
 	check_serverstatus();
 
-	std::thread status_sync_thread([&]() {
-		sync();
-	});
+	std::thread status_sync_thread(&Timer::sync, this);
 	status_sync_thread.detach();
 }
 
@@ -58,7 +56,6 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 		status = TimerStatus::stopped;
 		current_time = time;
 		update_time = std::chrono::system_clock::now();
-
 		post_serverapi("stop", {
 			{"time", format_time(current_time)},
 			{"update_time", format_time(update_time)}
@@ -70,11 +67,11 @@ void Timer::reset() {
 	status = TimerStatus::stopped;
 	start_time = current_time = update_time = std::chrono::system_clock::now();
 
-	post_serverapi("reset", {{"update_time", format_time(update_time)}});
-
 	for (auto& segment : segments) {
 		segment.is_set = false;
 	}
+
+	post_serverapi("reset", { {"update_time", format_time(update_time)} });
 }
 
 void Timer::prepare() {
