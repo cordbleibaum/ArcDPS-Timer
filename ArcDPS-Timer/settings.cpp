@@ -29,7 +29,8 @@ Settings::Settings(std::string file, Translation& translation)
 	show_timer = config.value("show_timer", true);
 	server_url = config.value("server_url", "http://3.72.94.166:5001/");
 	auto_prepare = config.value("auto_prepare", true);
-	is_offline_mode = config.value("is_offline_mode", false);
+	use_custom_id = config.value("use_custom_id", false);
+	custom_id = config.value("custom_id", "");
 	disable_outside_instances = config.value("disable_outside_instances", true);
 	time_formatter = config.value("time_formatter", "{0:%M:%S}");
 	hide_buttons = config.value("hide_buttons", false);
@@ -69,7 +70,7 @@ void Settings::save() {
 	config["server_url"] = server_url;
 	config["version"] = settings_version;
 	config["auto_prepare"] = auto_prepare;
-	config["is_offline_mode"] = is_offline_mode;
+	config["use_custom_id"] = use_custom_id;
 	config["disable_outside_instances"] = disable_outside_instances;
 	config["timer_formatter"] = time_formatter;
 	config["hide_buttons"] = hide_buttons;
@@ -81,6 +82,7 @@ void Settings::save() {
 	config["early_gg_threshold"] = early_gg_threshold;
 	config["segment_key"] = segment_key;
 	config["show_segments"] = show_segments;
+	config["custom_id"] = custom_id;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -89,7 +91,10 @@ void Settings::show_options() {
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
 
 	ImGui::InputText(translation.get("InputServer").c_str(), &server_url);
-	ImGui::Checkbox(translation.get("InputOfflineMode").c_str(), &is_offline_mode);
+	ImGui::Checkbox(translation.get("InputUseCustomID").c_str(), &use_custom_id);
+	if (use_custom_id) {
+		ImGui::InputText(translation.get("InputCustomID").c_str(), &custom_id);
+	}
 	ImGui::Separator();
 	ImGui::Checkbox(translation.get("InputOnlyInstance").c_str(), &disable_outside_instances);
 

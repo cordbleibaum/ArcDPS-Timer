@@ -29,7 +29,8 @@ private:
 
 		// settings.cpp
 		{"InputServer", "Server"},
-		{"InputOfflineMode", "Offline Mode"},
+		{"InputUseCustomID", "Use Custom ID"},
+		{"InputCustomID", "Custom ID"},
 		{"InputOnlyInstance", "Disable outside Instanced Content"},
 		{"InputAutoprepare", "Auto Prepare"},
 		{"InputAutostop", "Auto Stop"},

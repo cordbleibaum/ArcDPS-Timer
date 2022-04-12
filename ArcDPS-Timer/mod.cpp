@@ -23,10 +23,8 @@ Timer timer(settings, mumble_link, group_tracker, translation);
 std::chrono::system_clock::time_point last_ntp_sync;
 
 template<class F> void network_thread(F&& f) {
-	if (!settings.is_offline_mode) {
-		std::thread thread(std::forward<F>(f));
-		thread.detach();
-	}
+	std::thread thread(std::forward<F>(f));
+	thread.detach();
 }
 
 arcdps_exports* mod_init() {

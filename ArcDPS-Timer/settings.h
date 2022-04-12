@@ -16,7 +16,8 @@ public:
 	bool show_segments;
 	std::string server_url;
 	bool auto_prepare;
-	bool is_offline_mode;
+	bool use_custom_id;
+	std::string custom_id;
 	bool disable_outside_instances;
 	std::string time_formatter;
 	bool hide_buttons;

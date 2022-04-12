@@ -74,7 +74,7 @@ private:
 	std::string get_id();
 
 	template<class F> void network_thread(F&& f) {
-		if (!settings.is_offline_mode && serverStatus == ServerStatus::online) {
+		if (serverStatus == ServerStatus::online) {
 			std::thread thread(std::forward<F>(f));
 			thread.detach();
 		}

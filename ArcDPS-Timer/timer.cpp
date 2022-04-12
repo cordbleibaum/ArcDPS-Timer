@@ -97,7 +97,11 @@ void Timer::prepare() {
 
 void Timer::sync() {
 	while (true) {
-		if (!settings.is_offline_mode && serverStatus == ServerStatus::online) {
+		if (serverStatus == ServerStatus::outofdate) {
+			return;
+		}
+
+		if (serverStatus == ServerStatus::online) {
 			std::string id = get_id();
 			if (id == "") {
 				std::this_thread::sleep_for(std::chrono::seconds{ 1 });
@@ -111,7 +115,7 @@ void Timer::sync() {
 				cpr::Body{ payload.dump() },
 				cpr::Header{{"Content-Type", "application/json"}},
 				cpr::ProgressCallback([&](cpr::cpr_off_t downloadTotal, cpr::cpr_off_t downloadNow, cpr::cpr_off_t uploadTotal, cpr::cpr_off_t uploadNow, intptr_t userdata) {
-					if (id != get_id() || url != settings.server_url || settings.is_offline_mode) {
+					if (id != get_id() || url != settings.server_url) {
 						return false;
 					}
 					return true;
@@ -165,7 +169,7 @@ void Timer::sync() {
 		}
 		else {
 			std::this_thread::sleep_for(std::chrono::seconds{ 3 });
-			if (serverStatus == ServerStatus::offline && !settings.is_offline_mode) {
+			if (serverStatus == ServerStatus::offline) {
 				check_serverstatus();
 			}
 		}
@@ -196,13 +200,17 @@ void Timer::check_serverstatus() {
 
 std::string Timer::get_id() {
 	std::string id = "";
-	if (isInstanced) {
+	if (settings.use_custom_id) {
+		id = settings.custom_id + "_custom";
+	}
+	else if (isInstanced) {
 		std::scoped_lock<std::mutex> guard(mapcode_mutex);
 		id = map_code;
 	}
 	else {
 		id = group_tracker.get_group_id();
 	}
+
 	if (id != last_id) {
 		last_id = id;
 		using namespace std::chrono_literals;
