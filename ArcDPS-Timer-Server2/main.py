@@ -78,6 +78,9 @@ class RequestData(object):
 
 
 class JsonHandler(tornado.web.RequestHandler):
+    def set_default_headers(self, *args, **kwargs):
+        self.set_header('Type', 'application/json')
+
     def prepare(self) -> None:
         if self.request.headers['Content-Type'].startswith('application/json'):
             body = self.request.body.decode("utf-8")
