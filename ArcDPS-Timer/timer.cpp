@@ -128,31 +128,39 @@ void Timer::sync() {
 				continue;
 			}
 
-			auto data = json::parse(response.text);
-			start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-			update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-			if (data["status"] == "running") {
-				status = TimerStatus::running;
-			}
-			else if (data["status"] == "stopped") {
-				status = TimerStatus::stopped;
-				current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-			}
-			else if (data["status"] == "prepared") {
-				status = TimerStatus::prepared;
-				current_time = std::chrono::system_clock::now();
-				std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
-			}
 
-			segments.clear();
-			for (json::iterator it = data["segments"].begin(); it != data["segments"].end(); ++it) {
-				TimeSegment segment;
-				segment.is_set = (*it)["is_set"];
-				segment.start = parse_time((*it)["start"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-				segment.end = parse_time((*it)["end"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-				segment.shortest_time = std::chrono::milliseconds{ (*it)["shortest_time"] };
-				segment.shortest_duration = std::chrono::milliseconds{ (*it)["shortest_duration"] };
-				segments.push_back(segment);
+			try {
+				auto data = json::parse(response.text);
+			
+				start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+				update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+				if (data["status"] == "running") {
+					status = TimerStatus::running;
+				}
+				else if (data["status"] == "stopped") {
+					status = TimerStatus::stopped;
+					current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+				}
+				else if (data["status"] == "prepared") {
+					status = TimerStatus::prepared;
+					current_time = std::chrono::system_clock::now();
+					std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
+				}
+
+				segments.clear();
+				for (json::iterator it = data["segments"].begin(); it != data["segments"].end(); ++it) {
+					TimeSegment segment;
+					segment.is_set = (*it)["is_set"];
+					segment.start = parse_time((*it)["start"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+					segment.end = parse_time((*it)["end"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+					segment.shortest_time = std::chrono::milliseconds{ (*it)["shortest_time"] };
+					segment.shortest_duration = std::chrono::milliseconds{ (*it)["shortest_duration"] };
+					segments.push_back(segment);
+				}
+			}
+			catch ([[maybe_unused]] const json::parse_error& e) {
+				log("timer: received no json response from server");
+				serverStatus = ServerStatus::offline;
 			}
 		}
 		else {
