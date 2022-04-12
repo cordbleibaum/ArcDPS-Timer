@@ -31,3 +31,6 @@ This project is licensed with the MIT License.
 
 ### boost
 [boost](https://www.boost.org/) is a general collection of C++ libraries, that is licensed with the Boost Software License. It is included with vcpkg
+
+### hash-library
+[hash-library](https://github.com/stbrumme/hash-library) is a hashing library, that is licensed with the Zlib license. It is included as git submodule
