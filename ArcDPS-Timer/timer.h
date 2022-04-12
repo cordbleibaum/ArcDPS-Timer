@@ -70,13 +70,6 @@ private:
 	void sync();
 	void check_serverstatus();
 	std::string format_time(std::chrono::system_clock::time_point time);
-	cpr::Response post_serverapi(std::string method, const json& payload);
+	void post_serverapi(std::string method, const json& payload);
 	std::string get_id();
-
-	template<class F> void network_thread(F&& f) {
-		if (serverStatus == ServerStatus::online) {
-			std::thread thread(std::forward<F>(f));
-			thread.detach();
-		}
-	}
 };

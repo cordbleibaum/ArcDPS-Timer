@@ -19,16 +19,18 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group
 	status_sync_thread.detach();
 }
 
-cpr::Response Timer::post_serverapi(std::string method, const json& payload) {
-	std::string id = get_id();
-	if (id != "") {
-		return cpr::Post(
-			cpr::Url{ settings.server_url + "groups/" + id + "/" + method },
-			cpr::Body{ payload.dump() },
-			cpr::Header{ {"Content-Type", "application/json"} }
-		);
-	}
-	return cpr::Response();
+void Timer::post_serverapi(std::string method, const json& payload) {
+	std::thread thread([&]() {
+		std::string id = get_id();
+		if (id != "") {
+			cpr::Post(
+				cpr::Url{ settings.server_url + "groups/" + id + "/" + method },
+				cpr::Body{ payload.dump() },
+				cpr::Header{ {"Content-Type", "application/json"} }
+			);
+		}
+	});
+	thread.detach();
 }
 
 std::string Timer::format_time(std::chrono::system_clock::time_point time) {
@@ -39,11 +41,9 @@ void Timer::start(std::chrono::system_clock::time_point time) {
 	status = TimerStatus::running;
 	start_time = time;
 	update_time = current_time = std::chrono::system_clock::now();
-	network_thread([&] {
-		post_serverapi("start", {
-			{"time", format_time(start_time)},
-			{"update_time", format_time(update_time)}
-		});
+	post_serverapi("start", {
+		{"time", format_time(start_time)},
+		{"update_time", format_time(update_time)}
 	});
 
 	for (auto& segment : segments) {
@@ -59,11 +59,9 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 		current_time = time;
 		update_time = std::chrono::system_clock::now();
 
-		network_thread([&] {
-			post_serverapi("stop", {
-				{"time", format_time(current_time)},
-				{"update_time", format_time(update_time)}
-			});
+		post_serverapi("stop", {
+			{"time", format_time(current_time)},
+			{"update_time", format_time(update_time)}
 		});
 	}
 }
@@ -72,9 +70,7 @@ void Timer::reset() {
 	status = TimerStatus::stopped;
 	start_time = current_time = update_time = std::chrono::system_clock::now();
 
-	network_thread([&]() {
-		post_serverapi("reset", {{"update_time", format_time(update_time)}});
-	});
+	post_serverapi("reset", {{"update_time", format_time(update_time)}});
 
 	for (auto& segment : segments) {
 		segment.is_set = false;
@@ -90,9 +86,7 @@ void Timer::prepare() {
 		segment.is_set = false;
 	}
 
-	network_thread([&]() {
-		post_serverapi("prepare", {{"update_time", format_time(update_time)}});
-	});
+	post_serverapi("prepare", {{"update_time", format_time(update_time)}});
 }
 
 void Timer::sync() {
@@ -487,8 +481,5 @@ void Timer::segment() {
 
 void Timer::clear_segments() {
 	segments.clear();
-
-	network_thread([&]() {
-		post_serverapi("clear_segment", {{"update_time", format_time(update_time)} });
-	});
+	post_serverapi("clear_segment", {{"update_time", format_time(update_time)} });
 }
