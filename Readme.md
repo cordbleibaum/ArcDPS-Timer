@@ -2,6 +2,9 @@
 
 This addon aims to make speedrunning fractals more convenient by having an easy to use timer.
 
+## Contact
+For any errors, feature requests and questions, simply open a new issue here. 
+
 ## Installation
 Make sure arcdps is installed. If arcdps is not installed, this plugin is simply not loaded and does nothing.  
 Download the latest version from [github releases](https://github.com/cordbleibaum/ArcDPS-Timer/releases).  
