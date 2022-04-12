@@ -106,10 +106,7 @@ void Timer::sync() {
 				cpr::Body{ payload.dump() },
 				cpr::Header{{"Content-Type", "application/json"}},
 				cpr::ProgressCallback([&](cpr::cpr_off_t downloadTotal, cpr::cpr_off_t downloadNow, cpr::cpr_off_t uploadTotal, cpr::cpr_off_t uploadNow, intptr_t userdata) {
-					if (id != get_id() || url != settings.server_url) {
-						return false;
-					}
-					return true;
+					return id == get_id() && url == settings.server_url;
 				})
 			);
 
