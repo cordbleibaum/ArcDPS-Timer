@@ -34,3 +34,6 @@ This project is licensed with the MIT License.
 
 ### hash-library
 [hash-library](https://github.com/stbrumme/hash-library) is a hashing library, that is licensed with the Zlib license. It is included as git submodule
+
+### arcdps-extension
+[arcdps-extension](https://github.com/knoxfighter/arcdps-extension) is a arcdps extension library under MIT license. It is included as git submodule
