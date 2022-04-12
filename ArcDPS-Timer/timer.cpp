@@ -120,7 +120,6 @@ void Timer::sync() {
 				continue;
 			}
 
-
 			try {
 				auto data = json::parse(response.text);
 			
