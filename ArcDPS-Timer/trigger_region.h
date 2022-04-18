@@ -2,6 +2,7 @@
 
 #include <array>
 
+#include "lang.h"
 #include "mumble_link.h"
 
 class TriggerRegion {
@@ -24,13 +25,25 @@ private:
 class BoxTrigger : public TriggerRegion {
 public:
 	virtual bool trigger(std::array<float, 3> player_position) override;
-protected:
+private:
 
 };
 
 class TriggerWatcher {
 public:
 	TriggerWatcher(GW2MumbleLink& mumble_link);
+	void watch();
 private:
 	GW2MumbleLink& mumble_link;
+};
+
+class TriggerEditor {
+public:
+	TriggerEditor(Translation& translation);
+	void mod_options();
+	void mod_imgui();
+private:
+	Translation& translation;
+
+	bool is_open = false;
 };

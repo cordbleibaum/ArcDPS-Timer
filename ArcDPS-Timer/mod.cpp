@@ -20,6 +20,7 @@ GW2MumbleLink mumble_link;
 NTPClient ntp("pool.ntp.org");
 GroupTracker group_tracker;
 TriggerWatcher trigger_watcher(mumble_link);
+TriggerEditor trigger_editor(translation);
 Timer timer(settings, mumble_link, group_tracker, translation);
 
 std::chrono::system_clock::time_point last_ntp_sync;
@@ -59,6 +60,8 @@ uintptr_t mod_release() {
 
 uintptr_t mod_options() {
 	settings.show_options();
+	trigger_editor.mod_options();
+
 	return 0;
 }
 
@@ -81,7 +84,9 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		});
 	}
 
+	trigger_watcher.watch();
 	timer.mod_imgui();
+	trigger_editor.mod_imgui();
 
 	return 0;
 }

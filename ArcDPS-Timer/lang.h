@@ -48,6 +48,10 @@ private:
 		{"TooltipAutoPrepare", "Tries to automatically set the timer to prepared,\nand start on movement / skillcast.Still has a few limitations"},
 		{"TooltipAutoStop", "Tries to automatically stop the timer. Still experimental"},
 		{"TooltipEarlyGG", "Seconds threshold for min duration of a boss kill, \neverything lower gets ignored for auto stop"},
-		{"TooltipTimerFormatter", "Format for timer time, see https://en.cppreference.com/w/cpp/chrono/duration/formatter"}
+		{"TooltipTimerFormatter", "Format for timer time, see https://en.cppreference.com/w/cpp/chrono/duration/formatter"},
+
+		// trigger_region.cpp
+		{"ButtorOpenTriggerEditor", "Open Auto Segment Editor"},
+		{"HeaderTriggerEditor", "Auto Segment Editor"}
 	};
 };

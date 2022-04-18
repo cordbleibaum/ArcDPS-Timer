@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "imgui/imgui.h"
+
 void TriggerRegion::reset()
 {
     is_triggered = false;
@@ -39,4 +41,26 @@ bool BoxTrigger::trigger(std::array<float, 3> player_position)
 TriggerWatcher::TriggerWatcher(GW2MumbleLink& mumble_link)
     : mumble_link(mumble_link)
 {
+}
+
+void TriggerWatcher::watch() {
+}
+
+TriggerEditor::TriggerEditor(Translation& translation)
+:   translation(translation) {
+}
+
+void TriggerEditor::mod_options() {
+    ImGui::Separator();
+    if (ImGui::Button(translation.get("ButtorOpenTriggerEditor").c_str())) {
+        is_open = true;
+    }
+}
+
+void TriggerEditor::mod_imgui() {
+    if (is_open) {
+        ImGui::Begin(translation.get("HeaderTriggerEditor").c_str(), &is_open, ImGuiWindowFlags_AlwaysAutoResize);
+
+        ImGui::End();
+    }
 }
