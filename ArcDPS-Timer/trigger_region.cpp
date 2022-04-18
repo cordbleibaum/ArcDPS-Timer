@@ -39,7 +39,7 @@ bool PlaneTrigger::trigger(Eigen::Vector3f player_position) {
         auto player_position_2d = Eigen::Vector2f(player_position.x(), player_position.y());
 
         auto e1 = side2 - side1;
-        auto e2 = player_position - side1;
+        auto e2 = player_position_2d - side1;
         auto alpha = e1.dot(e2);
 
         if (alpha >= 0 && alpha <= 1.0) {
