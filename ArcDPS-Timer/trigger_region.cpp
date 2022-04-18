@@ -56,6 +56,20 @@ TriggerWatcher::TriggerWatcher(GW2MumbleLink& mumble_link)
 }
 
 void TriggerWatcher::watch() {
+    last_triggered = -1;
+
+    Eigen::Vector3f player_position = Eigen::Vector3f(mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[1], mumble_link->fAvatarPosition[2]);
+
+    for (int i = 0; i < regions.size(); ++i) {
+        if (regions[i]->trigger(player_position)) {
+            last_triggered = i;
+            return;
+        }
+    }
+}
+
+int TriggerWatcher::get_last_triggered() {
+    return last_triggered;
 }
 
 TriggerEditor::TriggerEditor(Translation& translation)

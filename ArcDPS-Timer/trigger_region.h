@@ -36,8 +36,12 @@ class TriggerWatcher {
 public:
 	TriggerWatcher(GW2MumbleLink& mumble_link);
 	void watch();
+	int get_last_triggered();
+
+	std::vector<TriggerRegion*> regions;
 private:
 	GW2MumbleLink& mumble_link;
+	int last_triggered = -1;
 };
 
 class TriggerEditor {
