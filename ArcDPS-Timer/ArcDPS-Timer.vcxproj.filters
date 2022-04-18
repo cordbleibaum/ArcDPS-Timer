@@ -72,6 +72,9 @@
     <ClInclude Include="util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="trigger_region.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mod.cpp">
@@ -118,6 +121,9 @@
     </ClCompile>
     <ClCompile Include="arcdps-extension\Widgets.cpp">
       <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="trigger_region.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

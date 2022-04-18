@@ -10,6 +10,7 @@
 #include <set>
 #include <thread>
 #include <mutex>
+#include <array>
 #include <vector>
 
 #include "json.hpp"
@@ -55,7 +56,7 @@ private:
 	std::chrono::system_clock::time_point log_start_time;
 	std::vector<TimeSegment> segments;
 
-	float lastPosition[3];
+	std::array<float, 3> last_position;
 	uint32_t lastMapID = 0;
 	std::set<uintptr_t> log_agents;
 	std::chrono::system_clock::time_point last_damage_ticks;
@@ -70,6 +71,6 @@ private:
 	void sync();
 	void check_serverstatus();
 	std::string format_time(std::chrono::system_clock::time_point time);
-	void post_serverapi(std::string method, const json& payload);
+	void post_serverapi(std::string method, json payload);
 	std::string get_id();
 };

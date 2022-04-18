@@ -17,7 +17,7 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group
 	status_sync_thread.detach();
 }
 
-void Timer::post_serverapi(std::string method, const json& payload) {
+void Timer::post_serverapi(std::string method, json payload) {
 	std::thread thread([&]() {
 		std::string id = get_id();
 		if (id != "") {
@@ -71,13 +71,13 @@ void Timer::reset() {
 		segment.is_set = false;
 	}
 
-	post_serverapi("reset", { {"update_time", format_time(update_time)} });
+	post_serverapi("reset", {{"update_time", format_time(update_time)}});
 }
 
 void Timer::prepare() {
 	status = TimerStatus::prepared;
 	start_time = current_time = update_time = std::chrono::system_clock::now();
-	std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
+	std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
 
 	for (auto& segment : segments) {
 		segment.is_set = false;
@@ -135,7 +135,7 @@ void Timer::sync() {
 				else if (data["status"] == "prepared") {
 					status = TimerStatus::prepared;
 					current_time = std::chrono::system_clock::now();
-					std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(lastPosition));
+					std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
 				}
 
 				segments.clear();
@@ -298,8 +298,7 @@ void Timer::mod_imgui() {
 		lastMapID = mumble_link->getMumbleContext()->mapId;
 		isInstanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
 
-		bool doAutoPrepare = settings.auto_prepare && isInstanced;
-		if (doAutoPrepare) {
+		if (settings.auto_prepare && isInstanced) {
 			log_debug("timer: preparing on map change");
 			prepare();
 		}
@@ -310,9 +309,9 @@ void Timer::mod_imgui() {
 	}
 
 	if (status == TimerStatus::prepared) {
-		if (checkDelta(lastPosition[0], mumble_link->fAvatarPosition[0], 0.1f) ||
-			checkDelta(lastPosition[1], mumble_link->fAvatarPosition[1], 0.1f) ||
-			checkDelta(lastPosition[2], mumble_link->fAvatarPosition[2], 0.1f)) {
+		if (checkDelta(last_position[0], mumble_link->fAvatarPosition[0], 0.1f) ||
+			checkDelta(last_position[1], mumble_link->fAvatarPosition[1], 0.1f) ||
+			checkDelta(last_position[2], mumble_link->fAvatarPosition[2], 0.1f)) {
 			log_debug("timer: starting on movement");
 			start();
 		}

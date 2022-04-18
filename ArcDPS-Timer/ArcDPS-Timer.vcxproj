@@ -159,6 +159,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <Optimization>MaxSpeed</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -189,6 +190,7 @@
     <ClInclude Include="ntp.h" />
     <ClInclude Include="settings.h" />
     <ClInclude Include="timer.h" />
+    <ClInclude Include="trigger_region.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
@@ -207,6 +209,7 @@
     <ClCompile Include="settings.cpp" />
     <ClCompile Include="mod.cpp" />
     <ClCompile Include="timer.cpp" />
+    <ClCompile Include="trigger_region.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
