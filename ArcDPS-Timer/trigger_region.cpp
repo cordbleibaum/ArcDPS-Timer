@@ -40,7 +40,7 @@ bool PlaneTrigger::trigger(Eigen::Vector3f player_position) {
 
         auto e1 = side2 - side1;
         auto e2 = player_position_2d - side1;
-        auto alpha = e1.dot(e2);
+        auto alpha = std::sqrtf(e1.dot(e2)) / e1.norm();
 
         if (alpha >= 0 && alpha <= 1.0) {
             is_triggered = true;
