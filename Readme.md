@@ -37,3 +37,6 @@ This project is licensed with the MIT License.
 
 ### arcdps-extension
 [arcdps-extension](https://github.com/knoxfighter/arcdps-extension) is a arcdps extension library under MIT license. It is included as git submodule
+
+### Eigen
+[Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page) is a linear algrebra library under MPL2 license. It is included via vcpkg

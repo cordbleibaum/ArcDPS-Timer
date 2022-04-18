@@ -1,13 +1,13 @@
 #pragma once
 
-#include <array>
+#include <Eigen/Dense>
 
 #include "lang.h"
 #include "mumble_link.h"
 
 class TriggerRegion {
 public:
-	virtual bool trigger(std::array<float, 3> player_position) = 0;
+	virtual bool trigger(Eigen::Vector3f player_position) = 0;
 	void reset();
 protected:
 	bool is_triggered;
@@ -15,18 +15,21 @@ protected:
 
 class SphereTrigger : public TriggerRegion {
 public:
-	SphereTrigger(std::array<float, 3> position, float radius);
-	virtual bool trigger(std::array<float, 3> player_position) override;
+	SphereTrigger(Eigen::Vector3f position, float radius);
+	virtual bool trigger(Eigen::Vector3f player_position) override;
 private:
-	std::array<float, 3> position;
+	Eigen::Vector3f position;
 	float radius;
 };
 
-class BoxTrigger : public TriggerRegion {
+class PlaneTrigger : public TriggerRegion {
 public:
-	virtual bool trigger(std::array<float, 3> player_position) override;
+	PlaneTrigger(Eigen::Vector3f center, Eigen::Vector3f normal, float width, float height);
+	virtual bool trigger(Eigen::Vector3f player_position) override;
 private:
-
+	float width, height;
+	Eigen::Vector3f center;
+	Eigen::Vector3f normal;
 };
 
 class TriggerWatcher {

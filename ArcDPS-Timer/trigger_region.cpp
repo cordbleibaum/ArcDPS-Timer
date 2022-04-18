@@ -4,24 +4,19 @@
 
 #include "imgui/imgui.h"
 
-void TriggerRegion::reset()
-{
+void TriggerRegion::reset() {
     is_triggered = false;
 }
 
-SphereTrigger::SphereTrigger(std::array<float, 3> position, float radius)
+SphereTrigger::SphereTrigger(Eigen::Vector3f position, float radius)
  :  position(position),
     radius(radius) {
 }
 
-bool SphereTrigger::trigger(std::array<float, 3> player_position)
-{
+bool SphereTrigger::trigger(Eigen::Vector3f player_position) {
     if (is_triggered) return false;
 
-    float dx = position[0] - player_position[0];
-    float dy = position[1] - player_position[1];
-    float dz = position[2] - player_position[2];
-    float distance = std::sqrtf(dx * dx + dy * dy + dz * dz);
+    float distance = (position - player_position).norm();
     if (distance < radius) {
         is_triggered = true;
         return true;
@@ -30,8 +25,14 @@ bool SphereTrigger::trigger(std::array<float, 3> player_position)
     return false;
 }
 
-bool BoxTrigger::trigger(std::array<float, 3> player_position)
-{
+PlaneTrigger::PlaneTrigger(Eigen::Vector3f center, Eigen::Vector3f normal, float width, float height)
+:   center(center),
+    normal(normal),
+    width(width),
+    height(height) {
+}
+
+bool PlaneTrigger::trigger(Eigen::Vector3f player_position) {
     if (is_triggered) return false;
 
 
@@ -39,8 +40,7 @@ bool BoxTrigger::trigger(std::array<float, 3> player_position)
 }
 
 TriggerWatcher::TriggerWatcher(GW2MumbleLink& mumble_link)
-    : mumble_link(mumble_link)
-{
+    : mumble_link(mumble_link) {
 }
 
 void TriggerWatcher::watch() {
@@ -52,7 +52,7 @@ TriggerEditor::TriggerEditor(Translation& translation)
 
 void TriggerEditor::mod_options() {
     ImGui::Separator();
-    if (ImGui::Button(translation.get("ButtorOpenTriggerEditor").c_str())) {
+    if (ImGui::Button(translation.get("ButtonOpenTriggerEditor").c_str())) {
         is_open = true;
     }
 }

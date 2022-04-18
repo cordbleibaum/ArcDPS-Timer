@@ -51,7 +51,7 @@ private:
 		{"TooltipTimerFormatter", "Format for timer time, see https://en.cppreference.com/w/cpp/chrono/duration/formatter"},
 
 		// trigger_region.cpp
-		{"ButtorOpenTriggerEditor", "Open Auto Segment Editor"},
+		{"ButtonOpenTriggerEditor", "Open Auto Segment Editor"},
 		{"HeaderTriggerEditor", "Auto Segment Editor"}
 	};
 };
