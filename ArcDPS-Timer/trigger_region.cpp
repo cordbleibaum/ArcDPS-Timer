@@ -25,10 +25,11 @@ bool SphereTrigger::trigger(Eigen::Vector3f player_position) {
     return false;
 }
 
-PlaneTrigger::PlaneTrigger(Eigen::Vector2f side1, Eigen::Vector2f side2, float height, float z)
+PlaneTrigger::PlaneTrigger(Eigen::Vector2f side1, Eigen::Vector2f side2, float height, float z, float thickness)
 :   side1(side1),
     side2(side2),
     height(height),
+    thickness(thickness),
     z(z) {
 }
 
@@ -40,9 +41,12 @@ bool PlaneTrigger::trigger(Eigen::Vector3f player_position) {
 
         auto e1 = side2 - side1;
         auto e2 = player_position_2d - side1;
-        auto alpha = std::sqrtf(e1.dot(e2)) / e1.norm();
+        float alpha = std::sqrtf(e1.dot(e2)) / e1.norm();
+        
+        auto projected_point = side1 + alpha * e1;
+        float distance = (projected_point - player_position_2d).norm();
 
-        if (alpha >= 0 && alpha <= 1.0) {
+        if (alpha >= 0 && alpha <= 1.0 && distance < thickness) {
             is_triggered = true;
             return true;
         }
