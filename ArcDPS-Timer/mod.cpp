@@ -11,6 +11,7 @@
 #include "settings.h"
 #include "timer.h"
 #include "grouptracker.h"
+#include "trigger_region.h"
 #include "lang.h"
 
 Translation translation;
@@ -18,6 +19,7 @@ Settings settings("addons/arcdps/timer.json", translation);
 GW2MumbleLink mumble_link;
 NTPClient ntp("pool.ntp.org");
 GroupTracker group_tracker;
+TriggerWatcher trigger_watcher(mumble_link);
 Timer timer(settings, mumble_link, group_tracker, translation);
 
 std::chrono::system_clock::time_point last_ntp_sync;

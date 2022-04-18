@@ -2,6 +2,8 @@
 
 #include <array>
 
+#include "mumble_link.h"
+
 class TriggerRegion {
 public:
 	virtual bool trigger(std::array<float, 3> player_position) = 0;
@@ -12,7 +14,23 @@ protected:
 
 class SphereTrigger : public TriggerRegion {
 public:
+	SphereTrigger(std::array<float, 3> position, float radius);
+	virtual bool trigger(std::array<float, 3> player_position) override;
+private:
 	std::array<float, 3> position;
 	float radius;
+};
+
+class BoxTrigger : public TriggerRegion {
+public:
 	virtual bool trigger(std::array<float, 3> player_position) override;
+protected:
+
+};
+
+class TriggerWatcher {
+public:
+	TriggerWatcher(GW2MumbleLink& mumble_link);
+private:
+	GW2MumbleLink& mumble_link;
 };
