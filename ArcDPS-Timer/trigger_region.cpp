@@ -25,16 +25,28 @@ bool SphereTrigger::trigger(Eigen::Vector3f player_position) {
     return false;
 }
 
-PlaneTrigger::PlaneTrigger(Eigen::Vector3f center, Eigen::Vector3f normal, float width, float height)
-:   center(center),
-    normal(normal),
-    width(width),
-    height(height) {
+PlaneTrigger::PlaneTrigger(Eigen::Vector2f side1, Eigen::Vector2f side2, float height, float z)
+:   side1(side1),
+    side2(side2),
+    height(height),
+    z(z) {
 }
 
 bool PlaneTrigger::trigger(Eigen::Vector3f player_position) {
     if (is_triggered) return false;
+    
+    if (player_position.z() > z && player_position.z() < z + height) {
+        auto player_position_2d = Eigen::Vector2f(player_position.x(), player_position.y());
 
+        auto e1 = side2 - side1;
+        auto e2 = player_position - side1;
+        auto alpha = e1.dot(e2);
+
+        if (alpha >= 0 && alpha <= 1.0) {
+            is_triggered = true;
+            return true;
+        }
+    }
 
     return false;
 }

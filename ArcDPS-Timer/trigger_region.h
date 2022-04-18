@@ -24,12 +24,12 @@ private:
 
 class PlaneTrigger : public TriggerRegion {
 public:
-	PlaneTrigger(Eigen::Vector3f center, Eigen::Vector3f normal, float width, float height);
+	PlaneTrigger(Eigen::Vector2f side1, Eigen::Vector2f side2, float height, float z);
 	virtual bool trigger(Eigen::Vector3f player_position) override;
 private:
-	float width, height;
-	Eigen::Vector3f center;
-	Eigen::Vector3f normal;
+	float height, z;
+	Eigen::Vector2f side1;
+	Eigen::Vector2f side2;
 };
 
 class TriggerWatcher {
