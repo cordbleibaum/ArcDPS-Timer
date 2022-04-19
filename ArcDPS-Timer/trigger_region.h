@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Dense>
+#include <array>
 
 #include "lang.h"
 #include "mumble_link.h"
@@ -46,11 +47,15 @@ private:
 
 class TriggerEditor {
 public:
-	TriggerEditor(Translation& translation);
+	TriggerEditor(Translation& translation, GW2MumbleLink& mumble_link);
 	void mod_options();
 	void mod_imgui();
 private:
+	GW2MumbleLink& mumble_link;
 	Translation& translation;
 
 	bool is_open = false;
+
+	float input_radius_sphere = 1;
+	std::array<float, 3> input_sphere_position;
 };

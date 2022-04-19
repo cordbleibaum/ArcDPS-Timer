@@ -52,6 +52,11 @@ private:
 
 		// trigger_region.cpp
 		{"ButtonOpenTriggerEditor", "Open Auto Segment Editor"},
-		{"HeaderTriggerEditor", "Auto Segment Editor"}
+		{"HeaderTriggerEditor", "Auto Segment Editor"},
+		{"TextPlayerPosition", "Player position: "},
+		{"TextAreaSphere", "Sphere trigger"},
+		{"TextInputRadius", "Radius"},
+		{"InputXYZ", "X/Y/Z"},
+		{"ButtonPlaceSphere", "Place Sphere"}
 	};
 };

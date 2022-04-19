@@ -1,6 +1,8 @@
 #include "trigger_region.h"
 
 #include <cmath>
+#include <string>
+#include <format>
 
 #include "imgui/imgui.h"
 
@@ -76,8 +78,9 @@ int TriggerWatcher::get_last_triggered() {
     return last_triggered;
 }
 
-TriggerEditor::TriggerEditor(Translation& translation)
-:   translation(translation) {
+TriggerEditor::TriggerEditor(Translation& translation, GW2MumbleLink& mumble_link)
+:   translation(translation),
+    mumble_link(mumble_link) {
 }
 
 void TriggerEditor::mod_options() {
@@ -89,7 +92,19 @@ void TriggerEditor::mod_options() {
 
 void TriggerEditor::mod_imgui() {
     if (is_open) {
-        ImGui::Begin(translation.get("HeaderTriggerEditor").c_str(), &is_open, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Begin(translation.get("HeaderTriggerEditor").c_str(), &is_open, ImGuiWindowFlags_None);
+
+        std::string position_string = translation.get("TextPlayerPosition") + "%f %f %f";
+        ImGui::Text(position_string.c_str(), mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[1], mumble_link->fAvatarPosition[2]);
+        ImGui::Separator();
+
+        ImGui::Text(translation.get("TextAreaSphere").c_str());
+        ImGui::InputFloat(translation.get("TextInputRadius").c_str(), &input_radius_sphere);
+        ImGui::InputFloat3(translation.get("InputXYZ").c_str(), &input_sphere_position[0]);
+        if (ImGui::Button(translation.get("ButtonPlaceSphere").c_str())) {
+
+        }
+        ImGui::Separator();
 
         ImGui::End();
     }
