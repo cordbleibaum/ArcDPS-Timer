@@ -99,9 +99,19 @@ void TriggerEditor::mod_imgui() {
         ImGui::Separator();
 
         ImGui::Text(translation.get("TextAreaSphere").c_str());
-        ImGui::InputFloat(translation.get("TextInputRadius").c_str(), &input_radius_sphere);
-        ImGui::InputFloat3(translation.get("InputXYZ").c_str(), &input_sphere_position[0]);
+        ImGui::InputFloat(translation.get("TextInputRadius").c_str(), &sphere_radius);
+        ImGui::InputFloat3(translation.get("InputXYZ").c_str(), &sphere_position[0]);
         if (ImGui::Button(translation.get("ButtonPlaceSphere").c_str())) {
+
+        }
+        ImGui::Separator();
+
+        ImGui::InputFloat(translation.get("InputThickness").c_str(), &plane_thickness);
+        ImGui::InputFloat(translation.get("InputZ").c_str(), &plane_z);
+        ImGui::InputFloat(translation.get("InputHeight").c_str(), &plane_height);
+        ImGui::InputFloat2(translation.get("InputXY1").c_str(), &plane_position1[0]);
+        ImGui::InputFloat2(translation.get("InputXY2").c_str(), &plane_position2[0]);
+        if (ImGui::Button(translation.get("ButtonPlacePlane").c_str())) {
 
         }
         ImGui::Separator();

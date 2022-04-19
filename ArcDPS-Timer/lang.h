@@ -57,6 +57,12 @@ private:
 		{"TextAreaSphere", "Sphere trigger"},
 		{"TextInputRadius", "Radius"},
 		{"InputXYZ", "X/Y/Z"},
-		{"ButtonPlaceSphere", "Place Sphere"}
+		{"ButtonPlaceSphere", "Place Sphere"},
+		{"InputThickness", "Thickness"},
+		{"InputXY1", "X/Y 1"},
+		{"InputXY2", "X/Y 2"},
+		{"InputZ", "Z"},
+		{"InputHeight", "Height"},
+		{"ButtonPlacePlane", "Place Plane"}
 	};
 };

@@ -56,6 +56,12 @@ private:
 
 	bool is_open = false;
 
-	float input_radius_sphere = 1;
-	std::array<float, 3> input_sphere_position;
+	float sphere_radius = 1;
+	std::array<float, 3> sphere_position;
+
+	float plane_thickness;
+	float plane_z;
+	float plane_height;
+	std::array<float, 2> plane_position1;
+	std::array<float, 2> plane_position2;
 };
