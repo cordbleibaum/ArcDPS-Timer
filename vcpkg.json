@@ -1,0 +1,12 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+    "name": "arcdps-timer-plugin",
+    "version-string": "0.6.0",
+    "dependencies": [
+      "cpr",
+      "nlohmann-json",
+      "eigen3",
+      "boost"
+    ]
+  }
+  
