@@ -18,7 +18,7 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group
 }
 
 void Timer::post_serverapi(std::string method, json payload) {
-	std::thread thread([&]() {
+	std::thread thread([&, method, payload]() {
 		std::string id = get_id();
 		if (id != "") {
 			cpr::Post(
