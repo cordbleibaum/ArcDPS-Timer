@@ -3,12 +3,12 @@
 #include <filesystem>
 #include <fstream>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 #include "imgui/imgui.h"
 #include "imgui_stdlib.h"
 #include "arcdps-extension/Widgets.h"
-
-using json = nlohmann::json;
 
 constexpr int settings_version = 9;
 

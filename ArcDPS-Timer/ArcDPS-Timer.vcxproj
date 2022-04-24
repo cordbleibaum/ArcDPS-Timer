@@ -183,7 +183,6 @@
     <ClInclude Include="hash-library\crc32.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui_stdlib.h" />
-    <ClInclude Include="json.hpp" />
     <ClInclude Include="lang.h" />
     <ClInclude Include="mod.h" />
     <ClInclude Include="mumble_link.h" />

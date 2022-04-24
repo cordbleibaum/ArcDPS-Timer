@@ -63,9 +63,6 @@
     <ClInclude Include="imgui\imgui.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="json.hpp">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="arcdps-extension\Widgets.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
