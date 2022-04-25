@@ -63,6 +63,7 @@ private:
 	Translation& translation;
 
 	bool is_open = false;
+	int selected_line = -1;
 
 	float sphere_radius = 1;
 	std::array<float, 3> sphere_position;

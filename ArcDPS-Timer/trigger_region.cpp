@@ -105,12 +105,13 @@ void TriggerEditor::mod_options() {
     ImGui::Separator();
     if (ImGui::Button(translation.get("ButtonOpenTriggerEditor").c_str())) {
         is_open = true;
+        selected_line = -1;
     }
 }
 
 void TriggerEditor::mod_imgui() {
     if (is_open) {
-        if (ImGui::Begin(translation.get("HeaderTriggerEditor").c_str(), &is_open, ImGuiWindowFlags_None)) {
+        if (ImGui::Begin(translation.get("HeaderTriggerEditor").c_str(), &is_open, ImGuiWindowFlags_AlwaysAutoResize)) {
 
             std::string position_string = translation.get("TextPlayerPosition") + "%.1f %.1f %.1f";
             ImGui::Text(position_string.c_str(), mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
@@ -183,7 +184,9 @@ void TriggerEditor::mod_imgui() {
                 ImGui::TableNextRow();
 
                 ImGui::TableNextColumn();
-                ImGui::Text(std::to_string(i).c_str());
+                if (ImGui::Selectable(std::to_string(i).c_str(), selected_line == i, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap)) {
+                    selected_line = selected_line == i ? -1 : i;
+                }
 
                 ImGui::TableNextColumn();
                 ImGui::Text(translation.get(region->get_typename_id()).c_str());
@@ -195,8 +198,9 @@ void TriggerEditor::mod_imgui() {
 
             ImGui::EndTable();
 
-            if (ImGui::Button(translation.get("ButtonDelete").c_str())) {
-
+            if (ImGui::Button(translation.get("ButtonDelete").c_str()) && selected_line >= 0) {
+                regions.erase(regions.begin() + selected_line);
+                selected_line = -1;
             }
         }
         ImGui::End();
