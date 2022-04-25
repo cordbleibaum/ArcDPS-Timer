@@ -63,6 +63,12 @@ private:
 		{"InputXY2", "X/Y 2"},
 		{"InputZ", "Z"},
 		{"InputHeight", "Height"},
-		{"ButtonPlacePlane", "Place Plane"}
+		{"ButtonPlacePlane", "Place Plane"},
+		{"HeaderTypeColumn", "Type"},
+		{"HeaderMiddleColumn", "Middle (X/Y/Z)"},
+		{"ButtonDelete", "Delete"},
+		{"TypeSphere", "Sphere"},
+		{"TypePlane", "Plane"},
+		{"ButtonSet", "Set"},
 	};
 };
