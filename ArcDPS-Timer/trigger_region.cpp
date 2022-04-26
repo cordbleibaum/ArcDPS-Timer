@@ -7,6 +7,8 @@
 #include "imgui/imgui.h"
 #include "arcdps.h"
 
+using json = nlohmann::json;
+
 bool TriggerRegion::trigger(Eigen::Vector3f player_position)
 {
     if (is_triggered) return false;
@@ -33,7 +35,7 @@ bool SphereTrigger::check(Eigen::Vector3f player_position) {
     return distance < radius;
 }
 
-std::string SphereTrigger::get_typename_id() {
+std::string SphereTrigger::get_typename_id() const {
     return "TypeSphere";
 }
 
@@ -68,7 +70,7 @@ bool PlaneTrigger::check(Eigen::Vector3f player_position) {
     return false;
 }
 
-std::string PlaneTrigger::get_typename_id() {
+std::string PlaneTrigger::get_typename_id() const {
     return "TypePlane";
 }
 
@@ -214,5 +216,18 @@ void TriggerEditor::mod_imgui() {
             }
         }
         ImGui::End();
+    }
+}
+
+void region_to_json(json& j, const TriggerRegion* region) {
+    if (region->get_typename_id() == "TypeSphere") {
+        SphereTrigger* sphere = (SphereTrigger*)(region);
+        j = *sphere;
+        j["type"] = "sphere";
+    }
+    else if (region->get_typename_id() == "TypePlane") {
+        PlaneTrigger* plane = (PlaneTrigger*)(region);
+        j = *plane;
+        j["type"] = "plane";
     }
 }
