@@ -58,6 +58,7 @@ private:
 		{"TextInputRadius", "Radius"},
 		{"InputXYZ", "X/Y/Z"},
 		{"ButtonPlaceSphere", "Place Sphere"},
+		{"TextAreaPlane", "Plane trigger"},
 		{"InputThickness", "Thickness"},
 		{"InputXY1", "X/Y 1"},
 		{"InputXY2", "X/Y 2"},
@@ -70,5 +71,7 @@ private:
 		{"TypeSphere", "Sphere"},
 		{"TypePlane", "Plane"},
 		{"ButtonSet", "Set"},
+		{"HeaderIsInRangeColumn", "In Range?"},
+		{"TextYes", "Yes"}
 	};
 };

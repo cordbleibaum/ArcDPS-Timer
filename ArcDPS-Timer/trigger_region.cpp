@@ -7,6 +7,18 @@
 #include "imgui/imgui.h"
 #include "arcdps.h"
 
+bool TriggerRegion::trigger(Eigen::Vector3f player_position)
+{
+    if (is_triggered) return false;
+
+    if (check(player_position)) {
+        is_triggered = true;
+        return true;
+    }
+
+    return false;
+}
+
 void TriggerRegion::reset() {
     is_triggered = false;
 }
@@ -16,16 +28,9 @@ SphereTrigger::SphereTrigger(Eigen::Vector3f position, float radius)
     radius(radius) {
 }
 
-bool SphereTrigger::trigger(Eigen::Vector3f player_position) {
-    if (is_triggered) return false;
-
+bool SphereTrigger::check(Eigen::Vector3f player_position) {
     float distance = (position - player_position).norm();
-    if (distance < radius) {
-        is_triggered = true;
-        return true;
-    }
-
-    return false;
+    return distance < radius;
 }
 
 std::string SphereTrigger::get_typename_id() {
@@ -44,21 +49,18 @@ PlaneTrigger::PlaneTrigger(Eigen::Vector2f side1, Eigen::Vector2f side2, float h
     z(z) {
 }
 
-bool PlaneTrigger::trigger(Eigen::Vector3f player_position) {
-    if (is_triggered) return false;
-    
+bool PlaneTrigger::check(Eigen::Vector3f player_position) {
     if (player_position.z() > z && player_position.z() < z + height) {
         auto player_position_2d = Eigen::Vector2f(player_position.x(), player_position.y());
 
         auto e1 = side2 - side1;
         auto e2 = player_position_2d - side1;
-        float alpha = std::sqrtf(e1.dot(e2)) / e1.norm();
-        
-        auto projected_point = side1 + alpha * e1;
+        float alpha = e1.dot(e2) / e1.dot(e1);
+
+        auto projected_point = (1.0f - alpha) * side1 + alpha * side2;
         float distance = (projected_point - player_position_2d).norm();
 
         if (alpha >= 0 && alpha <= 1.0 && distance < thickness) {
-            is_triggered = true;
             return true;
         }
     }
@@ -136,12 +138,13 @@ void TriggerEditor::mod_imgui() {
             }
             ImGui::Separator();
 
+            ImGui::Text(translation.get("TextAreaPlane").c_str());
             ImGui::InputFloat(translation.get("InputThickness").c_str(), &plane_thickness);
             ImGui::InputFloat(translation.get("InputZ").c_str(), &plane_z);
             ImGui::SameLine();
             ImGui::PushID("set_plane_z");
             if (ImGui::Button(translation.get("ButtonSet").c_str())) {
-                plane_z = mumble_link->fAvatarPosition[1];
+                plane_z = mumble_link->fAvatarPosition[1] - 0.5f;
             }
             ImGui::PopID();
             ImGui::InputFloat(translation.get("InputHeight").c_str(), &plane_height);
@@ -172,10 +175,11 @@ void TriggerEditor::mod_imgui() {
             }
             ImGui::Separator();
 
-            ImGui::BeginTable("##triggertable", 3);
+            ImGui::BeginTable("##triggertable", 4);
             ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
             ImGui::TableSetupColumn(translation.get("HeaderTypeColumn").c_str());
             ImGui::TableSetupColumn(translation.get("HeaderMiddleColumn").c_str());
+            ImGui::TableSetupColumn(translation.get("HeaderIsInRangeColumn").c_str());
             ImGui::TableHeadersRow();
 
             for (size_t i = 0; i < regions.size(); ++i) {
@@ -194,6 +198,12 @@ void TriggerEditor::mod_imgui() {
                 ImGui::TableNextColumn();
                 auto middle = region->get_middle();
                 ImGui::Text("%.1f %.1f %.1f", middle.x(), middle.y(), middle.z());
+
+                ImGui::TableNextColumn();
+                Eigen::Vector3f player_position = Eigen::Vector3f(mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
+                if (region->check(player_position)) {
+                    ImGui::TextColored(ImVec4(0, 1, 0, 1), translation.get("TextYes").c_str());
+                }
             }
 
             ImGui::EndTable();
