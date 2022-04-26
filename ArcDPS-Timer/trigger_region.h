@@ -27,6 +27,7 @@ protected:
 
 class SphereTrigger : public TriggerRegion {
 public:
+	SphereTrigger();
 	SphereTrigger(Eigen::Vector3f position, float radius);
 	virtual bool check(Eigen::Vector3f player_position) override;
 	virtual std::string get_typename_id() const override;
@@ -38,6 +39,7 @@ public:
 
 class PlaneTrigger : public TriggerRegion {
 public:
+	PlaneTrigger();
 	PlaneTrigger(Eigen::Vector2f side1, Eigen::Vector2f side2, float height, float z, float thickness);
 	virtual bool check(Eigen::Vector3f player_position) override;
 	virtual std::string get_typename_id() const override;
@@ -48,6 +50,7 @@ public:
 };
 
 void region_to_json(nlohmann::json& j, const TriggerRegion* region);
+void region_from_json(const nlohmann::json& j, TriggerRegion*& region);
 
 namespace nlohmann {
 	template <>
@@ -95,7 +98,9 @@ namespace nlohmann {
 		}
 
 		static void from_json(const json& j, std::shared_ptr<TriggerRegion>& ptr) {
-			//region_from_json(j, (TriggerRegion*)ptr.get());
+			TriggerRegion* region;
+			region_from_json(j, region);
+			ptr = std::shared_ptr<TriggerRegion>(region);
 		}
 	};
 }

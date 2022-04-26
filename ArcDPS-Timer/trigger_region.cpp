@@ -25,6 +25,9 @@ void TriggerRegion::reset() {
     is_triggered = false;
 }
 
+SphereTrigger::SphereTrigger(){
+}
+
 SphereTrigger::SphereTrigger(Eigen::Vector3f position, float radius)
  :  position(position),
     radius(radius) {
@@ -41,6 +44,9 @@ std::string SphereTrigger::get_typename_id() const {
 
 Eigen::Vector3f SphereTrigger::get_middle() {
     return position;
+}
+
+PlaneTrigger::PlaneTrigger(){
 }
 
 PlaneTrigger::PlaneTrigger(Eigen::Vector2f side1, Eigen::Vector2f side2, float height, float z, float thickness)
@@ -229,5 +235,18 @@ void region_to_json(json& j, const TriggerRegion* region) {
         PlaneTrigger* plane = (PlaneTrigger*)(region);
         j = *plane;
         j["type"] = "plane";
+    }
+}
+
+void region_from_json(const json& j, TriggerRegion*& region) {
+    if (j["type"] == "sphere") {
+        SphereTrigger* sphere = new SphereTrigger();
+        *sphere = j;
+        region = sphere;
+    }
+    else if (j["type"] == "plane") {
+        PlaneTrigger* plane = new PlaneTrigger();
+        *plane = j;
+        region = plane;
     }
 }
