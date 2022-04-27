@@ -3,6 +3,8 @@
 #include <cmath>
 #include <string>
 #include <format>
+#include <filesystem>
+#include <fstream>
 
 #include "imgui/imgui.h"
 #include "arcdps.h"
@@ -87,6 +89,9 @@ Eigen::Vector3f PlaneTrigger::get_middle() {
 
 TriggerWatcher::TriggerWatcher(GW2MumbleLink& mumble_link)
     : mumble_link(mumble_link) {
+    if (!std::filesystem::exists(trigger_directory)) {
+        std::filesystem::create_directory(trigger_directory);
+    }
 }
 
 bool TriggerWatcher::watch() {
@@ -98,6 +103,26 @@ bool TriggerWatcher::watch() {
         }
     }
     return false;
+}
+
+void TriggerWatcher::map_change() {
+    json triggers_out = regions;
+    std::ofstream o(trigger_directory + std::to_string(last_map_id) + ".json");
+    o << std::setw(4) << triggers_out << std::endl;
+
+    last_map_id = mumble_link->getMumbleContext()->mapId;
+    if (std::filesystem::exists(trigger_directory + std::to_string(last_map_id) + ".json")) {
+        json triggers_in;
+        std::ifstream input(trigger_directory + std::to_string(last_map_id) + ".json");
+        input >> triggers_in;
+        regions = triggers_in;
+    }
+}
+
+TriggerWatcher::~TriggerWatcher() {
+    json triggers_out = regions;
+    std::ofstream o(trigger_directory + std::to_string(last_map_id) + ".json");
+    o << std::setw(4) << triggers_out << std::endl;
 }
 
 TriggerEditor::TriggerEditor(Translation& translation, GW2MumbleLink& mumble_link, std::vector<std::shared_ptr<TriggerRegion>>& regions)

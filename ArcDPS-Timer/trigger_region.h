@@ -112,10 +112,14 @@ class TriggerWatcher {
 public:
 	TriggerWatcher(GW2MumbleLink& mumble_link);
 	bool watch();
+	void map_change();
+	~TriggerWatcher();
 
 	std::vector<std::shared_ptr<TriggerRegion>> regions;
 private:
 	GW2MumbleLink& mumble_link;
+	uint32_t last_map_id = 0;
+	std::string trigger_directory = "addons/arcdps/arcdps-timer-triggers/";
 };
 
 class TriggerEditor {

@@ -72,6 +72,9 @@
     <ClInclude Include="trigger_region.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="maptracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mod.cpp">
@@ -120,6 +123,9 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="trigger_region.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="maptracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

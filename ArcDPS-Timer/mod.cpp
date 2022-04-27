@@ -13,15 +13,17 @@
 #include "grouptracker.h"
 #include "trigger_region.h"
 #include "lang.h"
+#include "maptracker.h"
 
 Translation translation;
 Settings settings("addons/arcdps/timer.json", translation);
 GW2MumbleLink mumble_link;
 NTPClient ntp("pool.ntp.org");
 GroupTracker group_tracker;
+MapTracker map_tracker(mumble_link);
 TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
-Timer timer(settings, mumble_link, group_tracker, translation);
+Timer timer(settings, mumble_link, group_tracker,  translation);
 
 std::chrono::system_clock::time_point last_ntp_sync;
 
@@ -86,6 +88,11 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 	if (trigger_watcher.watch()) {
 		timer.segment();
+	}
+
+	if (map_tracker.watch()) {
+		timer.map_change();
+		trigger_watcher.map_change();
 	}
 
 	timer.mod_imgui();

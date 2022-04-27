@@ -38,6 +38,7 @@ public:
 	void prepare();
 	void segment();
 	void clear_segments();
+	void map_change();
 
 	void mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id);
 	void mod_imgui();
@@ -57,7 +58,6 @@ private:
 	std::vector<TimeSegment> segments;
 
 	std::array<float, 3> last_position;
-	uint32_t lastMapID = 0;
 	std::set<uintptr_t> log_agents;
 	std::chrono::system_clock::time_point last_damage_ticks;
 	std::string map_code;

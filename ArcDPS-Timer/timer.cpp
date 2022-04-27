@@ -291,19 +291,6 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 }
 
 void Timer::mod_imgui() {
-	if (lastMapID != mumble_link->getMumbleContext()->mapId) {
-		std::scoped_lock<std::mutex> guard(mapcode_mutex);
-
-		map_code = CRC32()(mumble_link->getMumbleContext()->serverAddress, sizeof(sockaddr_in));
-		lastMapID = mumble_link->getMumbleContext()->mapId;
-		isInstanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
-
-		if (settings.auto_prepare && isInstanced) {
-			log_debug("timer: preparing on map change");
-			prepare();
-		}
-	}
-
 	if (settings.disable_outside_instances && !isInstanced) {
 		return;
 	}
@@ -474,4 +461,16 @@ void Timer::segment() {
 void Timer::clear_segments() {
 	segments.clear();
 	post_serverapi("clear_segment", {{"update_time", format_time(update_time)} });
+}
+
+void Timer::map_change() {
+	std::scoped_lock<std::mutex> guard(mapcode_mutex);
+
+	map_code = CRC32()(mumble_link->getMumbleContext()->serverAddress, sizeof(sockaddr_in));
+	isInstanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
+
+	if (settings.auto_prepare && isInstanced) {
+		log_debug("timer: preparing on map change");
+		prepare();
+	}
 }
