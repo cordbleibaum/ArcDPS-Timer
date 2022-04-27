@@ -111,18 +111,16 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlaneTrigger, side1, side2, height, z, thickn
 class TriggerWatcher {
 public:
 	TriggerWatcher(GW2MumbleLink& mumble_link);
-	void watch();
-	int get_last_triggered();
+	bool watch();
 
 	std::vector<std::shared_ptr<TriggerRegion>> regions;
 private:
 	GW2MumbleLink& mumble_link;
-	int last_triggered = -1;
 };
 
 class TriggerEditor {
 public:
-	TriggerEditor(Translation& translation, GW2MumbleLink& mumble_link);
+	TriggerEditor(Translation& translation, GW2MumbleLink& mumble_link, std::vector<std::shared_ptr<TriggerRegion>>& regions);
 	void mod_options();
 	void mod_imgui();
 private:
@@ -141,5 +139,5 @@ private:
 	std::array<float, 2> plane_position1;
 	std::array<float, 2> plane_position2;
 
-	std::vector<std::shared_ptr<TriggerRegion>> regions;
+	std::vector<std::shared_ptr<TriggerRegion>>& regions;
 };
