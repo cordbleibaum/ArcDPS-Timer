@@ -193,9 +193,7 @@ class StatusHandler(JsonHandler):
 class SegmentHandler(GroupModifyHandler):
     async def post(self, _):
         is_new_segment = False
-        logging.info(f"segment num: {self.args.segment_num}")
         if self.args.segment_num == len(self.group.segments):
-            logging.info(f"segment num: {self.args.segment_num} inserted")
             self.group.segments.append(SegmentStatus())
             is_new_segment = True
 
