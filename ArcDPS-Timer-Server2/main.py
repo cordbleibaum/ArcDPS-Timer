@@ -194,6 +194,7 @@ class StatusHandler(JsonHandler):
 class SegmentHandler(GroupModifyHandler):
     async def post(self, _):
         is_new_segment = False
+        logging.info(f"segment num: {self.args.segment_num}")
         if self.args.segment_num == len(self.group.segments):
             self.group.segments.append(SegmentStatus())
             is_new_segment = True
@@ -219,7 +220,6 @@ class SegmentHandler(GroupModifyHandler):
 
         shortest_time : timedelta = segment.end - self.group.start_time
         shortest_duration : timedelta = segment.end - segment.start
-        logging.info(self.group.start_time)
 
         if is_new_segment or (shortest_time < segment.shortest_time):
             segment.shortest_time = shortest_time
