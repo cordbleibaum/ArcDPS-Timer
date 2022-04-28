@@ -27,6 +27,10 @@ void TriggerRegion::reset() {
     is_triggered = false;
 }
 
+bool TriggerRegion::get_is_triggered() {
+    return is_triggered;
+}
+
 SphereTrigger::SphereTrigger(){
 }
 
@@ -103,6 +107,13 @@ bool TriggerWatcher::watch() {
         }
     }
     return false;
+}
+
+void TriggerWatcher::reset() {
+    log_debug("timer: resetting triggers");
+    for (auto& region : regions) {
+        region->reset();
+    }
 }
 
 void TriggerWatcher::map_change() {
@@ -203,11 +214,12 @@ void TriggerEditor::mod_imgui() {
             }
             ImGui::Separator();
 
-            ImGui::BeginTable("##triggertable", 4);
+            ImGui::BeginTable("##triggertable", 5);
             ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
             ImGui::TableSetupColumn(translation.get("HeaderTypeColumn").c_str());
             ImGui::TableSetupColumn(translation.get("HeaderMiddleColumn").c_str());
             ImGui::TableSetupColumn(translation.get("HeaderIsInRangeColumn").c_str());
+            ImGui::TableSetupColumn(translation.get("HeaderIsTriggeredColumn").c_str());
             ImGui::TableHeadersRow();
 
             for (size_t i = 0; i < regions.size(); ++i) {
@@ -230,6 +242,11 @@ void TriggerEditor::mod_imgui() {
                 ImGui::TableNextColumn();
                 Eigen::Vector3f player_position = Eigen::Vector3f(mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
                 if (region->check(player_position)) {
+                    ImGui::TextColored(ImVec4(0, 1, 0, 1), translation.get("TextYes").c_str());
+                }
+
+                ImGui::TableNextColumn();
+                if (region->get_is_triggered()) {
                     ImGui::TextColored(ImVec4(0, 1, 0, 1), translation.get("TextYes").c_str());
                 }
             }

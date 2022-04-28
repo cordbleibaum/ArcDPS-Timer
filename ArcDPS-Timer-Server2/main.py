@@ -206,10 +206,11 @@ class SegmentHandler(GroupModifyHandler):
 
         if self.args.segment_num <  len(self.group.segments) - 1:
             adjust_segment = self.group.segments[self.args.segment_num + 1]
-            adjust_segment.start = self.group.segments[self.args.segment_num].end
-            shortest_duration = adjust_segment.end - adjust_segment.start
-            if shortest_duration < adjust_segment.shortest_duration:
-                adjust_segment.shortest_duration = shortest_duration
+            if adjust_segment.is_set:
+                adjust_segment.start = self.group.segments[self.args.segment_num].end
+                shortest_duration = adjust_segment.end - adjust_segment.start
+                if shortest_duration < adjust_segment.shortest_duration:
+                    adjust_segment.shortest_duration = shortest_duration
 
         if self.args.segment_num > 0:
             segment.start = self.group.segments[self.args.segment_num-1].end

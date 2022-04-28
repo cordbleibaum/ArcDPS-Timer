@@ -10,10 +10,6 @@
 #include "lang.h"
 #include "mumble_link.h"
 
-class PlaneTrigger;
-class SphereTrigger; 
-class TriggerRegion;
-
 class TriggerRegion {
 public:
 	bool trigger(Eigen::Vector3f player_position);
@@ -21,8 +17,9 @@ public:
 	virtual std::string get_typename_id() const = 0;
 	virtual Eigen::Vector3f get_middle() = 0;
 	void reset();
+	bool get_is_triggered();
 protected:
-	bool is_triggered;
+	bool is_triggered = false;
 };
 
 class SphereTrigger : public TriggerRegion {
@@ -33,8 +30,8 @@ public:
 	virtual std::string get_typename_id() const override;
 	virtual Eigen::Vector3f get_middle() override;
 
-	Eigen::Vector3f position;
-	float radius;
+	Eigen::Vector3f position = Eigen::Vector3f::Zero();
+	float radius = 0.0f;
 };
 
 class PlaneTrigger : public TriggerRegion {
@@ -44,9 +41,11 @@ public:
 	virtual bool check(Eigen::Vector3f player_position) override;
 	virtual std::string get_typename_id() const override;
 	virtual Eigen::Vector3f get_middle() override;
-	float height, z, thickness;
-	Eigen::Vector2f side1;
-	Eigen::Vector2f side2;
+	float height = 0.0f;
+	float z = 0.0f;
+	float thickness = 0.0f;
+	Eigen::Vector2f side1 = Eigen::Vector2f::Zero();
+	Eigen::Vector2f side2 = Eigen::Vector2f::Zero();
 };
 
 void region_to_json(nlohmann::json& j, const TriggerRegion* region);
@@ -112,6 +111,7 @@ class TriggerWatcher {
 public:
 	TriggerWatcher(GW2MumbleLink& mumble_link);
 	bool watch();
+	void reset();
 	void map_change();
 	~TriggerWatcher();
 
@@ -135,13 +135,13 @@ private:
 	int selected_line = -1;
 
 	float sphere_radius = 1;
-	std::array<float, 3> sphere_position;
+	std::array<float, 3> sphere_position = { 0 };
 
 	float plane_thickness = 1;
 	float plane_z = 0;
 	float plane_height = 2;
-	std::array<float, 2> plane_position1;
-	std::array<float, 2> plane_position2;
+	std::array<float, 2> plane_position1 = {0};
+	std::array<float, 2> plane_position2 = {0};
 
 	std::vector<std::shared_ptr<TriggerRegion>>& regions;
 };

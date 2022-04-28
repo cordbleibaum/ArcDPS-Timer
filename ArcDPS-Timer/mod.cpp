@@ -3,6 +3,7 @@
 #include <string>
 #include <cmath>
 #include <chrono>
+#include <functional>
 
 #include "imgui_stdlib.h"
 
@@ -50,6 +51,8 @@ arcdps_exports* mod_init() {
 		timer.clock_offset = ntp.get_time_delta();
 		log_debug("timer: clock offset: " + std::to_string(timer.clock_offset));
 	});
+
+	timer.segment_reset_signal.connect(std::bind(&TriggerWatcher::reset, std::ref(trigger_watcher)));
 
 	log_debug("timer: done mod_init");
 	return &arc_exports;

@@ -17,6 +17,7 @@
 using json = nlohmann::json;
 
 #include <cpr/cpr.h>
+#include <boost/signals2.hpp>
 
 enum class TimerStatus { stopped, prepared, running };
 enum class ServerStatus { online, offline, outofdate };
@@ -44,6 +45,8 @@ public:
 	void mod_imgui();
 
 	double clock_offset = 0;
+
+	boost::signals2::signal<void()> segment_reset_signal;
 private:
 	Settings& settings;
 	GW2MumbleLink& mumble_link;
@@ -73,4 +76,5 @@ private:
 	std::string format_time(std::chrono::system_clock::time_point time);
 	void post_serverapi(std::string method, json payload);
 	std::string get_id();
+	void reset_segments();
 };

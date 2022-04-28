@@ -72,6 +72,7 @@ private:
 		{"TypePlane", "Plane"},
 		{"ButtonSet", "Set"},
 		{"HeaderIsInRangeColumn", "In Range?"},
-		{"TextYes", "Yes"}
+		{"TextYes", "Yes"},
+		{"HeaderIsTriggeredColumn", "Is Triggered?"}
 	};
 };

@@ -44,9 +44,7 @@ void Timer::start(std::chrono::system_clock::time_point time) {
 		{"update_time", format_time(update_time)}
 	});
 
-	for (auto& segment : segments) {
-		segment.is_set = false;
-	}
+	reset_segments();
 }
 
 void Timer::stop(std::chrono::system_clock::time_point time) {
@@ -67,9 +65,7 @@ void Timer::reset() {
 	status = TimerStatus::stopped;
 	start_time = current_time = update_time = std::chrono::system_clock::now();
 
-	for (auto& segment : segments) {
-		segment.is_set = false;
-	}
+	reset_segments();
 
 	post_serverapi("reset", {{"update_time", format_time(update_time)}});
 }
@@ -79,9 +75,7 @@ void Timer::prepare() {
 	start_time = current_time = update_time = std::chrono::system_clock::now();
 	std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
 
-	for (auto& segment : segments) {
-		segment.is_set = false;
-	}
+	reset_segments();
 
 	post_serverapi("prepare", {{"update_time", format_time(update_time)}});
 }
@@ -204,6 +198,14 @@ std::string Timer::get_id() {
 		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
 	}
 	return id;
+}
+
+void Timer::reset_segments() {
+	for (auto& segment : segments) {
+		segment.is_set = false;
+	}
+
+	segment_reset_signal();
 }
 
 void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id) {
@@ -461,6 +463,7 @@ void Timer::segment() {
 void Timer::clear_segments() {
 	segments.clear();
 	post_serverapi("clear_segment", {{"update_time", format_time(update_time)} });
+	reset_segments();
 }
 
 void Timer::map_change() {
