@@ -23,7 +23,6 @@ class TimerStatus(str, Enum):
 class SegmentStatus(object):
     def __init__(self):
         self.is_set = False
-        self.is_used = False
         self.start = datetime.now()
         self.end = datetime.now()
         self.shortest_duration = timedelta(seconds=0)
@@ -196,6 +195,7 @@ class SegmentHandler(GroupModifyHandler):
         is_new_segment = False
         logging.info(f"segment num: {self.args.segment_num}")
         if self.args.segment_num == len(self.group.segments):
+            logging.info(f"segment num: {self.args.segment_num} inserted")
             self.group.segments.append(SegmentStatus())
             is_new_segment = True
 
