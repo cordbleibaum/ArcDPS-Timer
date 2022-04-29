@@ -56,7 +56,6 @@ private:
 	TimerStatus status;
 	std::chrono::system_clock::time_point start_time;
 	std::chrono::system_clock::time_point current_time;
-	std::chrono::system_clock::time_point update_time;
 	std::chrono::system_clock::time_point log_start_time;
 	std::vector<TimeSegment> segments;
 
@@ -70,11 +69,12 @@ private:
 	std::mutex logagents_mutex;
 	ServerStatus serverStatus = ServerStatus::online;
 	bool isInstanced = false;
+	int update_id = -2;
 
 	void sync();
 	void check_serverstatus();
 	std::string format_time(std::chrono::system_clock::time_point time);
-	void post_serverapi(std::string method, json payload);
+	void post_serverapi(std::string method, json payload = json::object());
 	std::string get_id();
 	void reset_segments();
 };

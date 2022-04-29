@@ -2,6 +2,7 @@ import logging
 import json
 from datetime import datetime, timedelta
 from enum import Enum
+import random
 
 import asyncio
 import tornado.web
@@ -38,6 +39,7 @@ class GroupStatus(object):
         self.status = TimerStatus.stopped
         self.segments : list[SegmentStatus] = []
         self.changeSemaphore = tornado.locks.Semaphore(1)
+        self.update_id = -1
 
 
 class GroupStatusEncoder(json.JSONEncoder):
@@ -47,7 +49,7 @@ class GroupStatusEncoder(json.JSONEncoder):
                 "status": group.status,
                 "start_time": group.start_time.isoformat(),
                 "stop_time": group.stop_time.isoformat(),
-                "update_time": group.update_time.isoformat(),
+                "update_id": group.update_id,
                 "segments": []
             }
 
@@ -71,9 +73,9 @@ global_groups : dict[str, GroupStatus] = {}
 
 class RequestData(object):
     def __init__(self):
-        self.update_time = datetime.fromtimestamp(0)
         self.time = datetime.fromtimestamp(0)
         self.segment_num = 0
+        self.update_id = 0
 
 
 class JsonHandler(tornado.web.RequestHandler):
@@ -87,10 +89,10 @@ class JsonHandler(tornado.web.RequestHandler):
             self.args = RequestData()
             if 'time' in args.keys():
                 self.args.time = datetime.fromisoformat(args['time'])
-            if 'update_time' in args.keys():
-                self.args.update_time = datetime.fromisoformat(args['update_time'])
             if 'segment_num' in args.keys():
                 self.args.segment_num = int(args['segment_num'])
+            if 'update_id' in args.keys():
+                self.args.segment_num = int(args['update_id'])
 
 
 class GroupModifyHandler(JsonHandler):
@@ -106,9 +108,10 @@ class GroupModifyHandler(JsonHandler):
         await self.group.changeSemaphore.acquire()
 
     def on_finish(self) -> None:
-        self.group.update_time = self.args.update_time
+        self.group.update_time = datetime.utcnow()
         self.group.changeSemaphore.release()
         self.group.update_lock.notify_all()
+        self.update_id = random.randint(1, 1000000)
         return super().on_finish()
 
 
@@ -174,9 +177,7 @@ class StatusHandler(JsonHandler):
             global_groups[group_id] = self.group
 
     async def post(self, _):
-        is_newer = self.group.update_time > self.args.update_time
-
-        if not is_newer:
+        if not self.group.update_id != self.args.update_id:
             self.update_future = self.group.update_lock.wait()
             try:
                 await self.update_future

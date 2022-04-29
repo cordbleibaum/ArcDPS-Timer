@@ -9,7 +9,7 @@ Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group
 	group_tracker(group_tracker),
 	translation(translation)
 {
-	start_time = current_time = update_time = std::chrono::system_clock::now();
+	start_time = current_time = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
 	check_serverstatus();
 
@@ -38,10 +38,9 @@ std::string Timer::format_time(std::chrono::system_clock::time_point time) {
 void Timer::start(std::chrono::system_clock::time_point time) {
 	status = TimerStatus::running;
 	start_time = time;
-	update_time = current_time = std::chrono::system_clock::now();
+	current_time = std::chrono::system_clock::now();
 	post_serverapi("start", {
-		{"time", format_time(start_time)},
-		{"update_time", format_time(update_time)}
+		{"time", format_time(start_time)}
 	});
 
 	reset_segments();
@@ -53,31 +52,29 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 
 		status = TimerStatus::stopped;
 		current_time = time;
-		update_time = std::chrono::system_clock::now();
+		std::chrono::system_clock::now();
 		post_serverapi("stop", {
-			{"time", format_time(current_time)},
-			{"update_time", format_time(update_time)}
+			{"time", format_time(current_time)}
 		});
 	}
 }
 
 void Timer::reset() {
 	status = TimerStatus::stopped;
-	start_time = current_time = update_time = std::chrono::system_clock::now();
+	start_time = current_time = std::chrono::system_clock::now();
 
 	reset_segments();
 
-	post_serverapi("reset", {{"update_time", format_time(update_time)}});
+	post_serverapi("reset", {});
 }
 
 void Timer::prepare() {
 	status = TimerStatus::prepared;
-	start_time = current_time = update_time = std::chrono::system_clock::now();
+	start_time = current_time = std::chrono::system_clock::now();
 	std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
 
 	reset_segments();
-
-	post_serverapi("prepare", {{"update_time", format_time(update_time)}});
+	post_serverapi("prepare");
 }
 
 void Timer::sync() {
@@ -94,7 +91,7 @@ void Timer::sync() {
 			}
 
 			std::string url = settings.server_url;
-			json payload{ {"update_time", format_time(update_time) } };
+			json payload{{"update_id", update_id}};
 			cpr::AsyncResponse response_future = cpr::PostAsync(
 				cpr::Url{ url + "groups/" + id + "/" },
 				cpr::Body{ payload.dump() },
@@ -118,7 +115,7 @@ void Timer::sync() {
 				auto data = json::parse(response.text);
 			
 				start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-				update_time = parse_time(data["update_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+				update_id = data["update_id"];
 				if (data["status"] == "running") {
 					status = TimerStatus::running;
 				}
@@ -190,12 +187,6 @@ std::string Timer::get_id() {
 	}
 	else {
 		id = group_tracker.get_group_id();
-	}
-
-	if (id != last_id) {
-		last_id = id;
-		using namespace std::chrono_literals;
-		update_time = std::chrono::sys_days{ 1970y / 1 / 1 };
 	}
 	return id;
 }
@@ -454,7 +445,6 @@ void Timer::segment() {
 	}
 
 	post_serverapi("segment", {
-		{"update_time", format_time(update_time)},
 		{"segment_num", segment_num},
 		{"time", format_time(segment.end)}
 	});
@@ -462,7 +452,7 @@ void Timer::segment() {
 
 void Timer::clear_segments() {
 	segments.clear();
-	post_serverapi("clear_segment", {{"update_time", format_time(update_time)} });
+	post_serverapi("clear_segment");
 	reset_segments();
 }
 
