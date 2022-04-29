@@ -478,14 +478,11 @@ void Timer::segment() {
 }
 
 void Timer::clear_segments() {
-	{
-		std::unique_lock lock(segmentstatus_mutex);
+	std::unique_lock lock(segmentstatus_mutex);
 
-		segments.clear();
-		post_serverapi("clear_segment");
-	}
-
-	reset_segments();
+	segments.clear();
+	post_serverapi("clear_segment");
+	segment_reset_signal();
 }
 
 void Timer::map_change() {
