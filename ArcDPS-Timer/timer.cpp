@@ -125,7 +125,20 @@ void Timer::sync() {
 						{"status", {{"type", "string"}}},
 						{"start_time", {{"type", "string"}}},
 						{"stop_time", {{"type", "string"}}},
-						{"segments", {{"type", "array"}}},
+						{"segments", {
+							{"type", "array"},
+							{"items", {
+								{"type", "object"},
+								{"properties", {
+									{"is_set", {{"type", "boolean"}}},
+									{"start", {{"type", "string"}}},
+									{"end", {{"type", "string"}}},
+									{"shortest_duration", {{"type", "integer"}}},
+									{"shortest_time", {{"type", "integer"}}},
+								}},
+								{"required", {"is_set", "start", "end", "shortest_time", "shortest_duration"}}
+							}}
+						}},
 					}},
 					{"required", {"update_id", "status", "segments", "start_time", "stop_time"}}
 				};
