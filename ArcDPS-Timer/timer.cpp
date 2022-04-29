@@ -52,7 +52,6 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 
 		status = TimerStatus::stopped;
 		current_time = time;
-		std::chrono::system_clock::now();
 		post_serverapi("stop", {
 			{"time", format_time(current_time)}
 		});
