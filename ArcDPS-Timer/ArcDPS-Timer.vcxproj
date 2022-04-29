@@ -176,13 +176,13 @@
   <ItemGroup>
     <ClInclude Include="arcdps-extension\arcdps_structs.h" />
     <ClInclude Include="arcdps-extension\arcdps_structs_slim.h" />
+    <ClInclude Include="arcdps-extension\imgui_stdlib.h" />
     <ClInclude Include="arcdps-extension\MumbleLink.h" />
     <ClInclude Include="arcdps-extension\Widgets.h" />
     <ClInclude Include="arcdps.h" />
     <ClInclude Include="grouptracker.h" />
     <ClInclude Include="hash-library\crc32.h" />
     <ClInclude Include="imgui\imgui.h" />
-    <ClInclude Include="imgui_stdlib.h" />
     <ClInclude Include="lang.h" />
     <ClInclude Include="maptracker.h" />
     <ClInclude Include="mod.h" />
@@ -194,6 +194,7 @@
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="arcdps-extension\imgui_stdlib.cpp" />
     <ClCompile Include="arcdps-extension\Widgets.cpp" />
     <ClCompile Include="arcdps.cpp" />
     <ClCompile Include="grouptracker.cpp" />
@@ -202,7 +203,6 @@
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
-    <ClCompile Include="imgui_stdlib.cpp" />
     <ClCompile Include="lang.cpp" />
     <ClCompile Include="maptracker.cpp" />
     <ClCompile Include="mumble_link.cpp" />

@@ -7,7 +7,7 @@
 using json = nlohmann::json;
 
 #include "imgui/imgui.h"
-#include "imgui_stdlib.h"
+#include "arcdps-extension/imgui_stdlib.h"
 #include "arcdps-extension/Widgets.h"
 
 constexpr int settings_version = 9;
