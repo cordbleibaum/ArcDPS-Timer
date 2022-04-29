@@ -1,6 +1,6 @@
 # ArcDPS Timer Addon
 
-This addon aims to make speedrunning fractals more convenient by having an easy to use timer.
+This addon aims to make speedrunning fractals more convenient by having an easy to use timer. It also has a segment function for measuring splits.
 
 ## Contact
 For any errors, feature requests and questions, simply open a new issue here. 
