@@ -12,6 +12,7 @@
 #include <mutex>
 #include <array>
 #include <vector>
+#include <shared_mutex>
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
@@ -67,6 +68,8 @@ private:
 
 	std::mutex mapcode_mutex;
 	std::mutex logagents_mutex;
+	std::shared_mutex timerstatus_mutex;
+	std::shared_mutex segmentstatus_mutex;
 	ServerStatus serverStatus = ServerStatus::online;
 	bool isInstanced = false;
 	int update_id = -2;

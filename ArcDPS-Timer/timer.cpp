@@ -36,42 +36,42 @@ std::string Timer::format_time(std::chrono::system_clock::time_point time) {
 }
 
 void Timer::start(std::chrono::system_clock::time_point time) {
+	std::unique_lock lock(timerstatus_mutex);
+
 	status = TimerStatus::running;
 	start_time = time;
 	current_time = std::chrono::system_clock::now();
-	post_serverapi("start", {
-		{"time", format_time(start_time)}
-	});
-
+	post_serverapi("start", {{"time", format_time(start_time)}});
 	reset_segments();
 }
 
 void Timer::stop(std::chrono::system_clock::time_point time) {
 	if (status != TimerStatus::stopped || current_time > time) {
+		std::unique_lock lock(timerstatus_mutex);
+
 		segment();
 
 		status = TimerStatus::stopped;
 		current_time = time;
-		post_serverapi("stop", {
-			{"time", format_time(current_time)}
-		});
+		post_serverapi("stop", {{"time", format_time(current_time)}});
 	}
 }
 
 void Timer::reset() {
+	std::unique_lock lock(timerstatus_mutex);
+
 	status = TimerStatus::stopped;
 	start_time = current_time = std::chrono::system_clock::now();
-
 	reset_segments();
-
 	post_serverapi("reset");
 }
 
 void Timer::prepare() {
+	std::unique_lock lock(timerstatus_mutex);
+
 	status = TimerStatus::prepared;
 	start_time = current_time = std::chrono::system_clock::now();
 	std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
-
 	reset_segments();
 	post_serverapi("prepare");
 }
@@ -112,31 +112,39 @@ void Timer::sync() {
 
 			try {
 				auto data = json::parse(response.text);
-			
-				start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-				update_id = data["update_id"];
-				if (data["status"] == "running") {
-					status = TimerStatus::running;
-				}
-				else if (data["status"] == "stopped") {
-					status = TimerStatus::stopped;
-					current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-				}
-				else if (data["status"] == "prepared") {
-					status = TimerStatus::prepared;
-					current_time = std::chrono::system_clock::now();
-					std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
+
+				{
+					std::unique_lock lock(timerstatus_mutex);
+
+					start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+					update_id = data["update_id"];
+					if (data["status"] == "running") {
+						status = TimerStatus::running;
+					}
+					else if (data["status"] == "stopped") {
+						status = TimerStatus::stopped;
+						current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+					}
+					else if (data["status"] == "prepared") {
+						status = TimerStatus::prepared;
+						current_time = std::chrono::system_clock::now();
+						std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
+					}
 				}
 
-				segments.clear();
-				for (json::iterator it = data["segments"].begin(); it != data["segments"].end(); ++it) {
-					TimeSegment segment;
-					segment.is_set = (*it)["is_set"];
-					segment.start = parse_time((*it)["start"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-					segment.end = parse_time((*it)["end"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-					segment.shortest_time = std::chrono::milliseconds{ (*it)["shortest_time"] };
-					segment.shortest_duration = std::chrono::milliseconds{ (*it)["shortest_duration"] };
-					segments.push_back(segment);
+				{
+					std::unique_lock lock(segmentstatus_mutex);
+
+					segments.clear();
+					for (json::iterator it = data["segments"].begin(); it != data["segments"].end(); ++it) {
+						TimeSegment segment;
+						segment.is_set = (*it)["is_set"];
+						segment.start = parse_time((*it)["start"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+						segment.end = parse_time((*it)["end"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+						segment.shortest_time = std::chrono::milliseconds{ (*it)["shortest_time"] };
+						segment.shortest_duration = std::chrono::milliseconds{ (*it)["shortest_duration"] };
+						segments.push_back(segment);
+					}
 				}
 			}
 			catch ([[maybe_unused]] const json::parse_error& e) {
@@ -191,6 +199,8 @@ std::string Timer::get_id() {
 }
 
 void Timer::reset_segments() {
+	std::unique_lock lock(segmentstatus_mutex);
+
 	for (auto& segment : segments) {
 		segment.is_set = false;
 	}
@@ -301,6 +311,8 @@ void Timer::mod_imgui() {
 	}
 
 	if (settings.show_timer) {
+		std::shared_lock lock(timerstatus_mutex);
+
 		ImGui::Begin("Timer", &settings.show_timer, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
@@ -337,24 +349,32 @@ void Timer::mod_imgui() {
 		if (!settings.hide_buttons) {
 			if (ImGui::Button(translation.get("ButtonPrepare").c_str(), ImVec2(190, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: preparing manually");
-				prepare();
+				defer([&]() {
+					prepare();
+				});
 			}
 
 			if (ImGui::Button(translation.get("ButtonStart").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: starting manually");
-				start();
+				defer([&]() {
+					start();
+				});
 			}
 
 			ImGui::SameLine(0, 5);
 			if (ImGui::Button(translation.get("TextStop").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: stopping manually");
-				stop();
+				defer([&]() {
+					stop();
+				});
 			}
 
 			ImGui::SameLine(0, 5);
 			if (ImGui::Button(translation.get("TextReset").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: resetting manually");
-				reset();
+				defer([&]() {
+					reset();
+				});
 			}
 		}
 		else {
@@ -370,6 +390,8 @@ void Timer::mod_imgui() {
 
 	if (settings.show_segments) {
 		bool is_visible = ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_segments, ImGuiWindowFlags_AlwaysAutoResize);
+
+		std::shared_lock lock(segmentstatus_mutex);
 
 		if (is_visible) {
 			ImGui::BeginTable("##segmenttable", 3);
@@ -404,12 +426,16 @@ void Timer::mod_imgui() {
 			ImGui::EndTable();
 
 			if (ImGui::Button(translation.get("ButtonSegment").c_str())) {
-				segment();
+				defer([&]() {
+					segment();
+				});
 			}
 
 			ImGui::SameLine(0, 5);
 			if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
-				clear_segments();
+				defer([&]() {
+					clear_segments();
+				});
 			}
 		}
 
@@ -419,6 +445,8 @@ void Timer::mod_imgui() {
 
 void Timer::segment() {
 	if (status != TimerStatus::running) return;
+
+	std::unique_lock lock(segmentstatus_mutex);
 
 	int segment_num = 0;
 	for (segment_num = 0; segment_num < segments.size() && segments[segment_num].is_set; ++segment_num) {}
@@ -450,8 +478,13 @@ void Timer::segment() {
 }
 
 void Timer::clear_segments() {
-	segments.clear();
-	post_serverapi("clear_segment");
+	{
+		std::unique_lock lock(segmentstatus_mutex);
+
+		segments.clear();
+		post_serverapi("clear_segment");
+	}
+
 	reset_segments();
 }
 

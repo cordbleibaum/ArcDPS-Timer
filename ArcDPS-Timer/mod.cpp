@@ -15,6 +15,7 @@
 #include "trigger_region.h"
 #include "lang.h"
 #include "maptracker.h"
+#include "util.h"
 
 Translation translation;
 Settings settings("addons/arcdps/timer.json", translation);
@@ -27,11 +28,6 @@ TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
 Timer timer(settings, mumble_link, group_tracker,  translation);
 
 std::chrono::system_clock::time_point last_ntp_sync;
-
-template<class F> void network_thread(F&& f) {
-	std::thread thread(std::forward<F>(f));
-	thread.detach();
-}
 
 arcdps_exports* mod_init() {
 	memset(&arc_exports, 0, sizeof(arcdps_exports));
@@ -47,7 +43,7 @@ arcdps_exports* mod_init() {
 	arc_exports.wnd_nofilter = mod_wnd;
 
 	timer.clock_offset = 0;
-	network_thread([&]() {
+	defer([&]() {
 		timer.clock_offset = ntp.get_time_delta();
 		log_debug("timer: clock offset: " + std::to_string(timer.clock_offset));
 	});
@@ -82,7 +78,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_ntp_sync).count() > 128) {
 		last_ntp_sync = std::chrono::system_clock::now();
-		network_thread([&]() {
+		defer([&]() {
 			timer.clock_offset = ntp.get_time_delta();
 			last_ntp_sync = std::chrono::system_clock::now();
 			log_debug("timer: clock offset: " + std::to_string(timer.clock_offset));
