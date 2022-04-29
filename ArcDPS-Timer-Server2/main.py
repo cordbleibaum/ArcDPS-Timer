@@ -92,7 +92,7 @@ class JsonHandler(tornado.web.RequestHandler):
             if 'segment_num' in args.keys():
                 self.args.segment_num = int(args['segment_num'])
             if 'update_id' in args.keys():
-                self.args.segment_num = int(args['update_id'])
+                self.args.update_id = int(args['update_id'])
 
 
 class GroupModifyHandler(JsonHandler):
