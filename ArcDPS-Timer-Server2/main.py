@@ -177,7 +177,6 @@ class StatusHandler(JsonHandler):
             global_groups[group_id] = self.group
 
     async def post(self, _):
-        logging.info(f'{str(self.group.update_id)} {str(self.args.update_id)}')
         if self.group.update_id == self.args.update_id:
             self.update_future = self.group.update_lock.wait()
             try:
