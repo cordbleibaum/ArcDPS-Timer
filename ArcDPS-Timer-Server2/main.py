@@ -176,7 +176,7 @@ class StatusHandler(JsonHandler):
     async def post(self, _):
         is_newer = self.group.update_time > self.args.update_time
 
-        if not is_newer:
+        if is_newer:
             self.update_future = self.group.update_lock.wait()
             try:
                 await self.update_future
