@@ -1,13 +1,12 @@
 #include "timer.h"
 #include "util.h"
 
-#include "hash-library/crc32.h"
-
-Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker, Translation& translation)
+Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker, Translation& translation, MapTracker& map_tracker)
 :	settings(settings),
 	mumble_link(mumble_link),
 	group_tracker(group_tracker),
-	translation(translation)
+	translation(translation),
+	map_tracker(map_tracker)
 {
 	start_time = current_time = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
@@ -184,18 +183,13 @@ void Timer::check_serverstatus() {
 }
 
 std::string Timer::get_id() const {
-	std::string id = "";
 	if (settings.use_custom_id) {
-		id = settings.custom_id + "_custom";
+		return settings.custom_id + "_custom";
 	}
-	else if (isInstanced) {
-		std::scoped_lock<std::mutex> guard(mapcode_mutex);
-		id = map_code;
+	if (isInstanced) {
+		return map_tracker.get_instance_id();
 	}
-	else {
-		id = group_tracker.get_group_id();
-	}
-	return id;
+	return group_tracker.get_group_id();
 }
 
 void Timer::reset_segments() {
@@ -478,9 +472,6 @@ void Timer::clear_segments() {
 }
 
 void Timer::map_change() {
-	std::scoped_lock<std::mutex> guard(mapcode_mutex);
-
-	map_code = CRC32()(mumble_link->getMumbleContext()->serverAddress, sizeof(sockaddr_in));
 	isInstanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
 
 	if (settings.auto_prepare && isInstanced) {

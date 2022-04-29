@@ -25,7 +25,7 @@ GroupTracker group_tracker;
 MapTracker map_tracker(mumble_link);
 TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
-Timer timer(settings, mumble_link, group_tracker,  translation);
+Timer timer(settings, mumble_link, group_tracker, translation, map_tracker);
 
 std::chrono::system_clock::time_point last_ntp_sync;
 
