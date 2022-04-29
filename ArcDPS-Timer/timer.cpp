@@ -1,6 +1,12 @@
 #include "timer.h"
 #include "util.h"
 
+#include <valijson/adapters/nlohmann_json_adapter.hpp>
+#include <valijson/utils/nlohmann_json_utils.hpp>
+#include <valijson/schema.hpp>
+#include <valijson/schema_parser.hpp>
+#include <valijson/validator.hpp>
+
 Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker, Translation& translation, MapTracker& map_tracker)
 :	settings(settings),
 	mumble_link(mumble_link),
@@ -171,6 +177,28 @@ void Timer::check_serverstatus() {
 	}
 	else {
 		auto data = json::parse(response.text);
+
+		json schemaDoc{
+			{"type", "object"},
+			{"properties", {
+				{"app", {{"type", "string"}}},
+				{"version", {{"type", "integer"}}},
+			}},
+			{"required", {"app", "version"}}
+		};
+
+		valijson::Schema schema;
+		valijson::SchemaParser parser;
+		valijson::adapters::NlohmannJsonAdapter schemaAdapter(schemaDoc);
+		parser.populateSchema(schemaAdapter, schema);
+		valijson::Validator validator;
+		valijson::adapters::NlohmannJsonAdapter targetAdapter(data);
+		if (!validator.validate(schema, targetAdapter, NULL)) {
+			log("timer: failed server status response validation, going offline mode\n");
+			serverStatus = ServerStatus::offline;
+			return;
+		}
+
 		constexpr int server_version = 8;
 		if (data["version"] != server_version) {
 			log("timer: out of date version, going offline mode\n");

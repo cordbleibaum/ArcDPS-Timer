@@ -6,7 +6,8 @@
       "cpr",
       "nlohmann-json",
       "eigen3",
-      "boost"
+      "boost",
+      "valijson"
     ]
   }
   
