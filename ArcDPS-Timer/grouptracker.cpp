@@ -6,8 +6,7 @@ const std::set<std::string>& GroupTracker::get_players() {
 	return group_players;
 }
 
-std::string GroupTracker::get_group_id()
-{
+std::string GroupTracker::get_group_id() const {
 	std::scoped_lock<std::mutex> guard(groupcode_mutex);
 	return group_code;
 }
@@ -22,8 +21,7 @@ void GroupTracker::calculate_groupcode() {
 	group_code = CRC32()(playersConcat);
 }
 
-void GroupTracker::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id)
-{
+void GroupTracker::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id) {
 	if (!ev) {
 		if (!src->elite) {
 			if (src->name != nullptr && src->name[0] != '\0' && dst->name != nullptr && dst->name[0] != '\0') {

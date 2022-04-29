@@ -66,7 +66,7 @@ private:
 	std::string map_code;
 	std::string last_id = "";
 
-	std::mutex mapcode_mutex;
+	mutable std::mutex mapcode_mutex;
 	std::mutex logagents_mutex;
 	std::shared_mutex timerstatus_mutex;
 	std::shared_mutex segmentstatus_mutex;
@@ -78,6 +78,6 @@ private:
 	void check_serverstatus();
 	std::string format_time(std::chrono::system_clock::time_point time);
 	void post_serverapi(std::string method, json payload = json::object());
-	std::string get_id();
+	std::string get_id() const;
 	void reset_segments();
 };

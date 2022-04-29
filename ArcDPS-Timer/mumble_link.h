@@ -9,7 +9,7 @@ class GW2MumbleLink {
 public:
     GW2MumbleLink();
     ~GW2MumbleLink();
-    LinkedMem* operator->();
+    LinkedMem* operator->() const;
 private:
     LinkedMem* pMumbleLink;
     HANDLE hMumbleLink;

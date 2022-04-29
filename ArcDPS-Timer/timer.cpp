@@ -183,7 +183,7 @@ void Timer::check_serverstatus() {
 	}
 }
 
-std::string Timer::get_id() {
+std::string Timer::get_id() const {
 	std::string id = "";
 	if (settings.use_custom_id) {
 		id = settings.custom_id + "_custom";
@@ -311,70 +311,64 @@ void Timer::mod_imgui() {
 	}
 
 	if (settings.show_timer) {
-		std::shared_lock lock(timerstatus_mutex);
-
 		ImGui::Begin("Timer", &settings.show_timer, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
-		auto duration = std::chrono::round<std::chrono::milliseconds>(current_time - start_time);
-		std::string time_string = "";
-		try {
-			time_string = std::format(settings.time_formatter, duration);
-		}
-		catch ([[maybe_unused]] const std::exception& e) {
-			time_string = translation.get("TimeFormatterInvalid");
-		}
+		{
+			std::shared_lock lock(timerstatus_mutex);
 
-		ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x + 3);
-		switch (status) {
-		case TimerStatus::stopped:
-			ImGui::TextColored(ImVec4(1, 0.2f, 0.2f, 1), translation.get("MarkerStopped").c_str());
-			break;
-		case TimerStatus::prepared:
-			ImGui::TextColored(ImVec4(1, 1, 0.2f, 1), translation.get("MarkerPrepared").c_str());
-			break;
-		case TimerStatus::running:
-			ImGui::TextColored(ImVec4(0.2f, 1, 0.2f, 1), translation.get("MarkerRunning").c_str());
-			break;
-		}
+			auto duration = std::chrono::round<std::chrono::milliseconds>(current_time - start_time);
+			std::string time_string = "";
+			try {
+				time_string = std::format(settings.time_formatter, duration);
+			}
+			catch ([[maybe_unused]] const std::exception& e) {
+				time_string = translation.get("TimeFormatterInvalid");
+			}
 
-		auto textWidth = ImGui::CalcTextSize(time_string.c_str()).x;
-		ImGui::SameLine(0, 0);
-		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textWidth) * 0.5f);
-		ImGui::Text(time_string.c_str());
+			ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x + 3);
+			switch (status) {
+			case TimerStatus::stopped:
+				ImGui::TextColored(ImVec4(1, 0.2f, 0.2f, 1), translation.get("MarkerStopped").c_str());
+				break;
+			case TimerStatus::prepared:
+				ImGui::TextColored(ImVec4(1, 1, 0.2f, 1), translation.get("MarkerPrepared").c_str());
+				break;
+			case TimerStatus::running:
+				ImGui::TextColored(ImVec4(0.2f, 1, 0.2f, 1), translation.get("MarkerRunning").c_str());
+				break;
+			}
+
+			auto textWidth = ImGui::CalcTextSize(time_string.c_str()).x;
+			ImGui::SameLine(0, 0);
+			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textWidth) * 0.5f);
+			ImGui::Text(time_string.c_str());
+		}
 
 		ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
 		if (!settings.hide_buttons) {
 			if (ImGui::Button(translation.get("ButtonPrepare").c_str(), ImVec2(190, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: preparing manually");
-				defer([&]() {
-					prepare();
-				});
+				prepare();
 			}
 
 			if (ImGui::Button(translation.get("ButtonStart").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: starting manually");
-				defer([&]() {
-					start();
-				});
+				start();
 			}
 
 			ImGui::SameLine(0, 5);
 			if (ImGui::Button(translation.get("TextStop").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: stopping manually");
-				defer([&]() {
-					stop();
-				});
+				stop();
 			}
 
 			ImGui::SameLine(0, 5);
 			if (ImGui::Button(translation.get("TextReset").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
 				log_debug("timer: resetting manually");
-				defer([&]() {
-					reset();
-				});
+				reset();
 			}
 		}
 		else {
@@ -391,51 +385,49 @@ void Timer::mod_imgui() {
 	if (settings.show_segments) {
 		bool is_visible = ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_segments, ImGuiWindowFlags_AlwaysAutoResize);
 
-		std::shared_lock lock(segmentstatus_mutex);
-
 		if (is_visible) {
-			ImGui::BeginTable("##segmenttable", 3);
-			ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
-			ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
-			ImGui::TableSetupColumn(translation.get("HeaderBestColumn").c_str());
-			ImGui::TableHeadersRow();
+			{
+				std::shared_lock lock(segmentstatus_mutex);
 
-			for (size_t i = 0; i < segments.size(); ++i) {
-				const auto& segment = segments[i];
+				ImGui::BeginTable("##segmenttable", 3);
+				ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
+				ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
+				ImGui::TableSetupColumn(translation.get("HeaderBestColumn").c_str());
+				ImGui::TableHeadersRow();
 
-				ImGui::TableNextRow();
+				for (size_t i = 0; i < segments.size(); ++i) {
+					const auto& segment = segments[i];
 
-				ImGui::TableNextColumn();
-				ImGui::Text(std::to_string(i).c_str());
+					ImGui::TableNextRow();
 
-				ImGui::TableNextColumn();
-				if (segment.is_set) {
-					auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
-					auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
-					std::string text = std::format("{0:%M:%S}", time_total) + std::format(" ({0:%M:%S})", duration_segment);
+					ImGui::TableNextColumn();
+					ImGui::Text(std::to_string(i).c_str());
+
+					ImGui::TableNextColumn();
+					if (segment.is_set) {
+						auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+						auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+						std::string text = std::format("{0:%M:%S}", time_total) + std::format(" ({0:%M:%S})", duration_segment);
+						ImGui::Text(text.c_str());
+					}
+
+					ImGui::TableNextColumn();
+					auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
+					auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
+					std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
 					ImGui::Text(text.c_str());
 				}
 
-				ImGui::TableNextColumn();
-				auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
-				auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
-				std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
-				ImGui::Text(text.c_str());
+				ImGui::EndTable();
 			}
 
-			ImGui::EndTable();
-
 			if (ImGui::Button(translation.get("ButtonSegment").c_str())) {
-				defer([&]() {
-					segment();
-				});
+				segment();
 			}
 
 			ImGui::SameLine(0, 5);
 			if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
-				defer([&]() {
-					clear_segments();
-				});
+				clear_segments();
 			}
 		}
 

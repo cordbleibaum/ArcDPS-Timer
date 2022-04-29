@@ -27,7 +27,7 @@ void TriggerRegion::reset() {
     is_triggered = false;
 }
 
-bool TriggerRegion::get_is_triggered() {
+bool TriggerRegion::get_is_triggered() const {
     return is_triggered;
 }
 
@@ -48,7 +48,7 @@ std::string SphereTrigger::get_typename_id() const {
     return "TypeSphere";
 }
 
-Eigen::Vector3f SphereTrigger::get_middle() {
+Eigen::Vector3f SphereTrigger::get_middle() const {
     return position;
 }
 
@@ -86,7 +86,7 @@ std::string PlaneTrigger::get_typename_id() const {
     return "TypePlane";
 }
 
-Eigen::Vector3f PlaneTrigger::get_middle() {
+Eigen::Vector3f PlaneTrigger::get_middle() const {
     auto middle_xy = (side1 + side2) / 2;
     return Eigen::Vector3f(middle_xy.x(), middle_xy.y(), z + height/2);
 }

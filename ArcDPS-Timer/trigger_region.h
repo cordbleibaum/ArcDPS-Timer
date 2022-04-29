@@ -15,9 +15,9 @@ public:
 	bool trigger(Eigen::Vector3f player_position);
 	virtual bool check(Eigen::Vector3f player_position) = 0;
 	virtual std::string get_typename_id() const = 0;
-	virtual Eigen::Vector3f get_middle() = 0;
+	virtual Eigen::Vector3f get_middle() const = 0;
 	void reset();
-	bool get_is_triggered();
+	bool get_is_triggered() const;
 protected:
 	bool is_triggered = false;
 };
@@ -28,7 +28,7 @@ public:
 	SphereTrigger(Eigen::Vector3f position, float radius);
 	virtual bool check(Eigen::Vector3f player_position) override;
 	virtual std::string get_typename_id() const override;
-	virtual Eigen::Vector3f get_middle() override;
+	virtual Eigen::Vector3f get_middle() const override;
 
 	Eigen::Vector3f position = Eigen::Vector3f::Zero();
 	float radius = 0.0f;
@@ -40,7 +40,7 @@ public:
 	PlaneTrigger(Eigen::Vector2f side1, Eigen::Vector2f side2, float height, float z, float thickness);
 	virtual bool check(Eigen::Vector3f player_position) override;
 	virtual std::string get_typename_id() const override;
-	virtual Eigen::Vector3f get_middle() override;
+	virtual Eigen::Vector3f get_middle() const override;
 	float height = 0.0f;
 	float z = 0.0f;
 	float thickness = 0.0f;

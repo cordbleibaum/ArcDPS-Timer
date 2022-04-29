@@ -19,6 +19,6 @@ GW2MumbleLink::~GW2MumbleLink() {
 	CloseHandle(hMumbleLink);
 }
 
-LinkedMem* GW2MumbleLink::operator->() {
+LinkedMem* GW2MumbleLink::operator->() const {
 	return pMumbleLink;
 }

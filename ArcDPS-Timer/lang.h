@@ -6,7 +6,7 @@
 class Translation {
 public:
 	Translation();
-	const std::string& get(std::string name);
+	const std::string& get(std::string name) const;
 
 private:
 	std::map<std::string, std::string> translations = {

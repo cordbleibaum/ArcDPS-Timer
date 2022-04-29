@@ -19,6 +19,6 @@ Translation::Translation() {
 	}
 }
 
-const std::string& Translation::get(std::string name) {
-	return translations[name];
+const std::string& Translation::get(std::string name) const {
+	return translations.at(name);
 }
