@@ -109,7 +109,7 @@ class GroupModifyHandler(JsonHandler):
 
     def on_finish(self) -> None:
         self.group.update_time = datetime.utcnow()
-        self.update_id = random.randint(1, 1000000)
+        self.group.update_id = random.randint(1, 1000000)
         self.group.changeSemaphore.release()
         self.group.update_lock.notify_all()
         return super().on_finish()
