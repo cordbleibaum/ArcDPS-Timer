@@ -64,7 +64,7 @@ void Timer::reset() {
 
 	reset_segments();
 
-	post_serverapi("reset", {});
+	post_serverapi("reset");
 }
 
 void Timer::prepare() {
