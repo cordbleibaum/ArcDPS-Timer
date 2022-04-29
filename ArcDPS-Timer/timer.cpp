@@ -133,8 +133,8 @@ void Timer::sync() {
 									{"is_set", {{"type", "boolean"}}},
 									{"start", {{"type", "string"}}},
 									{"end", {{"type", "string"}}},
-									{"shortest_duration", {{"type", "integer"}}},
-									{"shortest_time", {{"type", "integer"}}},
+									{"shortest_duration", {{"type", "number"}}},
+									{"shortest_time", {{"type", "number"}}},
 								}},
 								{"required", {"is_set", "start", "end", "shortest_time", "shortest_duration"}}
 							}}
