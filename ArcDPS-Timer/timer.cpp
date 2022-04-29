@@ -118,6 +118,28 @@ void Timer::sync() {
 			try {
 				auto data = json::parse(response.text);
 
+				json schemaDoc{
+					{"type", "object"},
+					{"properties", {
+						{"update_id", {{"type", "integer"}}},
+						{"status", {{"type", "string"}}},
+						{"start_time", {{"type", "string"}}},
+						{"stop_time", {{"type", "string"}}},
+						{"segments", {{"type", "array"}}},
+					}},
+					{"required", {"update_id", "status", "segments", "start_time", "stop_time"}}
+				};
+				valijson::Schema schema;
+				valijson::SchemaParser parser;
+				parser.populateSchema(valijson::adapters::NlohmannJsonAdapter(schemaDoc), schema);
+
+				valijson::Validator validator;
+				if (!validator.validate(schema, valijson::adapters::NlohmannJsonAdapter(data), NULL)) {
+					log("timer: failed group status response validation, going offline mode\n");
+					serverStatus = ServerStatus::offline;
+					continue;
+				}
+
 				{
 					std::unique_lock lock(timerstatus_mutex);
 
@@ -186,14 +208,12 @@ void Timer::check_serverstatus() {
 			}},
 			{"required", {"app", "version"}}
 		};
-
 		valijson::Schema schema;
 		valijson::SchemaParser parser;
-		valijson::adapters::NlohmannJsonAdapter schemaAdapter(schemaDoc);
-		parser.populateSchema(schemaAdapter, schema);
+		parser.populateSchema(valijson::adapters::NlohmannJsonAdapter(schemaDoc), schema);
+		
 		valijson::Validator validator;
-		valijson::adapters::NlohmannJsonAdapter targetAdapter(data);
-		if (!validator.validate(schema, targetAdapter, NULL)) {
+		if (!validator.validate(schema, valijson::adapters::NlohmannJsonAdapter(data), NULL)) {
 			log("timer: failed server status response validation, going offline mode\n");
 			serverStatus = ServerStatus::offline;
 			return;
