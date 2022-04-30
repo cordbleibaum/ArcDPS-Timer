@@ -152,12 +152,16 @@ void TriggerEditor::mod_imgui() {
 
             ImGui::Text(translation.get("TextAreaSphere").c_str());
             ImGui::InputFloat(translation.get("TextInputRadius").c_str(), &sphere_radius);
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 1, 0.2f, 0.3f));
             if (ImGui::Button(translation.get("ButtonPlaceSphere").c_str())) {
                 std::shared_ptr<TriggerRegion> trigger(
                     new SphereTrigger(Eigen::Vector3f(mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]), sphere_radius)
                 );
                 regions.push_back(trigger);
             }
+            ImGui::PopStyleColor();
+
             ImGui::Separator();
 
             ImGui::Text(translation.get("TextAreaPlane").c_str());
@@ -186,6 +190,8 @@ void TriggerEditor::mod_imgui() {
                 plane_position2[1] = mumble_link->fAvatarPosition[2];
             }
             ImGui::PopID();
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 1, 0.2f, 0.3f));
             if (ImGui::Button(translation.get("ButtonPlacePlane").c_str())) {
                 std::shared_ptr<TriggerRegion> trigger(
                     new PlaneTrigger(
@@ -195,6 +201,8 @@ void TriggerEditor::mod_imgui() {
                 );
                 regions.push_back(trigger);
             }
+            ImGui::PopStyleColor();
+
             ImGui::Separator();
 
             ImGui::BeginTable("##triggertable", 5);
