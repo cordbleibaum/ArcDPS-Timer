@@ -322,10 +322,15 @@ void Timer::mod_imgui() {
 	}
 
 	if (settings.unified_window && settings.show_timer) {
+		ImGui::SetNextWindowSize(ImVec2(350, 0));
 		if (ImGui::Begin("Timer+Segments", &settings.show_timer, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration)) {
 			timer_window_content(ImGui::GetWindowSize().x - 2*ImGui::GetStyle().WindowPadding.x);
+			
 			ImGui::Dummy(ImVec2(0.0f, 3.0f));
-			segment_window_content();
+
+			if (ImGui::CollapsingHeader(translation.get("HeaderSegments").c_str())) {
+				segment_window_content();
+			}
 		}
 		ImGui::End();
 	}
