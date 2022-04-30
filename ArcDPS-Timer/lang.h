@@ -50,6 +50,10 @@ private:
 		{"TooltipTimerFormatter", "Format for timer time, see https://en.cppreference.com/w/cpp/chrono/duration/formatter"},
 		{"InputUnifiedWindow", "Merge timer and segments window"},
 		{"WindowOptionUnified", "Timer+Segments"},
+		{"InputStartButtonColor", "Start Button Color"},
+		{"InputStopButtonColor", "Stop Button Color"},
+		{"InputResetButtonColor", "Reset Button Color"},
+		{"InputPrepareButtonColor", "Prepare Button Color"},
 
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},
@@ -81,7 +85,11 @@ private:
 		{"TriggerHelp2", "You can place triggers using the place buttons"},
 		{"TriggerHelp3", "There are currently to shapes of trigger : sphere and planes"},
 		{"TriggerHelp4", "Spheres just use the current position and a radius"},
-		{"TriggerHelp5", "Planes need two positions, a height and a thickness,\n which you have to set"},
-		{"TriggerHelp6", "Below is a table of current triggers and their status,\n you can select one and press delete to remove"}
+		{"TriggerHelp5", "Planes need two positions, a height and a thickness,\nwhich you have to set"},
+		{"TriggerHelp6", "Below is a table of current triggers and their status,\nyou can select one and press delete to remove"},
+		{"TriggerHelp7", "On the right you can load and save different sets of \ntriggers for the current map"},
+		{"InputSetName", "Set name"},
+		{"ButtonSave", "Save"},
+		{"ButtonLoad", "Load"},
 	};
 };

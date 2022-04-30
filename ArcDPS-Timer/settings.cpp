@@ -3,10 +3,9 @@
 #include <filesystem>
 #include <fstream>
 
-#include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-#include "imgui/imgui.h"
+#include "arcdps.h"
 #include "arcdps-extension/imgui_stdlib.h"
 #include "arcdps-extension/Widgets.h"
 
@@ -37,6 +36,12 @@ Settings::Settings(std::string file, Translation& translation)
 	early_gg_threshold = config.value("early_gg_threshold", 5);
 	show_segments = config.value("show_segments", false);
 	unified_window = config.value("unified_window", false);
+
+	ImVec4 default_color = ImVec4(0.62f, 0.60f, 0.65f, 0.30f);
+	start_button_color = config.value("start_button_color", default_color);
+	stop_button_color = config.value("stop_button_color", default_color);
+	reset_button_color = config.value("reset_button_color", default_color);
+	prepare_button_color = config.value("prepare_button_color", default_color);
 
 	this->start_key = config.value("start_key", 0);
 	std::string start_key = std::to_string(this->start_key);
@@ -83,6 +88,10 @@ void Settings::save() {
 	config["show_segments"] = show_segments;
 	config["custom_id"] = custom_id;
 	config["unified_window"] = unified_window;
+	config["start_button_color"] = start_button_color;
+	config["stop_button_color"] = stop_button_color;
+	config["reset_button_color"] = reset_button_color;
+	config["prepare_button_color"] = prepare_button_color;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -128,7 +137,65 @@ void Settings::show_options() {
 	ImGuiEx::KeyInput(translation.get("InputPrepareKey").c_str(), "##preparekey", prepare_key_buffer, sizeof(prepare_key_buffer), prepare_key, translation.get("TextKeyNotSet").c_str());
 	ImGuiEx::KeyInput(translation.get("InputSegmentKey").c_str(), "##segmentkey", segment_key_buffer, sizeof(segment_key_buffer), segment_key, translation.get("TextKeyNotSet").c_str());
 
+	ImGui::Separator();
+
+	if (ImGui::ColorButton(translation.get("InputStartButtonColor").c_str(), start_button_color)) {
+		ImGui::OpenPopup("##popupstartcolour");
+	}
+	ImGui::SameLine();
+	ImGui::LabelText("##startbuttoncolor", translation.get("InputStartButtonColor").c_str());
+
+	if (ImGui::ColorButton(translation.get("InputStopButtonColor").c_str(), stop_button_color)) {
+		ImGui::OpenPopup("##popupstopcolour");
+	}
+	ImGui::SameLine();
+	ImGui::LabelText("##stopbuttoncolor", translation.get("InputStopButtonColor").c_str());
+
+	if (ImGui::ColorButton(translation.get("InputResetButtonColor").c_str(), reset_button_color)) {
+		ImGui::OpenPopup("##popupresetcolour");
+	}
+	ImGui::SameLine();
+	ImGui::LabelText("##resetbuttoncolor", translation.get("InputResetButtonColor").c_str());
+
+	if (ImGui::ColorButton(translation.get("InputPrepareButtonColor").c_str(), prepare_button_color)) {
+		ImGui::OpenPopup("##popuppreparecolour");
+	}
+	ImGui::SameLine();
+	ImGui::LabelText("##preparebuttoncolor", translation.get("InputPrepareButtonColor").c_str());
+
 	ImGui::PopStyleVar();
+
+	if (ImGui::BeginPopup("##popupstartcolour")) {
+		float color[4] = { start_button_color.x, start_button_color.y, start_button_color.z, start_button_color.w };
+		ImGui::ColorPicker4(translation.get("InputStartButtonColor").c_str(), color);
+		start_button_color = ImVec4(color[0], color[1], color[2], color[3]);
+
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::BeginPopup("##popupstopcolour")) {
+		float color[4] = { stop_button_color.x, stop_button_color.y, stop_button_color.z, stop_button_color.w };
+		ImGui::ColorPicker4(translation.get("InputStopButtonColor").c_str(), color);
+		stop_button_color = ImVec4(color[0], color[1], color[2], color[3]);
+
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::BeginPopup("##popupresetcolour")) {
+		float color[4] = { reset_button_color.x, reset_button_color.y, reset_button_color.z, reset_button_color.w };
+		ImGui::ColorPicker4(translation.get("InputResetButtonColor").c_str(), color);
+		reset_button_color = ImVec4(color[0], color[1], color[2], color[3]);
+
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::BeginPopup("##popuppreparecolour")) {
+		float color[4] = { prepare_button_color.x, prepare_button_color.y, prepare_button_color.z, prepare_button_color.w };
+		ImGui::ColorPicker4(translation.get("InputPrepareButtonColor").c_str(), color);
+		prepare_button_color = ImVec4(color[0], color[1], color[2], color[3]);
+
+		ImGui::EndPopup();
+	}
 }
 
 void Settings::show_windows() {

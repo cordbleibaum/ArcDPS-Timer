@@ -9,6 +9,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "arcdps.h"
+#include "arcdps-extension/imgui_stdlib.h"
 
 using json = nlohmann::json;
 
@@ -141,6 +142,9 @@ TriggerEditor::TriggerEditor(Translation& translation, GW2MumbleLink& mumble_lin
 :   translation(translation),
     mumble_link(mumble_link),
     regions(regions) {
+    if (!std::filesystem::exists(trigger_set_directory)) {
+        std::filesystem::create_directory(trigger_set_directory);
+    }
 }
 
 void TriggerEditor::mod_imgui() {
@@ -216,7 +220,6 @@ void TriggerEditor::mod_imgui() {
         ImGui::TableSetupColumn(translation.get("HeaderIsInRangeColumn").c_str());
         ImGui::TableSetupColumn(translation.get("HeaderIsTriggeredColumn").c_str());
         ImGui::TableHeadersRow();
-
         for (size_t i = 0; i < regions.size(); ++i) {
             const auto& region = regions[i];
 
@@ -245,13 +248,14 @@ void TriggerEditor::mod_imgui() {
                 ImGui::TextColored(ImVec4(0, 1, 0, 1), translation.get("TextYes").c_str());
             }
         }
-
         ImGui::EndTable();
 
+        ImGui::PushID("delete_trigger");
         if (ImGui::Button(translation.get("ButtonDelete").c_str()) && selected_line >= 0) {
             regions.erase(regions.begin() + selected_line);
             selected_line = -1;
         }
+        ImGui::PopID();
 
         ImGui::NextColumn();
         ImGui::SetColumnWidth(-1, 200);
@@ -260,6 +264,33 @@ void TriggerEditor::mod_imgui() {
             is_help_open = true;
         }
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
+
+        ImGui::BeginTable("##setstable", 1);
+        for (auto& [name, _] : trigger_sets) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            if (ImGui::Selectable(name.c_str(), name == set_name, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap)) {
+                set_name = name;
+            }
+        }
+        ImGui::EndTable();
+
+        ImGui::InputText(translation.get("InputSetName").c_str(), &set_name);
+        if (ImGui::Button(translation.get("ButtonSave").c_str())) {
+            trigger_sets[set_name] = regions;
+            save_sets();
+        }
+        ImGui::SameLine();
+        ImGui::PushID("delete_set");
+        if (ImGui::Button(translation.get("ButtonDelete").c_str())) {
+            trigger_sets.erase(set_name);
+            save_sets();
+        }
+        ImGui::PopID();
+        ImGui::SameLine();
+        if (ImGui::Button(translation.get("ButtonLoad").c_str())) {
+            regions = trigger_sets[set_name];
+        }
 
         ImGui::Columns();
         ImGui::End();
@@ -272,12 +303,28 @@ void TriggerEditor::mod_imgui() {
         ImGui::BulletText(translation.get("TriggerHelp4").c_str());
         ImGui::BulletText(translation.get("TriggerHelp5").c_str());
         ImGui::BulletText(translation.get("TriggerHelp6").c_str());
+        ImGui::BulletText(translation.get("TriggerHelp7").c_str());
         ImGui::End();
     }
 }
 
 void TriggerEditor::mod_windows() {
     ImGui::Checkbox(translation.get("WindowOptionTriggerEditor").c_str(), &is_open);
+}
+
+void TriggerEditor::map_change() {
+    if (std::filesystem::exists(trigger_set_directory + std::to_string(mumble_link->getMumbleContext()->mapId) + ".json")) {
+        json triggers_in;
+        std::ifstream input(trigger_set_directory + std::to_string(mumble_link->getMumbleContext()->mapId) + ".json");
+        input >> triggers_in;
+        trigger_sets = triggers_in;
+    }
+}
+
+void TriggerEditor::save_sets() {
+    json triggers_out = trigger_sets;
+    std::ofstream o(trigger_set_directory + std::to_string(mumble_link->getMumbleContext()->mapId) + ".json");
+    o << std::setw(4) << triggers_out << std::endl;
 }
 
 void region_to_json(json& j, const TriggerRegion* region) {

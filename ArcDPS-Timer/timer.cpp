@@ -422,27 +422,35 @@ void Timer::timer_window_content(float width) {
 	ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
 	if (!settings.hide_buttons) {
+		ImGui::PushStyleColor(ImGuiCol_Button, settings.prepare_button_color);
 		if (ImGui::Button(translation.get("ButtonPrepare").c_str(), ImVec2(width, ImGui::GetFontSize() * 1.5f))) {
 			log_debug("timer: preparing manually");
 			prepare();
 		}
+		ImGui::PopStyleColor();
 
+		ImGui::PushStyleColor(ImGuiCol_Button, settings.start_button_color);
 		if (ImGui::Button(translation.get("ButtonStart").c_str(), ImVec2((width-10)/3, ImGui::GetFontSize() * 1.5f))) {
 			log_debug("timer: starting manually");
 			start();
 		}
+		ImGui::PopStyleColor();
 
+		ImGui::PushStyleColor(ImGuiCol_Button, settings.stop_button_color);
 		ImGui::SameLine(0, 5);
 		if (ImGui::Button(translation.get("TextStop").c_str(), ImVec2((width - 10) / 3, ImGui::GetFontSize() * 1.5f))) {
 			log_debug("timer: stopping manually");
 			stop();
 		}
+		ImGui::PopStyleColor();
 
+		ImGui::PushStyleColor(ImGuiCol_Button, settings.reset_button_color);
 		ImGui::SameLine(0, 5);
 		if (ImGui::Button(translation.get("TextReset").c_str(), ImVec2((width - 10) / 3, ImGui::GetFontSize() * 1.5f))) {
 			log_debug("timer: resetting manually");
 			reset();
 		}
+		ImGui::PopStyleColor();
 	}
 	else {
 		ImGui::Dummy(ImVec2(160, 0));

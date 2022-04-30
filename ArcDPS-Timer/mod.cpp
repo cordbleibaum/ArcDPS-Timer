@@ -92,6 +92,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (map_tracker.watch()) {
 		timer.map_change();
 		trigger_watcher.map_change();
+		trigger_editor.map_change();
 	}
 
 	timer.mod_imgui();

@@ -6,6 +6,7 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <typeinfo>
+#include <map>
 
 #include "lang.h"
 #include "mumble_link.h"
@@ -127,6 +128,7 @@ public:
 	TriggerEditor(Translation& translation, GW2MumbleLink& mumble_link, std::vector<std::shared_ptr<TriggerRegion>>& regions);
 	void mod_imgui();
 	void mod_windows();
+	void map_change();
 private:
 	GW2MumbleLink& mumble_link;
 	Translation& translation;
@@ -144,4 +146,10 @@ private:
 	std::array<float, 2> plane_position2 = {0};
 
 	std::vector<std::shared_ptr<TriggerRegion>>& regions;
+
+	std::map<std::string, std::vector<std::shared_ptr<TriggerRegion>>> trigger_sets;
+	std::string trigger_set_directory = "addons/arcdps/arcdps-timer-triggers-sets/";
+	std::string set_name;
+
+	void save_sets();
 };

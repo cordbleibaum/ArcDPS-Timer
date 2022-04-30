@@ -1,9 +1,36 @@
 #pragma once
 
 #include "lang.h"
+#include "imgui/imgui.h"
 
 #include <Windows.h>
 #include <string>
+#include <nlohmann/json.hpp>
+
+
+namespace nlohmann {
+	template <>
+	struct adl_serializer<ImVec4> {
+		static void to_json(json& j, const ImVec4& vec) {
+			j["x"] = vec.x;
+			j["y"] = vec.y;
+			j["z"] = vec.z;
+			j["w"] = vec.w;
+		}
+
+		static void from_json(const json& j, ImVec4& vec) {
+			if (j.is_null()) {
+				vec = ImVec4(0, 0, 0, 0);
+			}
+			else {
+				j.at("x").get_to(vec.x);
+				j.at("y").get_to(vec.y);
+				j.at("z").get_to(vec.z);
+				j.at("w").get_to(vec.w);
+			}
+		}
+	};
+}
 
 class Settings {
 public:
@@ -28,6 +55,11 @@ public:
 	bool auto_stop;
 	int early_gg_threshold;
 	WPARAM segment_key;
+
+	ImVec4 start_button_color;
+	ImVec4 stop_button_color;
+	ImVec4 reset_button_color;
+	ImVec4 prepare_button_color;
 private:
 	Translation& translation;
 
