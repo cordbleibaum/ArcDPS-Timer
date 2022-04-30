@@ -1,12 +1,13 @@
 #include "timer.h"
 #include "util.h"
 
-Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker, Translation& translation, MapTracker& map_tracker)
+Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker, Translation& translation, MapTracker& map_tracker, std::string server_url)
 :	settings(settings),
 	mumble_link(mumble_link),
 	group_tracker(group_tracker),
 	translation(translation),
-	map_tracker(map_tracker)
+	map_tracker(map_tracker),
+	server_url(server_url)
 {
 	start_time = current_time = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
@@ -21,7 +22,7 @@ void Timer::post_serverapi(std::string method, json payload) {
 		std::string id = get_id();
 		if (id != "") {
 			cpr::Post(
-				cpr::Url{ settings.server_url + "groups/" + id + "/" + method },
+				cpr::Url{ server_url + "groups/" + id + "/" + method },
 				cpr::Body{ payload.dump() },
 				cpr::Header{ {"Content-Type", "application/json"} }
 			);
@@ -88,14 +89,13 @@ void Timer::sync() {
 				continue;
 			}
 
-			std::string url = settings.server_url;
 			json payload{{"update_id", update_id}};
 			cpr::AsyncResponse response_future = cpr::PostAsync(
-				cpr::Url{ url + "groups/" + id + "/" },
+				cpr::Url{ server_url + "groups/" + id + "/" },
 				cpr::Body{ payload.dump() },
 				cpr::Header{{"Content-Type", "application/json"}},
 				cpr::ProgressCallback([&](cpr::cpr_off_t downloadTotal, cpr::cpr_off_t downloadNow, cpr::cpr_off_t uploadTotal, cpr::cpr_off_t uploadNow, intptr_t userdata) {
-					return id == get_id() && url == settings.server_url;
+					return id == get_id();
 				})
 			);
 
@@ -162,7 +162,7 @@ void Timer::sync() {
 
 void Timer::check_serverstatus() {
 	auto response = cpr::Get(
-		cpr::Url{ settings.server_url },
+		cpr::Url{ server_url },
 		cpr::Timeout{ 1000 }
 	);
 	if (response.status_code != cpr::status::HTTP_OK) {

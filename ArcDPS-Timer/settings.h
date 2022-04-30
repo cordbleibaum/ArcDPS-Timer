@@ -14,7 +14,6 @@ public:
 
 	bool show_timer;
 	bool show_segments;
-	std::string server_url;
 	bool auto_prepare;
 	bool use_custom_id;
 	std::string custom_id;

@@ -27,7 +27,6 @@ Settings::Settings(std::string file, Translation& translation)
 		}
 	}
 	show_timer = config.value("show_timer", true);
-	server_url = config.value("server_url", "http://3.72.94.166:5001/");
 	auto_prepare = config.value("auto_prepare", true);
 	use_custom_id = config.value("use_custom_id", false);
 	custom_id = config.value("custom_id", "");
@@ -67,7 +66,6 @@ Settings::Settings(std::string file, Translation& translation)
 void Settings::save() {
 	json config;
 	config["show_timer"] = show_timer;
-	config["server_url"] = server_url;
 	config["version"] = settings_version;
 	config["auto_prepare"] = auto_prepare;
 	config["use_custom_id"] = use_custom_id;
@@ -90,12 +88,11 @@ void Settings::save() {
 void Settings::show_options() {
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
 
-	ImGui::InputText(translation.get("InputServer").c_str(), &server_url);
 	ImGui::Checkbox(translation.get("InputUseCustomID").c_str(), &use_custom_id);
 	if (use_custom_id) {
 		ImGui::InputText(translation.get("InputCustomID").c_str(), &custom_id);
 	}
-	ImGui::Separator();
+
 	ImGui::Checkbox(translation.get("InputOnlyInstance").c_str(), &disable_outside_instances);
 
 	ImGui::Checkbox(translation.get("InputAutoprepare").c_str(), &auto_prepare);

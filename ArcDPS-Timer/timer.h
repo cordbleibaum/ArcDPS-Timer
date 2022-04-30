@@ -34,7 +34,7 @@ struct TimeSegment {
 
 class Timer {
 public:
-	Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker, Translation& translation, MapTracker& map_tracker);
+	Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker, Translation& translation, MapTracker& map_tracker, std::string server_url);
 	void start(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void stop(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void reset();
@@ -70,6 +70,7 @@ private:
 	std::shared_mutex timerstatus_mutex;
 	std::shared_mutex segmentstatus_mutex;
 	ServerStatus serverStatus = ServerStatus::online;
+	std::string server_url;
 	bool isInstanced = false;
 	int update_id = -2;
 

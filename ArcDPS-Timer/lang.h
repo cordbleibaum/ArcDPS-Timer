@@ -28,8 +28,7 @@ private:
 		{"HeaderBestColumn", "Best Time (Duration)"},
 
 		// settings.cpp
-		{"InputServer", "Server"},
-		{"InputUseCustomID", "Use Custom ID"},
+		{"InputUseCustomID", "Use Custom Group ID"},
 		{"InputCustomID", "Custom ID"},
 		{"InputOnlyInstance", "Disable outside Instanced Content"},
 		{"InputAutoprepare", "Auto Prepare"},
