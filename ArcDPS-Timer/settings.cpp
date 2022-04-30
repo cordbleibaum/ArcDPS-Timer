@@ -36,6 +36,7 @@ Settings::Settings(std::string file, Translation& translation)
 	auto_stop = config.value("auto_stop", false);
 	early_gg_threshold = config.value("early_gg_threshold", 5);
 	show_segments = config.value("show_segments", false);
+	unified_window = config.value("unified_window", false);
 
 	this->start_key = config.value("start_key", 0);
 	std::string start_key = std::to_string(this->start_key);
@@ -81,6 +82,7 @@ void Settings::save() {
 	config["segment_key"] = segment_key;
 	config["show_segments"] = show_segments;
 	config["custom_id"] = custom_id;
+	config["unified_window"] = unified_window;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -118,6 +120,7 @@ void Settings::show_options() {
 	}
 
 	ImGui::Checkbox(translation.get("InputHideButtons").c_str(), &hide_buttons);
+	ImGui::Checkbox(translation.get("InputUnifiedWindow").c_str(), &unified_window);
 
 	ImGuiEx::KeyInput(translation.get("InputStartKey").c_str(), "##startkey", start_key_buffer, sizeof(start_key_buffer), start_key, translation.get("TextKeyNotSet").c_str());
 	ImGuiEx::KeyInput(translation.get("InputStopKey").c_str(), "##stopkey", stop_key_buffer, sizeof(stop_key_buffer), stop_key, translation.get("TextKeyNotSet").c_str());
@@ -129,6 +132,11 @@ void Settings::show_options() {
 }
 
 void Settings::show_windows() {
-	ImGui::Checkbox(translation.get("WindowOptionTimer").c_str(), &show_timer);
-	ImGui::Checkbox(translation.get("WindowOptionSegments").c_str(), &show_segments);
+	if (!unified_window) {
+		ImGui::Checkbox(translation.get("WindowOptionTimer").c_str(), &show_timer);
+		ImGui::Checkbox(translation.get("WindowOptionSegments").c_str(), &show_segments);
+	}
+	else {
+		ImGui::Checkbox(translation.get("WindowOptionUnified").c_str(), &show_timer);
+	}
 }

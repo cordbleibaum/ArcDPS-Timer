@@ -16,6 +16,7 @@ public:
 	bool show_segments;
 	bool auto_prepare;
 	bool use_custom_id;
+	bool unified_window;
 	std::string custom_id;
 	bool disable_outside_instances;
 	std::string time_formatter;

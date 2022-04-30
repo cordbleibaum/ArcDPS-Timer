@@ -187,7 +187,7 @@ std::string Timer::get_id() const {
 	if (settings.use_custom_id) {
 		return settings.custom_id + "_custom";
 	}
-	if (isInstanced) {
+	if (mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE) {
 		return map_tracker.get_instance_id();
 	}
 	return group_tracker.get_group_id();
@@ -288,7 +288,7 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 }
 
 void Timer::mod_imgui() {
-	if (settings.disable_outside_instances && !isInstanced) {
+	if (settings.disable_outside_instances && mumble_link->getMumbleContext()->mapType != MapType::MAPTYPE_INSTANCE) {
 		return;
 	}
 
@@ -305,127 +305,28 @@ void Timer::mod_imgui() {
 		current_time = std::chrono::system_clock::now();
 	}
 
-	if (settings.show_timer) {
-		ImGui::Begin("Timer", &settings.show_timer, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
-
-		ImGui::Dummy(ImVec2(0.0f, 3.0f));
-
-		{
-			std::shared_lock lock(timerstatus_mutex);
-
-			auto duration = std::chrono::round<std::chrono::milliseconds>(current_time - start_time);
-			std::string time_string = "";
-			try {
-				time_string = std::format(settings.time_formatter, duration);
+	if (!settings.unified_window) {
+		if (settings.show_timer) {
+			if (ImGui::Begin("Timer", &settings.show_timer, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration)) {
+				timer_window_content(190);
 			}
-			catch ([[maybe_unused]] const std::exception& e) {
-				time_string = translation.get("TimeFormatterInvalid");
-			}
-
-			ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x + 3);
-			switch (status) {
-			case TimerStatus::stopped:
-				ImGui::TextColored(ImVec4(1, 0.2f, 0.2f, 1), translation.get("MarkerStopped").c_str());
-				break;
-			case TimerStatus::prepared:
-				ImGui::TextColored(ImVec4(1, 1, 0.2f, 1), translation.get("MarkerPrepared").c_str());
-				break;
-			case TimerStatus::running:
-				ImGui::TextColored(ImVec4(0.2f, 1, 0.2f, 1), translation.get("MarkerRunning").c_str());
-				break;
-			}
-
-			auto textWidth = ImGui::CalcTextSize(time_string.c_str()).x;
-			ImGui::SameLine(0, 0);
-			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textWidth) * 0.5f);
-			ImGui::Text(time_string.c_str());
+			ImGui::End();
 		}
 
-		ImGui::Dummy(ImVec2(0.0f, 3.0f));
-
-		if (!settings.hide_buttons) {
-			if (ImGui::Button(translation.get("ButtonPrepare").c_str(), ImVec2(190, ImGui::GetFontSize() * 1.5f))) {
-				log_debug("timer: preparing manually");
-				prepare();
+		if (settings.show_segments) {
+			if (ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_segments, ImGuiWindowFlags_AlwaysAutoResize)) {
+				segment_window_content();
 			}
-
-			if (ImGui::Button(translation.get("ButtonStart").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
-				log_debug("timer: starting manually");
-				start();
-			}
-
-			ImGui::SameLine(0, 5);
-			if (ImGui::Button(translation.get("TextStop").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
-				log_debug("timer: stopping manually");
-				stop();
-			}
-
-			ImGui::SameLine(0, 5);
-			if (ImGui::Button(translation.get("TextReset").c_str(), ImVec2(60, ImGui::GetFontSize() * 1.5f))) {
-				log_debug("timer: resetting manually");
-				reset();
-			}
+			ImGui::End();
 		}
-		else {
-			ImGui::Dummy(ImVec2(160, 0));
-		}
-
-		if (serverStatus == ServerStatus::outofdate) {
-			ImGui::TextColored(ImVec4(1, 0, 0, 1), translation.get("TextOutOfDate").c_str());
-		}
-
-		ImGui::End();
 	}
 
-	if (settings.show_segments) {
-		bool is_visible = ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_segments, ImGuiWindowFlags_AlwaysAutoResize);
-
-		if (is_visible) {
-			{
-				std::shared_lock lock(segmentstatus_mutex);
-
-				ImGui::BeginTable("##segmenttable", 3);
-				ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
-				ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
-				ImGui::TableSetupColumn(translation.get("HeaderBestColumn").c_str());
-				ImGui::TableHeadersRow();
-
-				for (size_t i = 0; i < segments.size(); ++i) {
-					const auto& segment = segments[i];
-
-					ImGui::TableNextRow();
-
-					ImGui::TableNextColumn();
-					ImGui::Text(std::to_string(i).c_str());
-
-					ImGui::TableNextColumn();
-					if (segment.is_set) {
-						auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
-						auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
-						std::string text = std::format("{0:%M:%S}", time_total) + std::format(" ({0:%M:%S})", duration_segment);
-						ImGui::Text(text.c_str());
-					}
-
-					ImGui::TableNextColumn();
-					auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
-					auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
-					std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
-					ImGui::Text(text.c_str());
-				}
-
-				ImGui::EndTable();
-			}
-
-			if (ImGui::Button(translation.get("ButtonSegment").c_str())) {
-				segment();
-			}
-
-			ImGui::SameLine(0, 5);
-			if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
-				clear_segments();
-			}
+	if (settings.unified_window && settings.show_timer) {
+		if (ImGui::Begin("Timer+Segments", &settings.show_timer, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration)) {
+			timer_window_content(ImGui::GetWindowSize().x - 2*ImGui::GetStyle().WindowPadding.x);
+			ImGui::Dummy(ImVec2(0.0f, 3.0f));
+			segment_window_content();
 		}
-
 		ImGui::End();
 	}
 }
@@ -473,10 +374,122 @@ void Timer::clear_segments() {
 }
 
 void Timer::map_change() {
-	isInstanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
-
-	if (settings.auto_prepare && isInstanced) {
+	if (settings.auto_prepare && mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE) {
 		log_debug("timer: preparing on map change");
 		prepare();
+	}
+}
+
+void Timer::timer_window_content(float width) {
+	ImGui::Dummy(ImVec2(0.0f, 3.0f));
+
+	{
+		std::shared_lock lock(timerstatus_mutex);
+
+		auto duration = std::chrono::round<std::chrono::milliseconds>(current_time - start_time);
+		std::string time_string = "";
+		try {
+			time_string = std::format(settings.time_formatter, duration);
+		}
+		catch ([[maybe_unused]] const std::exception& e) {
+			time_string = translation.get("TimeFormatterInvalid");
+		}
+
+		ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x + 3);
+		switch (status) {
+		case TimerStatus::stopped:
+			ImGui::TextColored(ImVec4(1, 0.2f, 0.2f, 1), translation.get("MarkerStopped").c_str());
+			break;
+		case TimerStatus::prepared:
+			ImGui::TextColored(ImVec4(1, 1, 0.2f, 1), translation.get("MarkerPrepared").c_str());
+			break;
+		case TimerStatus::running:
+			ImGui::TextColored(ImVec4(0.2f, 1, 0.2f, 1), translation.get("MarkerRunning").c_str());
+			break;
+		}
+
+		auto textWidth = ImGui::CalcTextSize(time_string.c_str()).x;
+		ImGui::SameLine(0, 0);
+		ImGui::SetCursorPosX((width - textWidth) * 0.5f);
+		ImGui::Text(time_string.c_str());
+	}
+
+	ImGui::Dummy(ImVec2(0.0f, 3.0f));
+
+	if (!settings.hide_buttons) {
+		if (ImGui::Button(translation.get("ButtonPrepare").c_str(), ImVec2(width, ImGui::GetFontSize() * 1.5f))) {
+			log_debug("timer: preparing manually");
+			prepare();
+		}
+
+		if (ImGui::Button(translation.get("ButtonStart").c_str(), ImVec2((width-10)/3, ImGui::GetFontSize() * 1.5f))) {
+			log_debug("timer: starting manually");
+			start();
+		}
+
+		ImGui::SameLine(0, 5);
+		if (ImGui::Button(translation.get("TextStop").c_str(), ImVec2((width - 10) / 3, ImGui::GetFontSize() * 1.5f))) {
+			log_debug("timer: stopping manually");
+			stop();
+		}
+
+		ImGui::SameLine(0, 5);
+		if (ImGui::Button(translation.get("TextReset").c_str(), ImVec2((width - 10) / 3, ImGui::GetFontSize() * 1.5f))) {
+			log_debug("timer: resetting manually");
+			reset();
+		}
+	}
+	else {
+		ImGui::Dummy(ImVec2(160, 0));
+	}
+
+	if (serverStatus == ServerStatus::outofdate) {
+		ImGui::TextColored(ImVec4(1, 0, 0, 1), translation.get("TextOutOfDate").c_str());
+	}
+}
+
+void Timer::segment_window_content() {
+	{
+		std::shared_lock lock(segmentstatus_mutex);
+
+		ImGui::BeginTable("##segmenttable", 3);
+		ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
+		ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
+		ImGui::TableSetupColumn(translation.get("HeaderBestColumn").c_str());
+		ImGui::TableHeadersRow();
+
+		for (size_t i = 0; i < segments.size(); ++i) {
+			const auto& segment = segments[i];
+
+			ImGui::TableNextRow();
+
+			ImGui::TableNextColumn();
+			ImGui::Text(std::to_string(i).c_str());
+
+			ImGui::TableNextColumn();
+			if (segment.is_set) {
+				auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+				auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+				std::string text = std::format("{0:%M:%S}", time_total) + std::format(" ({0:%M:%S})", duration_segment);
+				ImGui::Text(text.c_str());
+			}
+
+			ImGui::TableNextColumn();
+			auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
+			auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
+			std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
+			ImGui::Text(text.c_str());
+		}
+
+		ImGui::EndTable();
+	}
+
+	if (ImGui::Button(translation.get("ButtonSegment").c_str())) {
+		segment();
+	}
+
+	ImGui::SameLine(0, 5);
+	if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
+		clear_segments();
 	}
 }

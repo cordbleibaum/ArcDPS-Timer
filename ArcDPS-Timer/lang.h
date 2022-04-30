@@ -48,6 +48,8 @@ private:
 		{"TooltipAutoStop", "Tries to automatically stop the timer. Still experimental"},
 		{"TooltipEarlyGG", "Seconds threshold for min duration of a boss kill, \neverything lower gets ignored for auto stop"},
 		{"TooltipTimerFormatter", "Format for timer time, see https://en.cppreference.com/w/cpp/chrono/duration/formatter"},
+		{"InputUnifiedWindow", "Merge timer and segments window"},
+		{"WindowOptionUnified", "Timer+Segments"},
 
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},

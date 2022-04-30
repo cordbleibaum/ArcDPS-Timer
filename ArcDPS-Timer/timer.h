@@ -71,7 +71,6 @@ private:
 	std::shared_mutex segmentstatus_mutex;
 	ServerStatus serverStatus = ServerStatus::online;
 	std::string server_url;
-	bool isInstanced = false;
 	int update_id = -2;
 
 	void sync();
@@ -80,4 +79,7 @@ private:
 	void post_serverapi(std::string method, json payload = json::object());
 	std::string get_id() const;
 	void reset_segments();
+
+	void timer_window_content(float width = ImGui::GetWindowSize().x);
+	void segment_window_content();
 };
