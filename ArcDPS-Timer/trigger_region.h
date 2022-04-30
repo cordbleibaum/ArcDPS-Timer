@@ -132,9 +132,10 @@ private:
 	Translation& translation;
 
 	bool is_open = false;
+	bool is_help_open = false;
 	int selected_line = -1;
 
-	float sphere_radius = 1;
+	float sphere_radius = 2;
 
 	float plane_thickness = 1;
 	float plane_z = 0;

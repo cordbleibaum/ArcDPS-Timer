@@ -54,6 +54,7 @@ private:
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},
 		{"HeaderTriggerEditor", "Auto Segment Editor"},
+		{"HeaderTriggerEditorHelp", "Auto Segment Editor Help"},
 		{"TextPlayerPosition", "Player position: "},
 		{"TextAreaSphere", "Sphere trigger"},
 		{"TextInputRadius", "Radius"},
@@ -74,6 +75,13 @@ private:
 		{"ButtonSet", "Set"},
 		{"HeaderIsInRangeColumn", "In Range?"},
 		{"TextYes", "Yes"},
-		{"HeaderIsTriggeredColumn", "Is Triggered?"}
+		{"HeaderIsTriggeredColumn", "Is Triggered?"},
+		{"ButtonHelp", "Help"},
+		{"TriggerHelp1", "How to use the segment editor:"},
+		{"TriggerHelp2", "You can place triggers using the place buttons"},
+		{"TriggerHelp3", "There are currently to shapes of trigger : sphere and planes"},
+		{"TriggerHelp4", "Spheres just use the current position and a radius"},
+		{"TriggerHelp5", "Planes need two positions, a height and a thickness,\n which you have to set"},
+		{"TriggerHelp6", "Below is a table of current triggers and their status,\n you can select one and press delete to remove"}
 	};
 };

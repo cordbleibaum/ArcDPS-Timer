@@ -183,6 +183,7 @@
     <ClInclude Include="grouptracker.h" />
     <ClInclude Include="hash-library\crc32.h" />
     <ClInclude Include="imgui\imgui.h" />
+    <ClInclude Include="imgui\imgui_internal.h" />
     <ClInclude Include="lang.h" />
     <ClInclude Include="maptracker.h" />
     <ClInclude Include="mod.h" />

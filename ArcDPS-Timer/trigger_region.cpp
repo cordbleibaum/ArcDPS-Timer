@@ -7,6 +7,7 @@
 #include <fstream>
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "arcdps.h"
 
 using json = nlohmann::json;
@@ -143,112 +144,134 @@ TriggerEditor::TriggerEditor(Translation& translation, GW2MumbleLink& mumble_lin
 }
 
 void TriggerEditor::mod_imgui() {
-    if (is_open) {
-        if (ImGui::Begin(translation.get("HeaderTriggerEditor").c_str(), &is_open, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::SetNextWindowSize(ImVec2(600, 0));
+    if (is_open && ImGui::Begin(translation.get("HeaderTriggerEditor").c_str(), &is_open, ImGuiWindowFlags_AlwaysAutoResize)) {
 
-            std::string position_string = translation.get("TextPlayerPosition") + "%.1f %.1f %.1f";
-            ImGui::Text(position_string.c_str(), mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
-            ImGui::Separator();
+        ImGui::Columns(2, "##editorcolumns", false);
+        ImGui::SetColumnWidth(-1, 400);
 
-            ImGui::Text(translation.get("TextAreaSphere").c_str());
-            ImGui::InputFloat(translation.get("TextInputRadius").c_str(), &sphere_radius);
+        std::string position_string = translation.get("TextPlayerPosition") + "%.1f %.1f %.1f";
+        ImGui::Text(position_string.c_str(), mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
 
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 1, 0.2f, 0.3f));
-            if (ImGui::Button(translation.get("ButtonPlaceSphere").c_str())) {
-                std::shared_ptr<TriggerRegion> trigger(
-                    new SphereTrigger(Eigen::Vector3f(mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]), sphere_radius)
-                );
-                regions.push_back(trigger);
-            }
-            ImGui::PopStyleColor();
+        ImGui::Text(translation.get("TextAreaSphere").c_str());
+        ImGui::InputFloat(translation.get("TextInputRadius").c_str(), &sphere_radius);
 
-            ImGui::Separator();
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 1, 0.2f, 0.3f));
+        if (ImGui::Button(translation.get("ButtonPlaceSphere").c_str())) {
+            std::shared_ptr<TriggerRegion> trigger(
+                new SphereTrigger(Eigen::Vector3f(mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]), sphere_radius)
+            );
+            regions.push_back(trigger);
+        }
+        ImGui::PopStyleColor();
 
-            ImGui::Text(translation.get("TextAreaPlane").c_str());
-            ImGui::InputFloat(translation.get("InputThickness").c_str(), &plane_thickness);
-            ImGui::InputFloat(translation.get("InputZ").c_str(), &plane_z);
-            ImGui::SameLine();
-            ImGui::PushID("set_plane_z");
-            if (ImGui::Button(translation.get("ButtonSet").c_str())) {
-                plane_z = mumble_link->fAvatarPosition[1] - 0.5f;
-            }
-            ImGui::PopID();
-            ImGui::InputFloat(translation.get("InputHeight").c_str(), &plane_height);
-            ImGui::InputFloat2(translation.get("InputXY1").c_str(), &plane_position1[0]);
-            ImGui::SameLine();
-            ImGui::PushID("set_plane1");
-            if (ImGui::Button(translation.get("ButtonSet").c_str())) {
-                plane_position1[0] = mumble_link->fAvatarPosition[0];
-                plane_position1[1] = mumble_link->fAvatarPosition[2];
-            }
-            ImGui::PopID();
-            ImGui::InputFloat2(translation.get("InputXY2").c_str(), &plane_position2[0]);
-            ImGui::SameLine();
-            ImGui::PushID("set_plane2");
-            if (ImGui::Button(translation.get("ButtonSet").c_str())) {
-                plane_position2[0] = mumble_link->fAvatarPosition[0];
-                plane_position2[1] = mumble_link->fAvatarPosition[2];
-            }
-            ImGui::PopID();
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
 
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 1, 0.2f, 0.3f));
-            if (ImGui::Button(translation.get("ButtonPlacePlane").c_str())) {
-                std::shared_ptr<TriggerRegion> trigger(
-                    new PlaneTrigger(
-                        Eigen::Vector2f(plane_position1[0], plane_position1[1]), Eigen::Vector2f(plane_position2[0], plane_position2[1]),
-                        plane_height, plane_z, plane_thickness
-                    )
-                );
-                regions.push_back(trigger);
-            }
-            ImGui::PopStyleColor();
+        ImGui::Text(translation.get("TextAreaPlane").c_str());
+        ImGui::InputFloat(translation.get("InputThickness").c_str(), &plane_thickness);
+        ImGui::InputFloat(translation.get("InputZ").c_str(), &plane_z);
+        ImGui::SameLine();
+        ImGui::PushID("set_plane_z");
+        if (ImGui::Button(translation.get("ButtonSet").c_str())) {
+            plane_z = mumble_link->fAvatarPosition[1] - 0.5f;
+        }
+        ImGui::PopID();
+        ImGui::InputFloat(translation.get("InputHeight").c_str(), &plane_height);
+        ImGui::InputFloat2(translation.get("InputXY1").c_str(), &plane_position1[0]);
+        ImGui::SameLine();
+        ImGui::PushID("set_plane1");
+        if (ImGui::Button(translation.get("ButtonSet").c_str())) {
+            plane_position1[0] = mumble_link->fAvatarPosition[0];
+            plane_position1[1] = mumble_link->fAvatarPosition[2];
+        }
+        ImGui::PopID();
+        ImGui::InputFloat2(translation.get("InputXY2").c_str(), &plane_position2[0]);
+        ImGui::SameLine();
+        ImGui::PushID("set_plane2");
+        if (ImGui::Button(translation.get("ButtonSet").c_str())) {
+            plane_position2[0] = mumble_link->fAvatarPosition[0];
+            plane_position2[1] = mumble_link->fAvatarPosition[2];
+        }
+        ImGui::PopID();
 
-            ImGui::Separator();
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 1, 0.2f, 0.3f));
+        if (ImGui::Button(translation.get("ButtonPlacePlane").c_str())) {
+            std::shared_ptr<TriggerRegion> trigger(
+                new PlaneTrigger(
+                    Eigen::Vector2f(plane_position1[0], plane_position1[1]), Eigen::Vector2f(plane_position2[0], plane_position2[1]),
+                    plane_height, plane_z, plane_thickness
+                )
+            );
+            regions.push_back(trigger);
+        }
+        ImGui::PopStyleColor();
 
-            ImGui::BeginTable("##triggertable", 5);
-            ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
-            ImGui::TableSetupColumn(translation.get("HeaderTypeColumn").c_str());
-            ImGui::TableSetupColumn(translation.get("HeaderMiddleColumn").c_str());
-            ImGui::TableSetupColumn(translation.get("HeaderIsInRangeColumn").c_str());
-            ImGui::TableSetupColumn(translation.get("HeaderIsTriggeredColumn").c_str());
-            ImGui::TableHeadersRow();
+        ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-            for (size_t i = 0; i < regions.size(); ++i) {
-                const auto& region = regions[i];
+        ImGui::BeginTable("##triggertable", 5);
+        ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
+        ImGui::TableSetupColumn(translation.get("HeaderTypeColumn").c_str());
+        ImGui::TableSetupColumn(translation.get("HeaderMiddleColumn").c_str());
+        ImGui::TableSetupColumn(translation.get("HeaderIsInRangeColumn").c_str());
+        ImGui::TableSetupColumn(translation.get("HeaderIsTriggeredColumn").c_str());
+        ImGui::TableHeadersRow();
 
-                ImGui::TableNextRow();
+        for (size_t i = 0; i < regions.size(); ++i) {
+            const auto& region = regions[i];
 
-                ImGui::TableNextColumn();
-                if (ImGui::Selectable(std::to_string(i).c_str(), selected_line == i, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap)) {
-                    selected_line = selected_line == i ? -1 : i;
-                }
+            ImGui::TableNextRow();
 
-                ImGui::TableNextColumn();
-                ImGui::Text(translation.get(region->get_typename_id()).c_str());
-
-                ImGui::TableNextColumn();
-                auto middle = region->get_middle();
-                ImGui::Text("%.1f %.1f %.1f", middle.x(), middle.y(), middle.z());
-
-                ImGui::TableNextColumn();
-                Eigen::Vector3f player_position = Eigen::Vector3f(mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
-                if (region->check(player_position)) {
-                    ImGui::TextColored(ImVec4(0, 1, 0, 1), translation.get("TextYes").c_str());
-                }
-
-                ImGui::TableNextColumn();
-                if (region->get_is_triggered()) {
-                    ImGui::TextColored(ImVec4(0, 1, 0, 1), translation.get("TextYes").c_str());
-                }
+            ImGui::TableNextColumn();
+            if (ImGui::Selectable(std::to_string(i).c_str(), selected_line == i, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap)) {
+                selected_line = selected_line == i ? -1 : i;
             }
 
-            ImGui::EndTable();
+            ImGui::TableNextColumn();
+            ImGui::Text(translation.get(region->get_typename_id()).c_str());
 
-            if (ImGui::Button(translation.get("ButtonDelete").c_str()) && selected_line >= 0) {
-                regions.erase(regions.begin() + selected_line);
-                selected_line = -1;
+            ImGui::TableNextColumn();
+            auto middle = region->get_middle();
+            ImGui::Text("%.1f %.1f %.1f", middle.x(), middle.y(), middle.z());
+
+            ImGui::TableNextColumn();
+            Eigen::Vector3f player_position = Eigen::Vector3f(mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
+            if (region->check(player_position)) {
+                ImGui::TextColored(ImVec4(0, 1, 0, 1), translation.get("TextYes").c_str());
+            }
+
+            ImGui::TableNextColumn();
+            if (region->get_is_triggered()) {
+                ImGui::TextColored(ImVec4(0, 1, 0, 1), translation.get("TextYes").c_str());
             }
         }
+
+        ImGui::EndTable();
+
+        if (ImGui::Button(translation.get("ButtonDelete").c_str()) && selected_line >= 0) {
+            regions.erase(regions.begin() + selected_line);
+            selected_line = -1;
+        }
+
+        ImGui::NextColumn();
+        ImGui::SetColumnWidth(-1, 200);
+
+        if (ImGui::Button(translation.get("ButtonHelp").c_str())) {
+            is_help_open = true;
+        }
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
+
+        ImGui::Columns();
+        ImGui::End();
+    }
+
+    if (is_help_open && ImGui::Begin(translation.get("HeaderTriggerEditorHelp").c_str(), &is_help_open, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text(translation.get("TriggerHelp1").c_str());
+        ImGui::BulletText(translation.get("TriggerHelp2").c_str());
+        ImGui::BulletText(translation.get("TriggerHelp3").c_str());
+        ImGui::BulletText(translation.get("TriggerHelp4").c_str());
+        ImGui::BulletText(translation.get("TriggerHelp5").c_str());
+        ImGui::BulletText(translation.get("TriggerHelp6").c_str());
         ImGui::End();
     }
 }
