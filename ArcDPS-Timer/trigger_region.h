@@ -125,8 +125,8 @@ private:
 class TriggerEditor {
 public:
 	TriggerEditor(Translation& translation, GW2MumbleLink& mumble_link, std::vector<std::shared_ptr<TriggerRegion>>& regions);
-	void mod_options();
 	void mod_imgui();
+	void mod_windows();
 private:
 	GW2MumbleLink& mumble_link;
 	Translation& translation;

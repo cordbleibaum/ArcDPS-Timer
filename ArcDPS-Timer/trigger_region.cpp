@@ -142,14 +142,6 @@ TriggerEditor::TriggerEditor(Translation& translation, GW2MumbleLink& mumble_lin
     regions(regions) {
 }
 
-void TriggerEditor::mod_options() {
-    ImGui::Separator();
-    if (ImGui::Button(translation.get("ButtonOpenTriggerEditor").c_str())) {
-        is_open = true;
-        selected_line = -1;
-    }
-}
-
 void TriggerEditor::mod_imgui() {
     if (is_open) {
         if (ImGui::Begin(translation.get("HeaderTriggerEditor").c_str(), &is_open, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -260,6 +252,10 @@ void TriggerEditor::mod_imgui() {
         }
         ImGui::End();
     }
+}
+
+void TriggerEditor::mod_windows() {
+    ImGui::Checkbox(translation.get("WindowOptionTriggerEditor").c_str(), &is_open);
 }
 
 void region_to_json(json& j, const TriggerRegion* region) {

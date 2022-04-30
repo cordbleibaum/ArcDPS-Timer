@@ -61,7 +61,6 @@ uintptr_t mod_release() {
 
 uintptr_t mod_options() {
 	settings.show_options();
-	trigger_editor.mod_options();
 
 	return 0;
 }
@@ -69,6 +68,7 @@ uintptr_t mod_options() {
 uintptr_t mod_windows(const char* windowname) {
 	if (!windowname) {
 		settings.show_windows();
+		trigger_editor.mod_windows();
 	}
 	return 0;
 }
