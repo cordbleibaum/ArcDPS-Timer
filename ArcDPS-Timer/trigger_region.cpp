@@ -152,18 +152,9 @@ void TriggerEditor::mod_imgui() {
 
             ImGui::Text(translation.get("TextAreaSphere").c_str());
             ImGui::InputFloat(translation.get("TextInputRadius").c_str(), &sphere_radius);
-            ImGui::InputFloat3(translation.get("InputXYZ").c_str(), &sphere_position[0]);
-            ImGui::SameLine();
-            ImGui::PushID("set_sphere_position");
-            if (ImGui::Button(translation.get("ButtonSet").c_str())) {
-                sphere_position[0] = mumble_link->fAvatarPosition[0];
-                sphere_position[1] = mumble_link->fAvatarPosition[2];
-                sphere_position[2] = mumble_link->fAvatarPosition[1];
-            }
-            ImGui::PopID();
             if (ImGui::Button(translation.get("ButtonPlaceSphere").c_str())) {
                 std::shared_ptr<TriggerRegion> trigger(
-                    new SphereTrigger(Eigen::Vector3f(sphere_position[0], sphere_position[1], sphere_position[2]), sphere_radius)
+                    new SphereTrigger(Eigen::Vector3f(mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]), sphere_radius)
                 );
                 regions.push_back(trigger);
             }

@@ -135,7 +135,6 @@ private:
 	int selected_line = -1;
 
 	float sphere_radius = 1;
-	std::array<float, 3> sphere_position = { 0 };
 
 	float plane_thickness = 1;
 	float plane_z = 0;
