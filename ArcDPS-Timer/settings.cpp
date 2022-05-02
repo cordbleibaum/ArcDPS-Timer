@@ -9,10 +9,10 @@ using json = nlohmann::json;
 #include "arcdps-extension/imgui_stdlib.h"
 #include "arcdps-extension/Widgets.h"
 
-constexpr int settings_version = 9;
+constexpr int current_settings_version = 9;
 
 Settings::Settings(std::string file, Translation& translation)
-:	settings_version(settings_version),
+:	settings_version(current_settings_version),
 	config_file(file),
 	translation(translation)
 {
