@@ -11,6 +11,9 @@ Download the latest version from [github releases](https://github.com/cordbleiba
 Then put the .dll file into the same folder as arcdps (normally `<Guild Wars 2>/bin64` or `<Guild Wars 2>/addons/arcdps` if using mod loader).  
 To disable, just remove the .dll or move it to a different folder.
 
+## Troubleshooting
+If the DLL is not loaded an d the options do not show up, make sure, that you have installed the latest C++ 2015-2022 Redistributable.
+You can download the latest Redistributable from [Microsofts download page](https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170). 
 
 ## Translations
 Translations can be added by creating a file in `<Guild Wars 2>/addons/arcdps` called `timer_translation.json`.
