@@ -118,7 +118,7 @@ void TriggerWatcher::reset() {
     }
 }
 
-void TriggerWatcher::map_change() {
+void TriggerWatcher::map_change(uint32_t map_id) {
     json triggers_out = regions;
     std::ofstream o(trigger_directory + std::to_string(last_map_id) + ".json");
     o << std::setw(4) << triggers_out << std::endl;
@@ -312,7 +312,7 @@ void TriggerEditor::mod_windows() {
     ImGui::Checkbox(translation.get("WindowOptionTriggerEditor").c_str(), &is_open);
 }
 
-void TriggerEditor::map_change() {
+void TriggerEditor::map_change(uint32_t map_id) {
     if (std::filesystem::exists(trigger_set_directory + std::to_string(mumble_link->getMumbleContext()->mapId) + ".json")) {
         json triggers_in;
         std::ifstream input(trigger_set_directory + std::to_string(mumble_link->getMumbleContext()->mapId) + ".json");

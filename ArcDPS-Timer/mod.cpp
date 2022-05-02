@@ -33,6 +33,7 @@ Logger logger(mumble_link, settings);
 std::chrono::system_clock::time_point last_ntp_sync;
 
 boost::signals2::signal<void(void)> mod_windows_signal;
+boost::signals2::signal<void(void)> mod_options_signal;
 
 arcdps_exports* mod_init() {
 	memset(&arc_exports, 0, sizeof(arcdps_exports));
@@ -67,9 +68,12 @@ arcdps_exports* mod_init() {
 
 	map_tracker.map_change_signal.connect(std::bind(&Timer::map_change, std::ref(timer), std::placeholders::_1));
 	map_tracker.map_change_signal.connect(std::bind(&Logger::map_change, std::ref(logger), std::placeholders::_1));
+	map_tracker.map_change_signal.connect(std::bind(&TriggerWatcher::map_change, std::ref(trigger_watcher), std::placeholders::_1));
+	map_tracker.map_change_signal.connect(std::bind(&TriggerEditor::map_change, std::ref(trigger_editor), std::placeholders::_1));
 
 	mod_windows_signal.connect(std::bind(&Settings::mod_windows, std::ref(settings)));
 	mod_windows_signal.connect(std::bind(&TriggerEditor::mod_windows, std::ref(trigger_editor)));
+	mod_options_signal.connect(std::bind(&Settings::mod_options, std::ref(settings)));
 
 	log_debug("timer: done mod_init");
 	return &arc_exports;
@@ -81,7 +85,7 @@ uintptr_t mod_release() {
 }
 
 uintptr_t mod_options() {
-	settings.show_options();
+	mod_options_signal();
 
 	return 0;
 }
@@ -113,11 +117,6 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 	if (trigger_watcher.watch()) {
 		timer.segment();
-	}
-
-	if (map_tracker.watch()) {
-		trigger_watcher.map_change();
-		trigger_editor.map_change();
 	}
 
 	timer.mod_imgui();

@@ -98,7 +98,7 @@ void Settings::save() {
 	o << std::setw(4) << config << std::endl;
 }
 
-void Settings::show_options() {
+void Settings::mod_options() {
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
 
 	ImGui::Checkbox(translation.get("InputSaveLogs").c_str(), &save_logs);

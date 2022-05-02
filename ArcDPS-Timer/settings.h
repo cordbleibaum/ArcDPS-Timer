@@ -36,7 +36,7 @@ class Settings {
 public:
 	Settings(std::string file, Translation& translation);
 	void save();
-	void show_options();
+	void mod_options();
 	void mod_windows();
 
 	bool show_timer;

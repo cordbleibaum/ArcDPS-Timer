@@ -113,7 +113,7 @@ public:
 	TriggerWatcher(GW2MumbleLink& mumble_link);
 	bool watch();
 	void reset();
-	void map_change();
+	void map_change(uint32_t map_id);
 	~TriggerWatcher();
 
 	std::vector<std::shared_ptr<TriggerRegion>> regions;
@@ -128,7 +128,7 @@ public:
 	TriggerEditor(Translation& translation, GW2MumbleLink& mumble_link, std::vector<std::shared_ptr<TriggerRegion>>& regions);
 	void mod_imgui();
 	void mod_windows();
-	void map_change();
+	void map_change(uint32_t map_id);
 private:
 	GW2MumbleLink& mumble_link;
 	Translation& translation;
