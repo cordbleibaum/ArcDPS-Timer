@@ -115,6 +115,8 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		});
 	}
 
+	map_tracker.watch();
+
 	if (trigger_watcher.watch()) {
 		timer.segment();
 	}
