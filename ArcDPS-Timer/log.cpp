@@ -21,7 +21,6 @@ Logger::Logger(GW2MumbleLink& mumble_link, Settings& settings)
 }
 
 void Logger::map_change(uint32_t map_id) {
-	add_log();
 	save_log();
 	this->map_id = map_id;
 	is_instanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
@@ -32,15 +31,15 @@ void Logger::start(std::chrono::system_clock::time_point time) {
 }
 
 void Logger::stop(std::chrono::system_clock::time_point time) {
+	end_time = time;
 	if (is_instanced) {
-		end_time = time;
 		add_log();
 	}
 }
 
 void Logger::reset(std::chrono::system_clock::time_point time) {
+	end_time = time;
 	if (is_instanced) {
-		end_time = time;
 		add_log();
 	}
 }
@@ -53,7 +52,6 @@ void Logger::segment(int segment_num, std::chrono::system_clock::time_point time
 
 Logger::~Logger() {
 	if (is_instanced) {
-		add_log();
 		save_log_thread(events, map_id);
 	}
 }
@@ -110,6 +108,7 @@ void Logger::add_log() {
 	for (int i = 0; i <= max_segment; ++i) {
 		events.emplace_back(segments[i], LogEvent::SEGMENT);
 	}
+	segments.clear();
 
 	events.emplace_back(end_time, LogEvent::END);
 }
