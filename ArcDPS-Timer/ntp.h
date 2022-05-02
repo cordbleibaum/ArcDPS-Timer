@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <stdexcept>
 
 struct NTPPacket {
     uint8_t li_vn_mode; // Eight bits. li, vn, and mode.
@@ -29,6 +30,11 @@ struct NTPPacket {
     uint32_t txTm_s; // 32 bits and the most important field the client cares
                      // about. Transmit time-stamp seconds.
     uint32_t txTm_f; // 32 bits. Transmit time-stamp fraction of a second.
+};
+
+class NTPException : public std::runtime_error {
+public:
+    explicit NTPException(const std::string& message);
 };
 
 struct NTPInfo {

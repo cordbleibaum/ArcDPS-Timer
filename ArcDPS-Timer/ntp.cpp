@@ -30,7 +30,12 @@ double NTPClient::get_time_delta() {
 		}
 	}
 
-	return best_bias.offset;
+	double offset = best_bias.offset;
+	if (offset > 10) {
+		throw NTPException("Time sync failed, offset too large to be plausible");
+	}
+
+	return offset;
 }
 
 NTPInfo NTPClient::request_time_delta(int retries) {
@@ -90,4 +95,8 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 	info.bias = ((t3-t2) + (t1-t0))/(2000.0);
 
 	return info;
+}
+
+NTPException::NTPException(const std::string& message) 
+: runtime_error(message) {
 }
