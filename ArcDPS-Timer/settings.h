@@ -37,7 +37,7 @@ public:
 	Settings(std::string file, Translation& translation);
 	void save();
 	void show_options();
-	void show_windows();
+	void mod_windows();
 
 	bool show_timer;
 	bool show_segments;

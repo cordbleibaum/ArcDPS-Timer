@@ -4,6 +4,7 @@
 #include <cmath>
 #include <chrono>
 #include <functional>
+#include <boost/signals2/signal.hpp>
 
 #include "arcdps-extension/imgui_stdlib.h"
 
@@ -30,6 +31,8 @@ Timer timer(settings, mumble_link, group_tracker, translation, map_tracker, "htt
 Logger logger(mumble_link, settings);
 
 std::chrono::system_clock::time_point last_ntp_sync;
+
+boost::signals2::signal<void(void)> mod_windows_signal;
 
 arcdps_exports* mod_init() {
 	memset(&arc_exports, 0, sizeof(arcdps_exports));
@@ -65,6 +68,8 @@ arcdps_exports* mod_init() {
 	map_tracker.map_change_signal.connect(std::bind(&Timer::map_change, std::ref(timer), std::placeholders::_1));
 	map_tracker.map_change_signal.connect(std::bind(&Logger::map_change, std::ref(logger), std::placeholders::_1));
 
+	mod_windows_signal.connect(std::bind(&Settings::mod_windows, std::ref(settings)));
+	mod_windows_signal.connect(std::bind(&TriggerEditor::mod_windows, std::ref(trigger_editor)));
 
 	log_debug("timer: done mod_init");
 	return &arc_exports;
@@ -83,8 +88,7 @@ uintptr_t mod_options() {
 
 uintptr_t mod_windows(const char* windowname) {
 	if (!windowname) {
-		settings.show_windows();
-		trigger_editor.mod_windows();
+		mod_windows_signal();
 	}
 	return 0;
 }

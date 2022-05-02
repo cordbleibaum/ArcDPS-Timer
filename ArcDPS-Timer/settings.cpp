@@ -202,7 +202,7 @@ void Settings::show_options() {
 	}
 }
 
-void Settings::show_windows() {
+void Settings::mod_windows() {
 	if (!unified_window) {
 		ImGui::Checkbox(translation.get("WindowOptionTimer").c_str(), &show_timer);
 		ImGui::Checkbox(translation.get("WindowOptionSegments").c_str(), &show_segments);
