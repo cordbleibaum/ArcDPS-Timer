@@ -68,7 +68,7 @@ void Logger::save_log() {
 }
 
 void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::time_point, LogEvent>> events_save, uint32_t current_map_id) {
-	if (events.size() < 1) {
+	if (events.size() < 1 || !settings.save_logs) {
 		return;
 	}
 
