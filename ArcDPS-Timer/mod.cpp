@@ -46,8 +46,14 @@ arcdps_exports* mod_init() {
 
 	timer.clock_offset = 0;
 	defer([&]() {
-		timer.clock_offset = ntp.get_time_delta();
-		log_debug("timer: clock offset: " + std::to_string(timer.clock_offset));
+		try {
+			timer.clock_offset = ntp.get_time_delta();
+			log_debug("timer: clock offset: " + std::to_string(timer.clock_offset));
+		}
+		catch (NTPException& ex) {
+			log("timer: ntp sync failed");
+			log(std::string(ex.what()));
+		}
 	});
 
 	timer.segment_reset_signal.connect(std::bind(&TriggerWatcher::reset, std::ref(trigger_watcher)));
