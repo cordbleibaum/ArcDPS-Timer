@@ -41,7 +41,7 @@ public:
 	void prepare();
 	void segment();
 	void clear_segments();
-	void map_change();
+	void map_change(uint32_t map_id);
 
 	void mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id);
 	void mod_imgui();
@@ -49,6 +49,11 @@ public:
 	double clock_offset = 0;
 
 	boost::signals2::signal<void()> segment_reset_signal;
+	boost::signals2::signal<void(std::chrono::system_clock::time_point)> start_signal;
+	boost::signals2::signal<void(std::chrono::system_clock::time_point)> stop_signal;
+	boost::signals2::signal<void(std::chrono::system_clock::time_point)> reset_signal;
+	boost::signals2::signal<void(std::chrono::system_clock::time_point)> prepare_signal;
+	boost::signals2::signal<void(std::chrono::system_clock::time_point)> segment_signal;
 private:
 	Settings& settings;
 	GW2MumbleLink& mumble_link;

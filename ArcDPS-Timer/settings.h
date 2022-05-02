@@ -55,6 +55,7 @@ public:
 	bool auto_stop;
 	int early_gg_threshold;
 	WPARAM segment_key;
+	bool save_logs;
 
 	ImVec4 start_button_color;
 	ImVec4 stop_button_color;

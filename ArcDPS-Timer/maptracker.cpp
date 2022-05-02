@@ -18,6 +18,8 @@ bool MapTracker::watch() {
 	if (map_id != mumble_link->getMumbleContext()->mapId) {
 		map_id = mumble_link->getMumbleContext()->mapId;
 		
+		map_change_signal(map_id);
+
 		std::unique_lock lock(mapcode_mutex);
 
 		sockaddr_in* address = (sockaddr_in*) &(mumble_link->getMumbleContext()->serverAddress[0]);
@@ -28,6 +30,7 @@ bool MapTracker::watch() {
 			log_arc("timer: error: ipv6 is unsupported");
 			return false;
 		}
+
 		return true;
 	}
 	return false;

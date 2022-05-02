@@ -16,6 +16,7 @@
 #include "lang.h"
 #include "maptracker.h"
 #include "util.h"
+#include "log.h"
 
 Translation translation;
 Settings settings("addons/arcdps/timer.json", translation);
@@ -26,6 +27,7 @@ MapTracker map_tracker(mumble_link);
 TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
 Timer timer(settings, mumble_link, group_tracker, translation, map_tracker, "http://3.72.94.166:5001/");
+Logger logger(mumble_link, settings);
 
 std::chrono::system_clock::time_point last_ntp_sync;
 
@@ -49,6 +51,15 @@ arcdps_exports* mod_init() {
 	});
 
 	timer.segment_reset_signal.connect(std::bind(&TriggerWatcher::reset, std::ref(trigger_watcher)));
+	timer.start_signal.connect(std::bind(&Logger::start, std::ref(logger), std::placeholders::_1));
+	timer.stop_signal.connect(std::bind(&Logger::stop, std::ref(logger), std::placeholders::_1));
+	timer.reset_signal.connect(std::bind(&Logger::reset, std::ref(logger), std::placeholders::_1));
+	timer.prepare_signal.connect(std::bind(&Logger::prepare, std::ref(logger), std::placeholders::_1));
+	timer.segment_signal.connect(std::bind(&Logger::segment, std::ref(logger), std::placeholders::_1));
+
+	map_tracker.map_change_signal.connect(std::bind(&Timer::map_change, std::ref(timer), std::placeholders::_1));
+	map_tracker.map_change_signal.connect(std::bind(&Logger::map_change, std::ref(logger), std::placeholders::_1));
+
 
 	log_debug("timer: done mod_init");
 	return &arc_exports;
@@ -90,7 +101,6 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	}
 
 	if (map_tracker.watch()) {
-		timer.map_change();
 		trigger_watcher.map_change();
 		trigger_editor.map_change();
 	}

@@ -36,6 +36,7 @@ Settings::Settings(std::string file, Translation& translation)
 	early_gg_threshold = config.value("early_gg_threshold", 5);
 	show_segments = config.value("show_segments", false);
 	unified_window = config.value("unified_window", false);
+	save_logs = config.value("save_logs", true);
 
 	ImVec4 default_color = ImVec4(0.62f, 0.60f, 0.65f, 0.30f);
 	start_button_color = config.value("start_button_color", default_color);
@@ -92,12 +93,15 @@ void Settings::save() {
 	config["stop_button_color"] = stop_button_color;
 	config["reset_button_color"] = reset_button_color;
 	config["prepare_button_color"] = prepare_button_color;
+	config["save_logs"] = save_logs;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
 
 void Settings::show_options() {
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
+
+	ImGui::Checkbox(translation.get("InputSaveLogs").c_str(), &save_logs);
 
 	ImGui::Checkbox(translation.get("InputUseCustomID").c_str(), &use_custom_id);
 	if (use_custom_id) {

@@ -78,6 +78,9 @@
     <ClInclude Include="imgui\imgui_internal.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mod.cpp">
@@ -133,6 +136,9 @@
     </ClCompile>
     <ClCompile Include="arcdps-extension\imgui_stdlib.cpp">
       <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="log.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

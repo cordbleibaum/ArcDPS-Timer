@@ -43,6 +43,7 @@ void Timer::start(std::chrono::system_clock::time_point time) {
 	current_time = std::chrono::system_clock::now();
 	post_serverapi("start", {{"time", format_time(start_time)}});
 	reset_segments();
+	start_signal(start_time);
 }
 
 void Timer::stop(std::chrono::system_clock::time_point time) {
@@ -54,6 +55,7 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 		status = TimerStatus::stopped;
 		current_time = time;
 		post_serverapi("stop", {{"time", format_time(current_time)}});
+		stop_signal(current_time);
 	}
 }
 
@@ -64,6 +66,7 @@ void Timer::reset() {
 	start_time = current_time = std::chrono::system_clock::now();
 	reset_segments();
 	post_serverapi("reset");
+	reset_signal(current_time);
 }
 
 void Timer::prepare() {
@@ -74,6 +77,7 @@ void Timer::prepare() {
 	std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
 	reset_segments();
 	post_serverapi("prepare");
+	prepare_signal(current_time);
 }
 
 void Timer::sync() {
@@ -111,22 +115,31 @@ void Timer::sync() {
 
 			try {
 				auto data = json::parse(response.text);
-
+				// TODO check for log signals to issue
 				{
 					std::unique_lock lock(timerstatus_mutex);
-
+					
 					start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
 					update_id = data["update_id"];
 					if (data["status"] == "running") {
+						if (status != TimerStatus::running) {
+							start_signal(start_time);
+						}
 						status = TimerStatus::running;
 					}
 					else if (data["status"] == "stopped") {
-						status = TimerStatus::stopped;
 						current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+						if (status != TimerStatus::stopped) {
+							stop_signal(current_time);
+						}
+						status = TimerStatus::stopped;
 					}
 					else if (data["status"] == "prepared") {
-						status = TimerStatus::prepared;
 						current_time = std::chrono::system_clock::now();
+						if (status != TimerStatus::prepared) {
+							prepare_signal(current_time);
+						}
+						status = TimerStatus::prepared;
 						std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
 					}
 				}
@@ -368,6 +381,8 @@ void Timer::segment() {
 		{"segment_num", segment_num},
 		{"time", format_time(segment.end)}
 	});
+
+	segment_signal(current_time);
 }
 
 void Timer::clear_segments() {
@@ -378,7 +393,7 @@ void Timer::clear_segments() {
 	segment_reset_signal();
 }
 
-void Timer::map_change() {
+void Timer::map_change(uint32_t map_id) {
 	if (settings.auto_prepare && mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE) {
 		log_debug("timer: preparing on map change");
 		prepare();

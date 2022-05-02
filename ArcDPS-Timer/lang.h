@@ -54,6 +54,7 @@ private:
 		{"InputStopButtonColor", "Stop Button Color"},
 		{"InputResetButtonColor", "Reset Button Color"},
 		{"InputPrepareButtonColor", "Prepare Button Color"},
+		{"InputSaveLogs", "Save Logs"},
 
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},
