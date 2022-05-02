@@ -64,6 +64,7 @@ void Logger::save_log() {
 	defer([&, current_events, current_map_id]() {
 		save_log_thread(current_events, current_map_id);
 	});
+	events.clear();
 }
 
 void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::time_point, LogEvent>> events_save, uint32_t current_map_id) {
