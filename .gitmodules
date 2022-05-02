@@ -7,3 +7,6 @@
 [submodule "ArcDPS-Timer/arcdps-extension"]
 	path = ArcDPS-Timer/arcdps-extension
 	url = https://github.com/knoxfighter/arcdps-extension.git
+[submodule "ArcDPS-Timer/unofficial_extras"]
+	path = ArcDPS-Timer/unofficial_extras
+	url = https://github.com/Krappa322/arcdps_unofficial_extras_releases.git
