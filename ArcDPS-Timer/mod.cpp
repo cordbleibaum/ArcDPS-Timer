@@ -99,9 +99,9 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	if (std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::system_clock::now() - last_ntp_sync).count() > 128) {
 		last_ntp_sync = std::chrono::system_clock::now();
 		defer([&]() {
+			last_ntp_sync = std::chrono::system_clock::now();
 			try {
 				timer.clock_offset = ntp.get_time_delta();
-				last_ntp_sync = std::chrono::system_clock::now();
 				log_debug("timer: clock offset: " + std::to_string(timer.clock_offset));
 			}
 			catch (NTPException& ex) {
