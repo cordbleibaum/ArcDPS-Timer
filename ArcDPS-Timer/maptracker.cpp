@@ -14,7 +14,7 @@ std::string MapTracker::get_instance_id() {
 	return map_code;
 }
 
-bool MapTracker::watch() {
+void MapTracker::watch() {
 	if (map_id != mumble_link->getMumbleContext()->mapId) {
 		map_id = mumble_link->getMumbleContext()->mapId;
 		
@@ -28,10 +28,6 @@ bool MapTracker::watch() {
 		}
 		else {
 			log_arc("timer: error: ipv6 is unsupported");
-			return false;
 		}
-
-		return true;
 	}
-	return false;
 }

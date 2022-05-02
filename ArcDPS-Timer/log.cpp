@@ -68,7 +68,7 @@ void Logger::save_log() {
 }
 
 void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::time_point, LogEvent>> events_save, uint32_t current_map_id) {
-	if (events.size() < 1 || !settings.save_logs) {
+	if (events_save.size() < 1 || !settings.save_logs) {
 		return;
 	}
 
@@ -76,7 +76,7 @@ void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::
 
 	auto map_response = cpr::Get(
 		cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(current_map_id) },
-		cpr::Timeout{ 5000 }
+		cpr::Timeout{ 8000 }
 	);
 
 	std::string map_name = "Unknown";

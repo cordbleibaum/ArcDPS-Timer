@@ -12,7 +12,7 @@ class MapTracker {
 public:
 	MapTracker(GW2MumbleLink& mumble_link);
 	std::string get_instance_id();
-	bool watch();
+	void watch();
 
 	boost::signals2::signal<void(uint32_t)> map_change_signal;
 private:
