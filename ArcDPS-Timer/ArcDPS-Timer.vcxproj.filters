@@ -81,6 +81,9 @@
     <ClInclude Include="log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="arcdps-extension\KeyInput.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mod.cpp">
@@ -139,6 +142,15 @@
     </ClCompile>
     <ClCompile Include="log.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="arcdps-extension\KeyInput.cpp">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="unofficial_extras\KeyBindsTranslation.cpp">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="unofficial_extras\KeyBindHelper.cpp">
+      <Filter>Library Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

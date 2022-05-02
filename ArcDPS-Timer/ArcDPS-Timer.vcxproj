@@ -177,6 +177,7 @@
     <ClInclude Include="arcdps-extension\arcdps_structs.h" />
     <ClInclude Include="arcdps-extension\arcdps_structs_slim.h" />
     <ClInclude Include="arcdps-extension\imgui_stdlib.h" />
+    <ClInclude Include="arcdps-extension\KeyInput.h" />
     <ClInclude Include="arcdps-extension\MumbleLink.h" />
     <ClInclude Include="arcdps-extension\Widgets.h" />
     <ClInclude Include="arcdps.h" />
@@ -197,6 +198,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="arcdps-extension\imgui_stdlib.cpp" />
+    <ClCompile Include="arcdps-extension\KeyInput.cpp" />
     <ClCompile Include="arcdps-extension\Widgets.cpp" />
     <ClCompile Include="arcdps.cpp" />
     <ClCompile Include="grouptracker.cpp" />
@@ -214,6 +216,8 @@
     <ClCompile Include="mod.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="trigger_region.cpp" />
+    <ClCompile Include="unofficial_extras\KeyBindHelper.cpp" />
+    <ClCompile Include="unofficial_extras\KeyBindsTranslation.cpp" />
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

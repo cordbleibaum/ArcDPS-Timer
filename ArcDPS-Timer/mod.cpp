@@ -135,32 +135,39 @@ uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint
 }
 
 uintptr_t mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	if (settings.mod_wnd(hWnd, uMsg, wParam, lParam)) {
+		return uMsg;
+	}
+
+	const int vkey = (int)wParam;
+
 	switch (uMsg) {
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN: {
-		const int vkey = (int)wParam;
-
-		if (vkey == settings.start_key) {
+		if (vkey == settings.start_key.Code) {
 			log_debug("timer: starting manually");
 			timer.start();
 		}
-		else if (vkey == settings.stop_key) {
+		else if (vkey == settings.stop_key.Code) {
 			log_debug("timer: stopping manually");
 			timer.stop();
 		}
-		else if (vkey == settings.reset_key) {
+		else if (vkey == settings.reset_key.Code) {
 			log_debug("timer: resetting manually");
 			timer.reset();
 		}
-		else if (vkey == settings.prepare_key) {
+		else if (vkey == settings.prepare_key.Code) {
 			log_debug("timer: preparing manually");
 			timer.prepare();
 		}
-		else if (vkey == settings.segment_key) {
+		else if (vkey == settings.segment_key.Code) {
 			log_debug("timer: segment manually");
 			timer.segment();
 		}
 
+		break;
+	case WM_INPUTLANGCHANGE:
+		settings.current_hkl = (HKL) lParam;
 		break;
 	}
 	default:

@@ -8,8 +8,9 @@ using json = nlohmann::json;
 #include "arcdps.h"
 #include "arcdps-extension/imgui_stdlib.h"
 #include "arcdps-extension/Widgets.h"
+#include "arcdps-extension/KeyInput.h"
 
-constexpr int current_settings_version = 9;
+constexpr int current_settings_version = 10;
 
 Settings::Settings(std::string file, Translation& translation)
 :	settings_version(current_settings_version),
@@ -37,37 +38,17 @@ Settings::Settings(std::string file, Translation& translation)
 	show_segments = config.value("show_segments", false);
 	unified_window = config.value("unified_window", false);
 	save_logs = config.value("save_logs", true);
+	start_key = config.value("start_key", KeyBinds::Key());
+	start_key = config.value("stop_key", KeyBinds::Key());
+	start_key = config.value("reset_key", KeyBinds::Key());
+	start_key = config.value("prepare_key", KeyBinds::Key());
+	start_key = config.value("segment_key", KeyBinds::Key());
 
 	ImVec4 default_color = ImVec4(0.62f, 0.60f, 0.65f, 0.30f);
 	start_button_color = config.value("start_button_color", default_color);
 	stop_button_color = config.value("stop_button_color", default_color);
 	reset_button_color = config.value("reset_button_color", default_color);
 	prepare_button_color = config.value("prepare_button_color", default_color);
-
-	this->start_key = config.value("start_key", 0);
-	std::string start_key = std::to_string(this->start_key);
-	memset(start_key_buffer, 0, sizeof(start_key_buffer));
-	start_key.copy(start_key_buffer, start_key.size());
-
-	this->stop_key = config.value("stop_key", 0);
-	std::string stop_key = std::to_string(this->stop_key);
-	memset(stop_key_buffer, 0, sizeof(stop_key_buffer));
-	stop_key.copy(stop_key_buffer, stop_key.size());
-
-	this->reset_key = config.value("reset_key", 0);
-	std::string reset_key = std::to_string(this->reset_key);
-	memset(reset_key_buffer, 0, sizeof(reset_key_buffer));
-	reset_key.copy(reset_key_buffer, reset_key.size());
-
-	this->prepare_key = config.value("prepare_key", 0);
-	std::string prepare_key = std::to_string(this->prepare_key);
-	memset(prepare_key_buffer, 0, sizeof(prepare_key_buffer));
-	prepare_key.copy(prepare_key_buffer, prepare_key.size());
-
-	this->segment_key = config.value("segment_key", 0);
-	std::string segment_key = std::to_string(this->segment_key);
-	memset(segment_key_buffer, 0, sizeof(segment_key));
-	prepare_key.copy(segment_key_buffer, segment_key.size());
 }
 
 void Settings::save() {
@@ -135,11 +116,11 @@ void Settings::mod_options() {
 	ImGui::Checkbox(translation.get("InputHideButtons").c_str(), &hide_buttons);
 	ImGui::Checkbox(translation.get("InputUnifiedWindow").c_str(), &unified_window);
 
-	ImGuiEx::KeyInput(translation.get("InputStartKey").c_str(), "##startkey", start_key_buffer, sizeof(start_key_buffer), start_key, translation.get("TextKeyNotSet").c_str());
-	ImGuiEx::KeyInput(translation.get("InputStopKey").c_str(), "##stopkey", stop_key_buffer, sizeof(stop_key_buffer), stop_key, translation.get("TextKeyNotSet").c_str());
-	ImGuiEx::KeyInput(translation.get("InputResetKey").c_str(), "##resetkey", reset_key_buffer, sizeof(reset_key_buffer), reset_key, translation.get("TextKeyNotSet").c_str());
-	ImGuiEx::KeyInput(translation.get("InputPrepareKey").c_str(), "##preparekey", prepare_key_buffer, sizeof(prepare_key_buffer), prepare_key, translation.get("TextKeyNotSet").c_str());
-	ImGuiEx::KeyInput(translation.get("InputSegmentKey").c_str(), "##segmentkey", segment_key_buffer, sizeof(segment_key_buffer), segment_key, translation.get("TextKeyNotSet").c_str());
+	ImGuiEx::KeyCodeInput(translation.get("InputStartKey").c_str(), start_key, Language::English, current_hkl);
+	ImGuiEx::KeyCodeInput(translation.get("InputStopKey").c_str(), stop_key, Language::English, current_hkl);
+	ImGuiEx::KeyCodeInput(translation.get("InputResetKey").c_str(), reset_key, Language::English, current_hkl);
+	ImGuiEx::KeyCodeInput(translation.get("InputPrepareKey").c_str(), prepare_key, Language::English, current_hkl);
+	ImGuiEx::KeyCodeInput(translation.get("InputSegmentKey").c_str(), segment_key, Language::English, current_hkl);
 
 	ImGui::Separator();
 
@@ -210,4 +191,8 @@ void Settings::mod_windows() {
 	else {
 		ImGui::Checkbox(translation.get("WindowOptionUnified").c_str(), &show_timer);
 	}
+}
+
+bool Settings::mod_wnd(HWND pWindowHandle, UINT pMessage, WPARAM pAdditionalW, LPARAM pAdditionalL) {
+	return ImGuiEx::KeyCodeInputWndHandle(pWindowHandle, pMessage, pAdditionalW, pAdditionalL);
 }
