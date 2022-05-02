@@ -54,8 +54,7 @@ arcdps_exports* mod_init() {
 	timer.start_signal.connect(std::bind(&Logger::start, std::ref(logger), std::placeholders::_1));
 	timer.stop_signal.connect(std::bind(&Logger::stop, std::ref(logger), std::placeholders::_1));
 	timer.reset_signal.connect(std::bind(&Logger::reset, std::ref(logger), std::placeholders::_1));
-	timer.prepare_signal.connect(std::bind(&Logger::prepare, std::ref(logger), std::placeholders::_1));
-	timer.segment_signal.connect(std::bind(&Logger::segment, std::ref(logger), std::placeholders::_1));
+	timer.segment_signal.connect(std::bind(&Logger::segment, std::ref(logger), std::placeholders::_1, std::placeholders::_2));
 
 	map_tracker.map_change_signal.connect(std::bind(&Timer::map_change, std::ref(timer), std::placeholders::_1));
 	map_tracker.map_change_signal.connect(std::bind(&Logger::map_change, std::ref(logger), std::placeholders::_1));

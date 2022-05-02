@@ -115,30 +115,24 @@ void Timer::sync() {
 
 			try {
 				auto data = json::parse(response.text);
-				// TODO check for log signals to issue
+
 				{
 					std::unique_lock lock(timerstatus_mutex);
 					
 					start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
 					update_id = data["update_id"];
 					if (data["status"] == "running") {
-						if (status != TimerStatus::running) {
-							start_signal(start_time);
-						}
+						start_signal(start_time);
 						status = TimerStatus::running;
 					}
 					else if (data["status"] == "stopped") {
 						current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-						if (status != TimerStatus::stopped) {
-							stop_signal(current_time);
-						}
+						stop_signal(current_time);
 						status = TimerStatus::stopped;
 					}
 					else if (data["status"] == "prepared") {
 						current_time = std::chrono::system_clock::now();
-						if (status != TimerStatus::prepared) {
-							prepare_signal(current_time);
-						}
+						prepare_signal(current_time);
 						status = TimerStatus::prepared;
 						std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
 					}
@@ -148,6 +142,7 @@ void Timer::sync() {
 					std::unique_lock lock(segmentstatus_mutex);
 
 					segments.clear();
+					int i = 0;
 					for (json::iterator it = data["segments"].begin(); it != data["segments"].end(); ++it) {
 						TimeSegment segment;
 						segment.is_set = (*it)["is_set"];
@@ -155,6 +150,7 @@ void Timer::sync() {
 						segment.end = parse_time((*it)["end"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
 						segment.shortest_time = std::chrono::milliseconds{ (*it)["shortest_time"] };
 						segment.shortest_duration = std::chrono::milliseconds{ (*it)["shortest_duration"] };
+						segment_signal(i++, segment.start);
 						segments.push_back(segment);
 					}
 				}
@@ -382,7 +378,7 @@ void Timer::segment() {
 		{"time", format_time(segment.end)}
 	});
 
-	segment_signal(current_time);
+	segment_signal(segment_num, current_time);
 }
 
 void Timer::clear_segments() {

@@ -53,7 +53,7 @@ public:
 	boost::signals2::signal<void(std::chrono::system_clock::time_point)> stop_signal;
 	boost::signals2::signal<void(std::chrono::system_clock::time_point)> reset_signal;
 	boost::signals2::signal<void(std::chrono::system_clock::time_point)> prepare_signal;
-	boost::signals2::signal<void(std::chrono::system_clock::time_point)> segment_signal;
+	boost::signals2::signal<void(int, std::chrono::system_clock::time_point)> segment_signal;
 private:
 	Settings& settings;
 	GW2MumbleLink& mumble_link;

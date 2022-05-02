@@ -5,6 +5,7 @@
 #include <thread>
 #include <filesystem>
 #include <fstream>
+#include <ranges>
 
 #include "arcdps.h"
 #include "util.h"
@@ -20,64 +21,52 @@ Logger::Logger(GW2MumbleLink& mumble_link, Settings& settings)
 }
 
 void Logger::map_change(uint32_t map_id) {
+	add_log();
+	save_log();
 	this->map_id = map_id;
 	is_instanced = mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE;
-	if (is_instanced) {
-		log_debug("timer: log instanced");
-	}
-	else {
-		log_debug("timer: log not instanced");
-	}
-	events.clear();
 }
 
 void Logger::start(std::chrono::system_clock::time_point time) {
-	if (is_instanced) {
-		events.push_back(std::make_tuple(time, LogEvent::START));
-	}
+	start_time = time;
 }
 
 void Logger::stop(std::chrono::system_clock::time_point time) {
 	if (is_instanced) {
-		log_debug("timer: log stop event");
-		events.push_back(std::make_tuple(time, LogEvent::STOP));
-		save_log();
+		end_time = time;
+		add_log();
 	}
 }
 
 void Logger::reset(std::chrono::system_clock::time_point time) {
 	if (is_instanced) {
-		events.push_back(std::make_tuple(time, LogEvent::RESET));
-		save_log();
+		end_time = time;
+		add_log();
 	}
 }
 
-void Logger::prepare(std::chrono::system_clock::time_point time) {
+void Logger::segment(int segment_num, std::chrono::system_clock::time_point time) {
 	if (is_instanced) {
-		events.push_back(std::make_tuple(time, LogEvent::PREPARE));
-	}
-}
-
-void Logger::segment(std::chrono::system_clock::time_point time) {
-	if (is_instanced) {
-		events.push_back(std::make_tuple(time, LogEvent::SEGMENT));
+		segments[segment_num] = time;
 	}
 }
 
 Logger::~Logger() {
 	if (is_instanced) {
-		save_log_thread(events);
+		add_log();
+		save_log_thread(events, map_id);
 	}
 }
 
 void Logger::save_log() {
 	std::vector<std::tuple< std::chrono::system_clock::time_point, LogEvent>> current_events(events);
-	defer([&, current_events]() {
-		save_log_thread(current_events);
+	uint32_t current_map_id = map_id;
+	defer([&, current_events, current_map_id]() {
+		save_log_thread(current_events, current_map_id);
 	});
 }
 
-void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::time_point, LogEvent>> events_save) {
+void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::time_point, LogEvent>> events_save, uint32_t current_map_id) {
 	if (events.size() < 1) {
 		return;
 	}
@@ -85,7 +74,7 @@ void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::
 	log_debug("timer: saving log");
 
 	auto map_response = cpr::Get(
-		cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(map_id) },
+		cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(current_map_id) },
 		cpr::Timeout{ 5000 }
 	);
 
@@ -105,4 +94,21 @@ void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::
 	std::ofstream o(log_path + name + ".json");
 	log_debug(log_path + name + ".json");
 	o << std::setw(4) << events_json << std::endl;
+}
+
+void Logger::add_log() {
+	events.emplace_back(start_time, LogEvent::START);
+
+	int max_segment = 0;
+	for (int segment : std::views::keys(segments)) {
+		if (segment > max_segment) {
+			max_segment = segment;
+		}
+	}
+
+	for (int i = 0; i <= max_segment; ++i) {
+		events.emplace_back(segments[i], LogEvent::SEGMENT);
+	}
+
+	events.emplace_back(end_time, LogEvent::END);
 }

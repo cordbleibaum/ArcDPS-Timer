@@ -11,22 +11,16 @@
 
 enum class LogEvent {
 	INVALID,
-	MAP_CHANGE,
 	START,
-	STOP,
-	RESET,
-	PREPARE,
+	END,
 	SEGMENT
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(LogEvent, {
 	{LogEvent::INVALID, nullptr},
-	{LogEvent::MAP_CHANGE, "entering map"},
-	{LogEvent::START, "starting"},
-	{LogEvent::STOP, "stopping"},
-	{LogEvent::PREPARE, "preparing"},
-	{LogEvent::SEGMENT, "segment"},
-	{LogEvent::RESET, "resetting"}
+	{LogEvent::START, "starting run"},
+	{LogEvent::END, "ending run"},
+	{LogEvent::SEGMENT, "segment"}
 })
 
 namespace nlohmann {
@@ -45,8 +39,7 @@ public:
 	void start(std::chrono::system_clock::time_point time);
 	void stop(std::chrono::system_clock::time_point time);
 	void reset(std::chrono::system_clock::time_point time);
-	void prepare(std::chrono::system_clock::time_point time);
-	void segment(std::chrono::system_clock::time_point time);
+	void segment(int segment_num, std::chrono::system_clock::time_point time);
 	~Logger();
 
 private:
@@ -55,10 +48,15 @@ private:
 
 	uint32_t map_id = 0;
 	bool is_instanced = false;
+
+	std::chrono::system_clock::time_point start_time;
+	std::chrono::system_clock::time_point end_time;
+	std::map<int, std::chrono::system_clock::time_point> segments;
 	std::vector<std::tuple< std::chrono::system_clock::time_point, LogEvent>> events;
 
 	std::string logs_directory = "addons/arcdps/arcdps-timer-logs/";
 
 	void save_log();
-	void save_log_thread(std::vector<std::tuple< std::chrono::system_clock::time_point, LogEvent>> events_save);
+	void save_log_thread(std::vector<std::tuple< std::chrono::system_clock::time_point, LogEvent>> events_save, uint32_t current_map_id);
+	void add_log();
 };
