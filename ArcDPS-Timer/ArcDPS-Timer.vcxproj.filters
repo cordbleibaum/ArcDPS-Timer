@@ -87,6 +87,9 @@
     <ClInclude Include="arcdps-extension\KeyBindHandler.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mod.cpp">
@@ -160,6 +163,9 @@
     </ClCompile>
     <ClCompile Include="arcdps-extension\Singleton.cpp">
       <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="api.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

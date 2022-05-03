@@ -174,6 +174,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="api.h" />
     <ClInclude Include="arcdps-extension\arcdps_structs.h" />
     <ClInclude Include="arcdps-extension\arcdps_structs_slim.h" />
     <ClInclude Include="arcdps-extension\imgui_stdlib.h" />
@@ -198,6 +199,7 @@
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="api.cpp" />
     <ClCompile Include="arcdps-extension\imgui_stdlib.cpp" />
     <ClCompile Include="arcdps-extension\KeyBindHandler.cpp" />
     <ClCompile Include="arcdps-extension\KeyInput.cpp" />

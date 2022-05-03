@@ -6,6 +6,7 @@
 #include "grouptracker.h"
 #include "maptracker.h"
 #include "lang.h"
+#include "api.h"
 
 #include <chrono>
 #include <set>
@@ -22,7 +23,6 @@ using json = nlohmann::json;
 #include <boost/signals2.hpp>
 
 enum class TimerStatus { stopped, prepared, running };
-enum class ServerStatus { online, offline, outofdate };
 
 struct TimeSegment {
 	bool is_set = false;
@@ -34,7 +34,7 @@ struct TimeSegment {
 
 class Timer {
 public:
-	Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker, Translation& translation, MapTracker& map_tracker, std::string server_url);
+	Timer(Settings& settings, GW2MumbleLink& mumble_link, Translation& translation, API& api);
 	void start(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void stop(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void reset();
@@ -57,9 +57,8 @@ public:
 private:
 	Settings& settings;
 	GW2MumbleLink& mumble_link;
-	GroupTracker& group_tracker;
 	Translation& translation;
-	MapTracker& map_tracker;
+	API& api;
 
 	TimerStatus status;
 	std::chrono::system_clock::time_point start_time;
@@ -74,17 +73,10 @@ private:
 	std::mutex logagents_mutex;
 	std::shared_mutex timerstatus_mutex;
 	std::shared_mutex segmentstatus_mutex;
-	ServerStatus serverStatus = ServerStatus::online;
-	std::string server_url;
-	int update_id = -2;
 
-	void sync();
-	void check_serverstatus();
+	void sync(nlohmann::json data);
 	std::string format_time(std::chrono::system_clock::time_point time);
-	void post_serverapi(std::string method, json payload = json::object());
-	std::string get_id() const;
 	void reset_segments();
-
 	void timer_window_content(float width = ImGui::GetWindowSize().x);
 	void segment_window_content();
 };

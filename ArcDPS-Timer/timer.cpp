@@ -1,34 +1,21 @@
 #include "timer.h"
 #include "util.h"
 
-Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, GroupTracker& group_tracker, Translation& translation, MapTracker& map_tracker, std::string server_url)
+Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, Translation& translation, API& api)
 :	settings(settings),
 	mumble_link(mumble_link),
-	group_tracker(group_tracker),
 	translation(translation),
-	map_tracker(map_tracker),
-	server_url(server_url)
+	api(api)
 {
 	start_time = current_time = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
-	check_serverstatus();
+	last_position = { 0 };
+	api.check_serverstatus();
 
-	std::thread status_sync_thread(&Timer::sync, this);
-	status_sync_thread.detach();
-}
-
-void Timer::post_serverapi(std::string method, json payload) {
-	std::thread thread([&, method, payload]() {
-		std::string id = get_id();
-		if (id != "") {
-			cpr::Post(
-				cpr::Url{ server_url + "groups/" + id + "/" + method },
-				cpr::Body{ payload.dump() },
-				cpr::Header{ {"Content-Type", "application/json"} }
-			);
-		}
+	std::thread status_sync_thread([&]() {
+		api.sync(std::bind(&Timer::sync, this, std::placeholders::_1));
 	});
-	thread.detach();
+	status_sync_thread.detach();
 }
 
 std::string Timer::format_time(std::chrono::system_clock::time_point time) {
@@ -41,7 +28,7 @@ void Timer::start(std::chrono::system_clock::time_point time) {
 	status = TimerStatus::running;
 	start_time = time;
 	current_time = std::chrono::system_clock::now();
-	post_serverapi("start", {{"time", format_time(start_time)}});
+	api.post_serverapi("start", {{"time", format_time(start_time)}});
 	reset_segments();
 	start_signal(start_time);
 }
@@ -51,10 +38,9 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 		std::unique_lock lock(timerstatus_mutex);
 
 		segment();
-
 		status = TimerStatus::stopped;
 		current_time = time;
-		post_serverapi("stop", {{"time", format_time(current_time)}});
+		api.post_serverapi("stop", {{"time", format_time(current_time)}});
 		stop_signal(current_time);
 	}
 }
@@ -65,7 +51,7 @@ void Timer::reset() {
 	status = TimerStatus::stopped;
 	start_time = current_time = std::chrono::system_clock::now();
 	reset_segments();
-	post_serverapi("reset");
+	api.post_serverapi("reset");
 	reset_signal(current_time);
 }
 
@@ -76,130 +62,48 @@ void Timer::prepare() {
 	start_time = current_time = std::chrono::system_clock::now();
 	std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
 	reset_segments();
-	post_serverapi("prepare");
+	api.post_serverapi("prepare");
 	prepare_signal(current_time);
 }
 
-void Timer::sync() {
-	while (true) {
-		if (serverStatus == ServerStatus::outofdate) {
-			return;
-		}
-
-		if (serverStatus == ServerStatus::online) {
-			std::string id = get_id();
-			if (id == "") {
-				std::this_thread::sleep_for(std::chrono::seconds{ 1 });
-				continue;
-			}
-
-			json payload{{"update_id", update_id}};
-			cpr::AsyncResponse response_future = cpr::PostAsync(
-				cpr::Url{ server_url + "groups/" + id + "/" },
-				cpr::Body{ payload.dump() },
-				cpr::Header{{"Content-Type", "application/json"}},
-				cpr::ProgressCallback([&](cpr::cpr_off_t downloadTotal, cpr::cpr_off_t downloadNow, cpr::cpr_off_t uploadTotal, cpr::cpr_off_t uploadNow, intptr_t userdata) {
-					return id == get_id();
-				})
-			);
-
-			auto response = response_future.get();
-			if (response.error.code == cpr::ErrorCode::REQUEST_CANCELLED) {
-				continue;
-			}
-			if (response.status_code != cpr::status::HTTP_OK) {
-				log("timer: failed to sync with server");
-				serverStatus = ServerStatus::offline;
-				continue;
-			}
-
-			try {
-				auto data = json::parse(response.text);
-
-				{
-					std::unique_lock lock(timerstatus_mutex);
+void Timer::sync(nlohmann::json data) {
+	{
+		std::unique_lock lock(timerstatus_mutex);
 					
-					start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-					update_id = data["update_id"];
-					if (data["status"] == "running") {
-						start_signal(start_time);
-						status = TimerStatus::running;
-					}
-					else if (data["status"] == "stopped") {
-						current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-						stop_signal(current_time);
-						status = TimerStatus::stopped;
-					}
-					else if (data["status"] == "prepared") {
-						current_time = start_time = std::chrono::system_clock::now();
-						prepare_signal(current_time);
-						status = TimerStatus::prepared;
-						std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
-					}
-				}
-
-				{
-					std::unique_lock lock(segmentstatus_mutex);
-
-					segments.clear();
-					int i = 0;
-					for (json::iterator it = data["segments"].begin(); it != data["segments"].end(); ++it) {
-						TimeSegment segment;
-						segment.is_set = (*it)["is_set"];
-						segment.start = parse_time((*it)["start"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-						segment.end = parse_time((*it)["end"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
-						segment.shortest_time = std::chrono::milliseconds{ (*it)["shortest_time"] };
-						segment.shortest_duration = std::chrono::milliseconds{ (*it)["shortest_duration"] };
-						segment_signal(i++, segment.start);
-						segments.push_back(segment);
-					}
-				}
-			}
-			catch ([[maybe_unused]] const json::parse_error& e) {
-				log("timer: received no json response from server");
-				serverStatus = ServerStatus::offline;
-			}
+		start_time = parse_time(data["start_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+		if (data["status"] == "running") {
+			start_signal(start_time);
+			status = TimerStatus::running;
 		}
-		else {
-			std::this_thread::sleep_for(std::chrono::seconds{ 3 });
-			if (serverStatus == ServerStatus::offline) {
-				check_serverstatus();
-			}
+		else if (data["status"] == "stopped") {
+			current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+			stop_signal(current_time);
+			status = TimerStatus::stopped;
+		}
+		else if (data["status"] == "prepared") {
+			current_time = start_time = std::chrono::system_clock::now();
+			prepare_signal(current_time);
+			status = TimerStatus::prepared;
+			std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
 		}
 	}
-}
 
-void Timer::check_serverstatus() {
-	auto response = cpr::Get(
-		cpr::Url{ server_url },
-		cpr::Timeout{ 1000 }
-	);
-	if (response.status_code != cpr::status::HTTP_OK) {
-		log("timer: failed to connect to timer api, forcing offline mode\n");
-		serverStatus = ServerStatus::offline;
-	}
-	else {
-		auto data = json::parse(response.text);
+	{
+		std::unique_lock lock(segmentstatus_mutex);
 
-		constexpr int server_version = 8;
-		if (data["version"] != server_version) {
-			log("timer: out of date version, going offline mode\n");
-			serverStatus = ServerStatus::outofdate;
-		}
-		else {
-			serverStatus = ServerStatus::online;
+		segments.clear();
+		int i = 0;
+		for (json::iterator it = data["segments"].begin(); it != data["segments"].end(); ++it) {
+			TimeSegment segment;
+			segment.is_set = (*it)["is_set"];
+			segment.start = parse_time((*it)["start"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+			segment.end = parse_time((*it)["end"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+			segment.shortest_time = std::chrono::milliseconds{ (*it)["shortest_time"] };
+			segment.shortest_duration = std::chrono::milliseconds{ (*it)["shortest_duration"] };
+			segment_signal(i++, segment.start);
+			segments.push_back(segment);
 		}
 	}
-}
-
-std::string Timer::get_id() const {
-	if (settings.use_custom_id) {
-		return settings.custom_id + "_custom";
-	}
-	if (mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE) {
-		return map_tracker.get_instance_id();
-	}
-	return group_tracker.get_group_id();
 }
 
 void Timer::reset_segments() {
@@ -373,7 +277,7 @@ void Timer::segment() {
 		segment.shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
 	}
 
-	post_serverapi("segment", {
+	api.post_serverapi("segment", {
 		{"segment_num", segment_num},
 		{"time", format_time(segment.end)}
 	});
@@ -385,7 +289,7 @@ void Timer::clear_segments() {
 	std::unique_lock lock(segmentstatus_mutex);
 
 	segments.clear();
-	post_serverapi("clear_segment");
+	api.post_serverapi("clear_segment");
 	segment_reset_signal();
 }
 
@@ -470,7 +374,7 @@ void Timer::timer_window_content(float width) {
 		ImGui::Dummy(ImVec2(160, 0));
 	}
 
-	if (serverStatus == ServerStatus::outofdate) {
+	if (api.server_status == ServerStatus::outofdate) {
 		ImGui::TextColored(ImVec4(1, 0, 0, 1), translation.get("TextOutOfDate").c_str());
 	}
 }

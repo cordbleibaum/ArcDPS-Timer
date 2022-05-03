@@ -19,6 +19,8 @@ public:
 	virtual Eigen::Vector3f get_middle() const = 0;
 	void reset();
 	bool get_is_triggered() const;
+
+	std::string name = "";
 protected:
 	bool is_triggered = false;
 };
@@ -105,8 +107,8 @@ namespace nlohmann {
 	};
 }
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SphereTrigger, position, radius)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlaneTrigger, side1, side2, height, z, thickness)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SphereTrigger, position, radius, name)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlaneTrigger, side1, side2, height, z, thickness, name)
 
 class TriggerWatcher {
 public:

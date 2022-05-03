@@ -20,6 +20,7 @@
 #include "maptracker.h"
 #include "util.h"
 #include "log.h"
+#include "api.h"
 
 Translation translation;
 KeyBindHandler keybind_handler;
@@ -30,7 +31,8 @@ GroupTracker group_tracker;
 MapTracker map_tracker(mumble_link);
 TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
-Timer timer(settings, mumble_link, group_tracker, translation, map_tracker, "http://3.72.94.166:5001/");
+API api(settings, mumble_link, map_tracker, group_tracker, "http://3.72.94.166:5001/");
+Timer timer(settings, mumble_link, translation, api);
 Logger logger(mumble_link, settings);
 
 std::chrono::system_clock::time_point last_ntp_sync;
