@@ -131,7 +131,7 @@ void Timer::sync() {
 						status = TimerStatus::stopped;
 					}
 					else if (data["status"] == "prepared") {
-						current_time = std::chrono::system_clock::now();
+						current_time = start_time = std::chrono::system_clock::now();
 						prepare_signal(current_time);
 						status = TimerStatus::prepared;
 						std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
@@ -391,8 +391,11 @@ void Timer::clear_segments() {
 
 void Timer::map_change(uint32_t map_id) {
 	if (settings.auto_prepare && mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE) {
-		log_debug("timer: preparing on map change");
-		prepare();
+		defer([&]() {
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+			log_debug("timer: preparing on map change");
+			prepare();
+		});
 	}
 }
 
