@@ -148,11 +148,11 @@ TriggerEditor::TriggerEditor(Translation& translation, GW2MumbleLink& mumble_lin
 }
 
 void TriggerEditor::mod_imgui() {
-    ImGui::SetNextWindowSize(ImVec2(650, 0));
+    ImGui::SetNextWindowSize(ImVec2(680, 0));
     if (is_open && ImGui::Begin(translation.get("HeaderTriggerEditor").c_str(), &is_open, ImGuiWindowFlags_AlwaysAutoResize)) {
 
         ImGui::Columns(2, "##editorcolumns", false);
-        ImGui::SetColumnWidth(-1, 450);
+        ImGui::SetColumnWidth(-1, 480);
 
         std::string position_string = translation.get("TextPlayerPosition") + "%.1f %.1f %.1f";
         ImGui::Text(position_string.c_str(), mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
