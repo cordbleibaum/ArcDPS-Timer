@@ -148,11 +148,11 @@ TriggerEditor::TriggerEditor(Translation& translation, GW2MumbleLink& mumble_lin
 }
 
 void TriggerEditor::mod_imgui() {
-    ImGui::SetNextWindowSize(ImVec2(600, 0));
+    ImGui::SetNextWindowSize(ImVec2(650, 0));
     if (is_open && ImGui::Begin(translation.get("HeaderTriggerEditor").c_str(), &is_open, ImGuiWindowFlags_AlwaysAutoResize)) {
 
         ImGui::Columns(2, "##editorcolumns", false);
-        ImGui::SetColumnWidth(-1, 400);
+        ImGui::SetColumnWidth(-1, 450);
 
         std::string position_string = translation.get("TextPlayerPosition") + "%.1f %.1f %.1f";
         ImGui::Text(position_string.c_str(), mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
@@ -213,12 +213,13 @@ void TriggerEditor::mod_imgui() {
 
         ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-        ImGui::BeginTable("##triggertable", 5);
+        ImGui::BeginTable("##triggertable", 6);
         ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
         ImGui::TableSetupColumn(translation.get("HeaderTypeColumn").c_str());
         ImGui::TableSetupColumn(translation.get("HeaderMiddleColumn").c_str());
         ImGui::TableSetupColumn(translation.get("HeaderIsInRangeColumn").c_str());
         ImGui::TableSetupColumn(translation.get("HeaderIsTriggeredColumn").c_str());
+        ImGui::TableSetupColumn(translation.get("HeaderNameColumn").c_str());
         ImGui::TableHeadersRow();
         for (size_t i = 0; i < regions.size(); ++i) {
             const auto& region = regions[i];
@@ -247,6 +248,9 @@ void TriggerEditor::mod_imgui() {
             if (region->get_is_triggered()) {
                 ImGui::TextColored(ImVec4(0, 1, 0, 1), translation.get("TextYes").c_str());
             }
+
+            ImGui::TableNextColumn();
+            ImGui::Text(region->name.c_str());
         }
         ImGui::EndTable();
 
@@ -256,6 +260,18 @@ void TriggerEditor::mod_imgui() {
             selected_line = -1;
         }
         ImGui::PopID();
+        ImGui::SameLine();
+        if (ImGui::Button(translation.get("ButtonMoveUp").c_str()) && selected_line > 0) {
+            std::shared_ptr<TriggerRegion> tmp = regions[selected_line - 1];
+            regions[selected_line - 1] = regions[selected_line];
+            regions[selected_line] = tmp;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(translation.get("ButtonMoveDown").c_str()) && selected_line >= 0 && selected_line < regions.size() - 1) {
+            std::shared_ptr<TriggerRegion> tmp = regions[selected_line + 1];
+            regions[selected_line + 1] = regions[selected_line];
+            regions[selected_line] = tmp;
+        }
 
         ImGui::InputText(translation.get("InputRegionName").c_str(), &region_name);
         ImGui::SameLine();
@@ -263,6 +279,7 @@ void TriggerEditor::mod_imgui() {
         if (ImGui::Button(translation.get("ButtonSet").c_str()) && selected_line >= 0) {
             const auto& region = regions[selected_line];
             region->name = region_name;
+            region_name = "";
         }
         ImGui::PopID();
 

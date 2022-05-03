@@ -93,5 +93,8 @@ private:
 		{"ButtonSave", "Save"},
 		{"ButtonLoad", "Load"},
 		{"InputRegionName", "Region name"},
+		{"HeaderNameColumn", "Name"},
+		{"ButtonMoveUp", "Move Up"},
+		{"ButtonMoveDown", "Move Down"}
 	};
 };
