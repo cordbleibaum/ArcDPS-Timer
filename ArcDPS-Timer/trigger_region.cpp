@@ -257,6 +257,15 @@ void TriggerEditor::mod_imgui() {
         }
         ImGui::PopID();
 
+        ImGui::InputText(translation.get("InputRegionName").c_str(), &region_name);
+        ImGui::SameLine();
+        ImGui::PushID("set_region_name");
+        if (ImGui::Button(translation.get("ButtonSet").c_str()) && selected_line >= 0) {
+            const auto& region = regions[selected_line];
+            region->name = region_name;
+        }
+        ImGui::PopID();
+
         ImGui::NextColumn();
         ImGui::SetColumnWidth(-1, 200);
 

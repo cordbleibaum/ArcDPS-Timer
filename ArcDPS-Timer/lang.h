@@ -92,5 +92,6 @@ private:
 		{"InputSetName", "Set name"},
 		{"ButtonSave", "Save"},
 		{"ButtonLoad", "Load"},
+		{"InputRegionName", "Region name"},
 	};
 };

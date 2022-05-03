@@ -148,6 +148,7 @@ private:
 	std::array<float, 2> plane_position2 = {0};
 
 	std::vector<std::shared_ptr<TriggerRegion>>& regions;
+	std::string region_name;
 
 	std::map<std::string, std::vector<std::shared_ptr<TriggerRegion>>> trigger_sets;
 	std::string trigger_set_directory = "addons/arcdps/arcdps-timer-triggers-sets/";
