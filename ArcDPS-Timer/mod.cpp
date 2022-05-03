@@ -7,6 +7,8 @@
 #include <boost/signals2/signal.hpp>
 
 #include "arcdps-extension/imgui_stdlib.h"
+#include "arcdps-extension/KeyBindHandler.h"
+#include "arcdps-extension/Singleton.h"
 
 #include "mumble_link.h"
 #include "ntp.h"
@@ -20,7 +22,8 @@
 #include "log.h"
 
 Translation translation;
-Settings settings("addons/arcdps/timer.json", translation);
+KeyBindHandler keybind_handler;
+Settings settings("addons/arcdps/timer.json", translation, keybind_handler);
 GW2MumbleLink mumble_link;
 NTPClient ntp("pool.ntp.org");
 GroupTracker group_tracker;
@@ -75,11 +78,62 @@ arcdps_exports* mod_init() {
 	mod_windows_signal.connect(std::bind(&TriggerEditor::mod_windows, std::ref(trigger_editor)));
 	mod_options_signal.connect(std::bind(&Settings::mod_options, std::ref(settings)));
 
+	KeyBindHandler::Subscriber start_subscriber;
+	start_subscriber.Fun = [&](const KeyBinds::Key&) {
+		log_debug("timer: starting manually");
+		timer.start();
+		return true;
+	};
+	start_subscriber.Key = settings.start_key;
+	start_subscriber.Flags = KeyBindHandler::SubscriberFlags_None;
+	settings.start_key_handler = keybind_handler.Subscribe(start_subscriber);
+
+	KeyBindHandler::Subscriber stop_subscriber;
+	stop_subscriber.Fun = [&](const KeyBinds::Key&) {
+		log_debug("timer: stopping manually");
+		timer.stop();
+		return true;
+	};
+	stop_subscriber.Key = settings.stop_key;
+	stop_subscriber.Flags = KeyBindHandler::SubscriberFlags_None;
+	settings.stop_key_handler = keybind_handler.Subscribe(stop_subscriber);
+
+	KeyBindHandler::Subscriber reset_subscriber;
+	reset_subscriber.Fun = [&](const KeyBinds::Key&) {
+		log_debug("timer: resetting manually");
+		timer.reset();
+		return true;
+	};
+	reset_subscriber.Key = settings.reset_key;
+	reset_subscriber.Flags = KeyBindHandler::SubscriberFlags_None;
+	settings.reset_key_handler = keybind_handler.Subscribe(reset_subscriber);
+
+	KeyBindHandler::Subscriber prepare_subscriber;
+	prepare_subscriber.Fun = [&](const KeyBinds::Key&) {
+		log_debug("timer: preparing manually");
+		timer.prepare();
+		return true;
+	};
+	prepare_subscriber.Key = settings.prepare_key;
+	prepare_subscriber.Flags = KeyBindHandler::SubscriberFlags_None;
+	settings.prepare_key_handler = keybind_handler.Subscribe(prepare_subscriber);
+
+	KeyBindHandler::Subscriber segment_subscriber;
+	segment_subscriber.Fun = [&](const KeyBinds::Key&) {
+		log_debug("timer: segment manually");
+		timer.segment();
+		return true;
+	};
+	segment_subscriber.Key = settings.segment_key;
+	segment_subscriber.Flags = KeyBindHandler::SubscriberFlags_None;
+	settings.segment_key_handler = keybind_handler.Subscribe(segment_subscriber);
+
 	log_debug("timer: done mod_init");
 	return &arc_exports;
 }
 
 uintptr_t mod_release() {
+	g_singletonManagerInstance.Shutdown();
 	settings.save();
 	return 0;
 }
@@ -139,37 +193,14 @@ uintptr_t mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		return uMsg;
 	}
 
-	const int vkey = (int)wParam;
+	if (keybind_handler.Wnd(hWnd, uMsg, wParam, lParam)) {
+		return uMsg;
+	}
 
 	switch (uMsg) {
-	case WM_KEYDOWN:
-	case WM_SYSKEYDOWN: {
-		if (vkey == settings.start_key.Code) {
-			log_debug("timer: starting manually");
-			timer.start();
-		}
-		else if (vkey == settings.stop_key.Code) {
-			log_debug("timer: stopping manually");
-			timer.stop();
-		}
-		else if (vkey == settings.reset_key.Code) {
-			log_debug("timer: resetting manually");
-			timer.reset();
-		}
-		else if (vkey == settings.prepare_key.Code) {
-			log_debug("timer: preparing manually");
-			timer.prepare();
-		}
-		else if (vkey == settings.segment_key.Code) {
-			log_debug("timer: segment manually");
-			timer.segment();
-		}
-
-		break;
 	case WM_INPUTLANGCHANGE:
 		settings.current_hkl = (HKL) lParam;
 		break;
-	}
 	default:
 		break;
 	}

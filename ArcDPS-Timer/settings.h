@@ -8,7 +8,7 @@
 #include <nlohmann/json.hpp>
 
 #include "unofficial_extras/KeyBindStructs.h"
-
+#include "arcdps-extension/KeyBindHandler.h"
 
 namespace nlohmann {
 	template <>
@@ -56,7 +56,7 @@ namespace nlohmann {
 
 class Settings {
 public:
-	Settings(std::string file, Translation& translation);
+	Settings(std::string file, Translation& translation, KeyBindHandler& keybind_handler);
 	void save();
 	void mod_options();
 	void mod_windows();
@@ -85,9 +85,16 @@ public:
 	ImVec4 reset_button_color;
 	ImVec4 prepare_button_color;
 
+	uint64_t start_key_handler;
+	uint64_t stop_key_handler;
+	uint64_t reset_key_handler;
+	uint64_t prepare_key_handler;
+	uint64_t segment_key_handler;
+
 	HKL current_hkl;
 private:
 	Translation& translation;
+	KeyBindHandler& keybind_handler;
 
 	int settings_version;
 	std::string config_file;

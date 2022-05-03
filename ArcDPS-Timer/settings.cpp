@@ -12,10 +12,11 @@ using json = nlohmann::json;
 
 constexpr int current_settings_version = 10;
 
-Settings::Settings(std::string file, Translation& translation)
+Settings::Settings(std::string file, Translation& translation, KeyBindHandler& keybind_handler)
 :	settings_version(current_settings_version),
 	config_file(file),
-	translation(translation)
+	translation(translation),
+	keybind_handler(keybind_handler)
 {
 	json config;
 	config["filler"] = "empty";
@@ -116,11 +117,25 @@ void Settings::mod_options() {
 	ImGui::Checkbox(translation.get("InputHideButtons").c_str(), &hide_buttons);
 	ImGui::Checkbox(translation.get("InputUnifiedWindow").c_str(), &unified_window);
 
-	ImGuiEx::KeyCodeInput(translation.get("InputStartKey").c_str(), start_key, Language::English, current_hkl);
-	ImGuiEx::KeyCodeInput(translation.get("InputStopKey").c_str(), stop_key, Language::English, current_hkl);
-	ImGuiEx::KeyCodeInput(translation.get("InputResetKey").c_str(), reset_key, Language::English, current_hkl);
-	ImGuiEx::KeyCodeInput(translation.get("InputPrepareKey").c_str(), prepare_key, Language::English, current_hkl);
-	ImGuiEx::KeyCodeInput(translation.get("InputSegmentKey").c_str(), segment_key, Language::English, current_hkl);
+	if (ImGuiEx::KeyCodeInput(translation.get("InputStartKey").c_str(), start_key, Language::English, current_hkl)) {
+		keybind_handler.UpdateKey(start_key_handler, start_key);
+	}
+
+	if (ImGuiEx::KeyCodeInput(translation.get("InputStopKey").c_str(), stop_key, Language::English, current_hkl)) {
+		keybind_handler.UpdateKey(stop_key_handler, stop_key);
+	}
+
+	if (ImGuiEx::KeyCodeInput(translation.get("InputResetKey").c_str(), reset_key, Language::English, current_hkl)) {
+		keybind_handler.UpdateKey(reset_key_handler, reset_key);
+	}
+
+	if (ImGuiEx::KeyCodeInput(translation.get("InputPrepareKey").c_str(), prepare_key, Language::English, current_hkl)) {
+		keybind_handler.UpdateKey(prepare_key_handler, prepare_key);
+	}
+
+	if (ImGuiEx::KeyCodeInput(translation.get("InputSegmentKey").c_str(), segment_key, Language::English, current_hkl)) {
+		keybind_handler.UpdateKey(segment_key_handler, segment_key);
+	}
 
 	ImGui::Separator();
 

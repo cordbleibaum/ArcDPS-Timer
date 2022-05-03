@@ -177,6 +177,7 @@
     <ClInclude Include="arcdps-extension\arcdps_structs.h" />
     <ClInclude Include="arcdps-extension\arcdps_structs_slim.h" />
     <ClInclude Include="arcdps-extension\imgui_stdlib.h" />
+    <ClInclude Include="arcdps-extension\KeyBindHandler.h" />
     <ClInclude Include="arcdps-extension\KeyInput.h" />
     <ClInclude Include="arcdps-extension\MumbleLink.h" />
     <ClInclude Include="arcdps-extension\Widgets.h" />
@@ -198,7 +199,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="arcdps-extension\imgui_stdlib.cpp" />
+    <ClCompile Include="arcdps-extension\KeyBindHandler.cpp" />
     <ClCompile Include="arcdps-extension\KeyInput.cpp" />
+    <ClCompile Include="arcdps-extension\Singleton.cpp" />
     <ClCompile Include="arcdps-extension\Widgets.cpp" />
     <ClCompile Include="arcdps.cpp" />
     <ClCompile Include="grouptracker.cpp" />

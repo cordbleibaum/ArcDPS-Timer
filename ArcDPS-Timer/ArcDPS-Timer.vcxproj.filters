@@ -84,6 +84,9 @@
     <ClInclude Include="arcdps-extension\KeyInput.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="arcdps-extension\KeyBindHandler.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mod.cpp">
@@ -150,6 +153,12 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="unofficial_extras\KeyBindHelper.cpp">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="arcdps-extension\KeyBindHandler.cpp">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="arcdps-extension\Singleton.cpp">
       <Filter>Library Source Files</Filter>
     </ClCompile>
   </ItemGroup>
