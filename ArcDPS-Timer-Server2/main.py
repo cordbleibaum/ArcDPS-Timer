@@ -11,6 +11,7 @@ import tornado.escape
 import tornado.ioloop
 from tornado.options import define, options, parse_command_line
 
+
 define("port", default=5001, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
 
@@ -142,10 +143,21 @@ class StopHandler(GroupModifyHandler):
         if self.group.status in [TimerStatus.running, TimerStatus.prepared]:
             self.group.status = TimerStatus.stopped
             self.group.stop_time = self.args.time
-        elif self.group.status == TimerStatus.stopped:
-            is_older = self.group.stop_time > self.args.time
-            if is_older:
-                self.group.stop_time = self.args.time
+        
+            segment_num = len(self.group.segments)
+            self.group.segments.append(SegmentStatus())
+
+            segment = self.group.segments[segment_num]
+            segment.is_set = True
+            segment.end = self.args.time
+
+            if segment_num > 0:
+                segment.start = self.group.segments[self.args.segment_num-1].end
+            else:
+                segment.start = self.group.start_time
+
+            segment.shortest_time = segment.end - self.group.start_time
+            segment.shortest_duration = segment.end - segment.start
 
 
 class ResetHandler(GroupModifyHandler):

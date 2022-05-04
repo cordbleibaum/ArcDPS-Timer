@@ -39,7 +39,7 @@ public:
 	void stop(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void reset();
 	void prepare();
-	void segment();
+	void segment(bool local = false);
 	void clear_segments();
 	void map_change(uint32_t map_id);
 

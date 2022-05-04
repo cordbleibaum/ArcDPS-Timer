@@ -37,7 +37,7 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 	if (status != TimerStatus::stopped || current_time > time) {
 		std::unique_lock lock(timerstatus_mutex);
 
-		segment();
+		segment(true);
 		status = TimerStatus::stopped;
 		current_time = time;
 		api.post_serverapi("stop", {{"time", format_time(current_time)}});
@@ -249,7 +249,7 @@ void Timer::mod_imgui() {
 	}
 }
 
-void Timer::segment() {
+void Timer::segment(bool local) {
 	if (status != TimerStatus::running) return;
 
 	std::unique_lock lock(segmentstatus_mutex);
@@ -277,10 +277,12 @@ void Timer::segment() {
 		segment.shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
 	}
 
-	api.post_serverapi("segment", {
-		{"segment_num", segment_num},
-		{"time", format_time(segment.end)}
-	});
+	if (!local) {
+		api.post_serverapi("segment", {
+			{"segment_num", segment_num},
+			{"time", format_time(segment.end)}
+		});
+	}
 
 	segment_signal(segment_num, current_time);
 }
