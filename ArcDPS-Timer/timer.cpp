@@ -175,13 +175,26 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 						12267, // Aetherblade - Frizz
 					};
 
-					bool is_bosslog_end = std::find(std::begin(last_bosses), std::end(last_bosses), log_species_id) != std::end(last_bosses);
-					is_bosslog_end |= std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), log_species_id) != std::end(settings.additional_boss_ids);
+					bool is_bosslog_end = false;
+					if (std::find(std::begin(last_bosses), std::end(last_bosses), log_species_id) != std::end(last_bosses)) {
+						log_debug("Stopping on integrated ID: " + std::to_string(log_species_id));
+						is_bosslog_end = true;
+					}
+					if (std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), log_species_id) != std::end(settings.additional_boss_ids)) {
+						log_debug("Stopping on additional ID: " + std::to_string(log_species_id));
+						is_bosslog_end = true;
+					}
 
 					bool is_ooc_end = false;
 					for (const auto& agent_species_id : log_agents) {
-						is_ooc_end |= std::find(std::begin(last_bosses), std::end(last_bosses), agent_species_id) != std::end(last_bosses);
-						is_ooc_end |= std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), agent_species_id) != std::end(settings.additional_boss_ids);
+						if (std::find(std::begin(last_bosses), std::end(last_bosses), agent_species_id) != std::end(last_bosses)) {
+							log_debug("Stopping on integrated ID: " + std::to_string(agent_species_id));
+							is_ooc_end = true;
+						}
+						if (std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), agent_species_id) != std::end(settings.additional_boss_ids)) {
+							log_debug("Stopping on additional ID: " + std::to_string(agent_species_id));
+							is_ooc_end = true;
+						}
 					}
 
 					log_agents.clear();
