@@ -388,7 +388,7 @@ void Timer::segment_window_content() {
 	{
 		std::shared_lock lock(segmentstatus_mutex);
 
-		ImGui::BeginTable("##segmenttable", 3, ImGuiTableFlags_Hideable);
+		ImGui::BeginTable("##segmenttable", 4, ImGuiTableFlags_Hideable);
 		ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
 		ImGui::TableSetupColumn(translation.get("HeaderNameColumn").c_str(), ImGuiTableColumnFlags_DefaultHide);
 		ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
