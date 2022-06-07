@@ -183,6 +183,10 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 						22000, // Qadim the Peerless
 						16246, // Xera
 						16286, // Xera
+						// Dungeons
+						7018,  // AC P1
+						9078,  // AC P3
+						10580, // Arah P2
 					};
 
 					bool is_bosslog_end = false;
