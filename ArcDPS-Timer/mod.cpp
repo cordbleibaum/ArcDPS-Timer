@@ -31,7 +31,7 @@ GroupTracker group_tracker;
 MapTracker map_tracker(mumble_link);
 TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
-API api(settings, mumble_link, map_tracker, group_tracker, "http://3.72.94.166:5001/");
+API api(settings, mumble_link, map_tracker, group_tracker, "http://18.192.87.148:5001/");
 Timer timer(settings, mumble_link, translation, api);
 Logger logger(mumble_link, settings);
 
