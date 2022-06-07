@@ -185,8 +185,12 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 						16286, // Xera
 						// Dungeons
 						7018,  // AC P1
+						9077,  // AC P2
 						9078,  // AC P3
 						10580, // Arah P2
+						10218, // CoE P1
+						10337, // CoE P2
+						10404, // CoE P3
 					};
 
 					bool is_bosslog_end = false;
