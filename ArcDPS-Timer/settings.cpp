@@ -111,6 +111,8 @@ void Settings::mod_options() {
 
 	ImGui::Separator();
 
+	ImGui::Text(translation.get("TextAdditionalBossIDs").c_str());
+
 	ImGui::BeginTable("##bossidstable", 1);
 	for (int id : additional_boss_ids) {
 		ImGui::TableNextRow();

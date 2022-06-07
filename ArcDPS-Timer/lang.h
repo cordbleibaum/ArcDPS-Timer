@@ -59,6 +59,7 @@ private:
 		{"InputBossID", "Boss ID"},
 		{"ButtonAdd", "Add"},
 		{"ButtonRemove", "Remove"},
+		{"TextAdditionalBossIDs", "Additional Boss IDs"},
 
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},
