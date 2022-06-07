@@ -71,6 +71,7 @@ public:
 	std::string custom_id;
 	bool disable_outside_instances;
 	std::string time_formatter;
+	std::string segment_time_formatter;
 	bool hide_buttons;
 	KeyBinds::Key start_key;
 	KeyBinds::Key stop_key;

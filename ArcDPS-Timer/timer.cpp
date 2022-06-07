@@ -439,14 +439,48 @@ void Timer::segment_window_content() {
 			if (segment.is_set) {
 				auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
 				auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
-				std::string text = std::format("{0:%M:%S}", time_total) + std::format(" ({0:%M:%S})", duration_segment);
+				
+				std::string total_string = "";
+				try {
+					total_string = std::format(settings.time_formatter, time_total);
+				}
+				catch ([[maybe_unused]] const std::exception& e) {
+					total_string = translation.get("TimeFormatterInvalid");
+				}
+
+				std::string duration_string = "";
+				try {
+					duration_string = std::format(settings.time_formatter, duration_segment);
+				}
+				catch ([[maybe_unused]] const std::exception& e) {
+					duration_string = translation.get("TimeFormatterInvalid");
+				}
+
+				std::string text = total_string + duration_string;
 				ImGui::Text(text.c_str());
 			}
 
 			ImGui::TableNextColumn();
 			auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
 			auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
-			std::string text = std::format("{0:%M:%S}", shortest_time) + std::format(" ({0:%M:%S})", shortest_duration);
+			
+			std::string total_string = "";
+			try {
+				total_string = std::format(settings.time_formatter, shortest_time);
+			}
+			catch ([[maybe_unused]] const std::exception& e) {
+				total_string = translation.get("TimeFormatterInvalid");
+			}
+
+			std::string duration_string = "";
+			try {
+				duration_string = std::format(settings.time_formatter, shortest_duration);
+			}
+			catch ([[maybe_unused]] const std::exception& e) {
+				duration_string = translation.get("TimeFormatterInvalid");
+			}
+
+			std::string text = total_string + duration_string;			
 			ImGui::Text(text.c_str());
 		}
 

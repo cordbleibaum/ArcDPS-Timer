@@ -33,6 +33,7 @@ Settings::Settings(std::string file, Translation& translation, KeyBindHandler& k
 	custom_id = config.value("custom_id", "");
 	disable_outside_instances = config.value("disable_outside_instances", true);
 	time_formatter = config.value("time_formatter", "{0:%M:%S}");
+	segment_time_formatter = config.value("segment_time_formatter", "{0:%M:%S}");
 	hide_buttons = config.value("hide_buttons", false);
 	auto_stop = config.value("auto_stop", false);
 	early_gg_threshold = config.value("early_gg_threshold", 5);
@@ -78,6 +79,7 @@ void Settings::save() {
 	config["prepare_button_color"] = prepare_button_color;
 	config["save_logs"] = save_logs;
 	config["additional_boss_ids"] = additional_boss_ids;
+	config["segment_time_formatter"] = segment_time_formatter;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -137,6 +139,11 @@ void Settings::mod_options() {
 	ImGui::Separator();
 	
 	ImGui::InputText(translation.get("InputTimeFormatter").c_str(), &time_formatter);
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip(translation.get("TooltipTimerFormatter").c_str());
+	}
+
+	ImGui::InputText(translation.get("InputSegmentTimeFormatter").c_str(), &segment_time_formatter);
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip(translation.get("TooltipTimerFormatter").c_str());
 	}

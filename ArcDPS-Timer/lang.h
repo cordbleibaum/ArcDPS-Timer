@@ -48,7 +48,7 @@ private:
 		{"TooltipAutoPrepare", "Tries to automatically set the timer to prepared,\nand start on movement / skillcast.Still has a few limitations"},
 		{"TooltipAutoStop", "Tries to automatically stop the timer. Still experimental"},
 		{"TooltipEarlyGG", "Seconds threshold for min duration of a boss kill, \neverything lower gets ignored for auto stop"},
-		{"TooltipTimerFormatter", "Format for timer time, see https://en.cppreference.com/w/cpp/chrono/duration/formatter"},
+		{"TooltipTimerFormatter", "Format for time, see https://en.cppreference.com/w/cpp/chrono/duration/formatter"},
 		{"InputUnifiedWindow", "Merge timer and segments window"},
 		{"WindowOptionUnified", "Timer+Segments"},
 		{"InputStartButtonColor", "Start Button Color"},
@@ -60,6 +60,7 @@ private:
 		{"ButtonAdd", "Add"},
 		{"ButtonRemove", "Remove"},
 		{"TextAdditionalBossIDs", "Additional Boss IDs"},
+		{"InputSegmentTimeFormatter", "Segment time formatter"},
 
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},
