@@ -445,8 +445,6 @@ void Timer::segment_window_content() {
 				auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
 				
 				std::string text = "";
-				std::string total_string = "";
-				std::string duration_string = "";
 				try {
 					std::string total_string = std::format(settings.time_formatter, time_total);
 					std::string duration_string = std::format(settings.time_formatter, duration_segment);
@@ -464,8 +462,6 @@ void Timer::segment_window_content() {
 			auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
 			
 			std::string text = "";
-			std::string total_string = "";
-			std::string duration_string = "";
 			try {
 				std::string total_string = std::format(settings.time_formatter, shortest_time);
 				std::string duration_string = std::format(settings.time_formatter, shortest_duration);
