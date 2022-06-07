@@ -444,23 +444,18 @@ void Timer::segment_window_content() {
 				auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
 				auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
 				
+				std::string text = "";
 				std::string total_string = "";
-				try {
-					total_string = std::format(settings.time_formatter, time_total);
-				}
-				catch ([[maybe_unused]] const std::exception& e) {
-					total_string = translation.get("TimeFormatterInvalid");
-				}
-
 				std::string duration_string = "";
 				try {
-					duration_string = std::format(settings.time_formatter, duration_segment);
+					std::string total_string = std::format(settings.time_formatter, time_total);
+					std::string duration_string = std::format(settings.time_formatter, duration_segment);
+					text = total_string + duration_string;
 				}
 				catch ([[maybe_unused]] const std::exception& e) {
-					duration_string = translation.get("TimeFormatterInvalid");
+					text = translation.get("TimeFormatterInvalid");
 				}
 
-				std::string text = total_string + duration_string;
 				ImGui::Text(text.c_str());
 			}
 
@@ -468,23 +463,18 @@ void Timer::segment_window_content() {
 			auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
 			auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
 			
+			std::string text = "";
 			std::string total_string = "";
-			try {
-				total_string = std::format(settings.time_formatter, shortest_time);
-			}
-			catch ([[maybe_unused]] const std::exception& e) {
-				total_string = translation.get("TimeFormatterInvalid");
-			}
-
 			std::string duration_string = "";
 			try {
-				duration_string = std::format(settings.time_formatter, shortest_duration);
+				std::string total_string = std::format(settings.time_formatter, shortest_time);
+				std::string duration_string = std::format(settings.time_formatter, shortest_duration);
+				text = total_string + duration_string;
 			}
 			catch ([[maybe_unused]] const std::exception& e) {
-				duration_string = translation.get("TimeFormatterInvalid");
+				text = translation.get("TimeFormatterInvalid");
 			}
 
-			std::string text = total_string + duration_string;			
 			ImGui::Text(text.c_str());
 		}
 
