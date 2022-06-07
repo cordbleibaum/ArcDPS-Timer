@@ -105,6 +105,7 @@ bool TriggerWatcher::watch() {
 
     for (int i = 0; i < regions.size(); ++i) {
         if (regions[i]->trigger(player_position)) {
+            trigger_signal(regions[i]->name);
             return true;
         }
     }
@@ -213,7 +214,7 @@ void TriggerEditor::mod_imgui() {
 
         ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-        ImGui::BeginTable("##triggertable", 6);
+        ImGui::BeginTable("##triggertable", 6, ImGuiTableFlags_Hideable);
         ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
         ImGui::TableSetupColumn(translation.get("HeaderTypeColumn").c_str());
         ImGui::TableSetupColumn(translation.get("HeaderMiddleColumn").c_str());

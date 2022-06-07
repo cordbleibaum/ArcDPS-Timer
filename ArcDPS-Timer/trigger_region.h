@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <boost/signals2.hpp>
 #include <typeinfo>
 #include <map>
 
@@ -117,6 +118,8 @@ public:
 	void reset();
 	void map_change(uint32_t map_id);
 	~TriggerWatcher();
+
+	boost::signals2::signal<void(std::string)> trigger_signal;
 
 	std::vector<std::shared_ptr<TriggerRegion>> regions;
 private:

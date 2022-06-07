@@ -80,6 +80,10 @@ arcdps_exports* mod_init() {
 	mod_windows_signal.connect(std::bind(&TriggerEditor::mod_windows, std::ref(trigger_editor)));
 	mod_options_signal.connect(std::bind(&Settings::mod_options, std::ref(settings)));
 
+	trigger_watcher.trigger_signal.connect([&](std::string name) {
+		timer.segment(false, name);
+	});
+
 	KeyBindHandler::Subscriber start_subscriber;
 	start_subscriber.Fun = [&](const KeyBinds::Key&) {
 		log_debug("timer: starting manually");
@@ -172,10 +176,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	}
 
 	map_tracker.watch();
-
-	if (trigger_watcher.watch()) {
-		timer.segment();
-	}
+	trigger_watcher.watch();
 
 	timer.mod_imgui();
 	trigger_editor.mod_imgui();
