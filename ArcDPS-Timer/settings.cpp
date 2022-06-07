@@ -109,6 +109,8 @@ void Settings::mod_options() {
 		ImGui::SetTooltip(translation.get("TooltipEarlyGG").c_str());
 	}
 
+	ImGui::Separator();
+
 	ImGui::BeginTable("##bossidstable", 1);
 	for (int id : additional_boss_ids) {
 		ImGui::TableNextRow();
