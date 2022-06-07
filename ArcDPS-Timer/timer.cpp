@@ -151,6 +151,7 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 				auto log_duration = std::chrono::system_clock::now() - log_start_time;
 				if (log_duration > std::chrono::seconds(settings.early_gg_threshold)) {
 					std::set<uintptr_t> last_bosses = {
+						// Fractals
 						11265, // Swampland - Bloomhunger 
 						11239, // Underground Facility - Dredge
 						11240, // Underground Facility - Elemental
@@ -173,6 +174,15 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 						11328, // Uncategorized - Asura
 						12898, // Molten Boss - Berserker
 						12267, // Aetherblade - Frizz
+						// Raids
+						15375, // Sabetha
+						16115, // Matthias Gabrel
+						17154, // Deimos
+						19450, // Dhuum,
+						21041, // Qadim
+						22000, // Qadim the Peerless
+						16246, // Xera
+						16286, // Xera
 					};
 
 					bool is_bosslog_end = false;
