@@ -6,6 +6,7 @@
 #include <Windows.h>
 #include <string>
 #include <nlohmann/json.hpp>
+#include <set>
 
 #include "unofficial_extras/KeyBindStructs.h"
 #include "arcdps-extension/KeyBindHandler.h"
@@ -79,6 +80,9 @@ public:
 	int early_gg_threshold;
 	KeyBinds::Key segment_key;
 	bool save_logs;
+	std::set<int> additional_boss_ids;
+	int boss_id_selected = -1;
+	int boss_id_input = 0;
 
 	ImVec4 start_button_color;
 	ImVec4 stop_button_color;

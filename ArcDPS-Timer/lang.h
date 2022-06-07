@@ -56,6 +56,9 @@ private:
 		{"InputResetButtonColor", "Reset Button Color"},
 		{"InputPrepareButtonColor", "Prepare Button Color"},
 		{"InputSaveLogs", "Save Logs"},
+		{"InputBossID", "Boss ID"},
+		{"ButtonAdd", "Add"},
+		{"ButtonRemove", "Remove"},
 
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},

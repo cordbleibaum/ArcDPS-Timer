@@ -176,10 +176,12 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 					};
 
 					bool is_bosslog_end = std::find(std::begin(last_bosses), std::end(last_bosses), log_species_id) != std::end(last_bosses);
-					bool is_ooc_end = false;
+					is_bosslog_end |= std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), log_species_id) != std::end(settings.additional_boss_ids);
 
+					bool is_ooc_end = false;
 					for (const auto& agent_species_id : log_agents) {
 						is_ooc_end |= std::find(std::begin(last_bosses), std::end(last_bosses), agent_species_id) != std::end(last_bosses);
+						is_ooc_end |= std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), agent_species_id) != std::end(settings.additional_boss_ids);
 					}
 
 					log_agents.clear();

@@ -40,10 +40,11 @@ Settings::Settings(std::string file, Translation& translation, KeyBindHandler& k
 	unified_window = config.value("unified_window", false);
 	save_logs = config.value("save_logs", true);
 	start_key = config.value("start_key", KeyBinds::Key());
-	start_key = config.value("stop_key", KeyBinds::Key());
-	start_key = config.value("reset_key", KeyBinds::Key());
-	start_key = config.value("prepare_key", KeyBinds::Key());
-	start_key = config.value("segment_key", KeyBinds::Key());
+	stop_key = config.value("stop_key", KeyBinds::Key());
+	reset_key = config.value("reset_key", KeyBinds::Key());
+	prepare_key = config.value("prepare_key", KeyBinds::Key());
+	segment_key = config.value("segment_key", KeyBinds::Key());
+	additional_boss_ids = config.value("additional_boss_ids", std::set<int>());
 
 	ImVec4 default_color = ImVec4(0.62f, 0.60f, 0.65f, 0.30f);
 	start_button_color = config.value("start_button_color", default_color);
@@ -76,6 +77,7 @@ void Settings::save() {
 	config["reset_button_color"] = reset_button_color;
 	config["prepare_button_color"] = prepare_button_color;
 	config["save_logs"] = save_logs;
+	config["additional_boss_ids"] = additional_boss_ids;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -106,6 +108,27 @@ void Settings::mod_options() {
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip(translation.get("TooltipEarlyGG").c_str());
 	}
+
+	ImGui::BeginTable("##bossidstable", 1);
+	for (int id : additional_boss_ids) {
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		if (ImGui::Selectable(std::to_string(id).c_str(), id == boss_id_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap)) {
+			boss_id_selected = id;
+		}
+	}
+	ImGui::EndTable();
+
+	ImGui::InputInt(translation.get("InputBossID").c_str(), &boss_id_input);
+	if (ImGui::Button(translation.get("ButtonAdd").c_str())) {
+		additional_boss_ids.insert(boss_id_input);
+	}
+	ImGui::SameLine();
+	ImGui::PushID("delete_set");
+	if (ImGui::Button(translation.get("ButtonRemove").c_str())) {
+		additional_boss_ids.erase(boss_id_selected);
+	}
+	ImGui::PopID();
 
 	ImGui::Separator();
 	
