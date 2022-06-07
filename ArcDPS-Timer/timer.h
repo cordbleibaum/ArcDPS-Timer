@@ -26,6 +26,7 @@ enum class TimerStatus { stopped, prepared, running };
 
 struct TimeSegment {
 	bool is_set = false;
+	std::string name = "";
 	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 	std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
 	std::chrono::system_clock::duration shortest_duration = std::chrono::system_clock::duration::zero();
@@ -39,7 +40,7 @@ public:
 	void stop(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void reset();
 	void prepare();
-	void segment(bool local = false);
+	void segment(bool local = false, std::string name = "");
 	void clear_segments();
 	void map_change(uint32_t map_id);
 

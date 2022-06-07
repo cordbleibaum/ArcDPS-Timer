@@ -26,6 +26,7 @@ private:
 		{"HeaderNumColumn", "#"},
 		{"HeaderLastColumn", "Last Time (Duration)"},
 		{"HeaderBestColumn", "Best Time (Duration)"},
+		{"HeaderNameColumn", "Name"},
 
 		// settings.cpp
 		{"InputUseCustomID", "Use Custom Group ID"},

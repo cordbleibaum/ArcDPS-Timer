@@ -100,6 +100,7 @@ void Timer::sync(nlohmann::json data) {
 			segment.end = parse_time((*it)["end"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
 			segment.shortest_time = std::chrono::milliseconds{ (*it)["shortest_time"] };
 			segment.shortest_duration = std::chrono::milliseconds{ (*it)["shortest_duration"] };
+			segment.name = (*it)["name"];
 			segment_signal(i++, segment.start);
 			segments.push_back(segment);
 		}
@@ -249,7 +250,7 @@ void Timer::mod_imgui() {
 	}
 }
 
-void Timer::segment(bool local) {
+void Timer::segment(bool local, std::string name) {
 	if (status != TimerStatus::running) return;
 
 	std::unique_lock lock(segmentstatus_mutex);
@@ -267,6 +268,7 @@ void Timer::segment(bool local) {
 	segment.is_set = true;
 	segment.end = current_time;
 	segment.start = segment_num > 0 ? segments[segment_num - 1].end : start_time;
+	segment.name = name;
 
 	auto time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
 	auto duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
@@ -280,7 +282,8 @@ void Timer::segment(bool local) {
 	if (!local) {
 		api.post_serverapi("segment", {
 			{"segment_num", segment_num},
-			{"time", format_time(segment.end)}
+			{"time", format_time(segment.end)},
+			{"name", name}
 		});
 	}
 
@@ -387,6 +390,7 @@ void Timer::segment_window_content() {
 
 		ImGui::BeginTable("##segmenttable", 3, ImGuiTableFlags_Hideable);
 		ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
+		ImGui::TableSetupColumn(translation.get("HeaderNameColumn").c_str(), ImGuiTableColumnFlags_DefaultHide);
 		ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
 		ImGui::TableSetupColumn(translation.get("HeaderBestColumn").c_str());
 		ImGui::TableHeadersRow();
@@ -398,6 +402,9 @@ void Timer::segment_window_content() {
 
 			ImGui::TableNextColumn();
 			ImGui::Text(std::to_string(i).c_str());
+
+			ImGui::TableNextColumn();
+			ImGui::Text(segment.name.c_str());
 
 			ImGui::TableNextColumn();
 			if (segment.is_set) {

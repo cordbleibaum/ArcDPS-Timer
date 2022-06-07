@@ -29,6 +29,7 @@ class SegmentStatus(object):
         self.end = datetime.now()
         self.shortest_duration = timedelta(seconds=0)
         self.shortest_time = timedelta(seconds=0)
+        self.name = ""
 
 
 class GroupStatus(object):
@@ -60,7 +61,8 @@ class GroupStatusEncoder(json.JSONEncoder):
                     "start": segment.start.isoformat(),
                     "end": segment.end.isoformat(),
                     "shortest_duration": segment.shortest_duration/timedelta(milliseconds=1),
-                    "shortest_time": segment.shortest_time/timedelta(milliseconds=1)
+                    "shortest_time": segment.shortest_time/timedelta(milliseconds=1),
+                    "name": segment.name
                 })
 
             return json_dict
@@ -94,6 +96,8 @@ class JsonHandler(tornado.web.RequestHandler):
                 self.args.segment_num = int(args['segment_num'])
             if 'update_id' in args.keys():
                 self.args.update_id = int(args['update_id'])
+            if 'name' in args.keys():
+                self.args.name = str(args['name'])
 
 
 class GroupModifyHandler(JsonHandler):
@@ -213,6 +217,7 @@ class SegmentHandler(GroupModifyHandler):
 
         segment = self.group.segments[self.args.segment_num]
         segment.is_set = True
+        segment.name = self.args.name
 
         if is_new_segment or self.args.time > segment.end:
             segment.end = self.args.time
