@@ -33,6 +33,9 @@ private:
 	std::chrono::system_clock::time_point log_start_time;
 
 	EncounterData data;
+
+	void add_defaults();
+	void emplace_conditions(std::initializer_list<std::function<bool(EncounterData&)>> initializer);
 };
 
 std::function<bool(EncounterData&)> condition_boss_id(uintptr_t boss_id);
