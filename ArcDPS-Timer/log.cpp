@@ -72,15 +72,43 @@ void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::
 
 	log_debug("timer: saving log");
 
-	auto map_response = cpr::Get(
-		cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(current_map_id) },
-		cpr::Timeout{ 8000 }
-	);
-
+	std::map<uint32_t, std::string> map_name_overrides = {
+		{872, "Mistlock Observatory"},
+		{947, "Uncategorized Fractal"},
+		{948, "Snowblind Fractal"},
+		{949, "Snowblind Fractal"},
+		{950, "Urban Battleground Fractal"},
+		{951, "Aquatic Ruins Fractal"},
+		{952, "Cliffside Fractal"},
+		{953, "Underground Facility Fractal"},
+		{954, "Volcanic Fractal"},
+		{955, "Molten Furnace"},
+		{956, "Aetherblade Retreat"},
+		{957, "Thaumanova Reactor"},
+		{958, "Solid Ocean Fractal"},
+		{959, "Molten Furnace"},
+		{960, "Aetherblade Retreat"},
+		{1164, "Chaos Fractal"},
+		{1177, "Nightmare"},
+		{1205, "Shattered Observatory"},
+		{1267, "Twilight Oasis"},
+		{1290, "Deepstone Fractal"}
+	};
+	
 	std::string map_name = "Unknown";
-	if (map_response.status_code == cpr::status::HTTP_OK) {
-		json map_response_json = json::parse(map_response.text);
-		map_name = map_response_json["name"];
+	if (map_name_overrides.find(current_map_id) != map_name_overrides.end()) {
+		map_name = map_name_overrides[current_map_id];
+	}
+	else {
+		auto map_response = cpr::Get(
+			cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(current_map_id) },
+			cpr::Timeout{ 8000 }
+		);
+
+		if (map_response.status_code == cpr::status::HTTP_OK) {
+			json map_response_json = json::parse(map_response.text);
+			map_name = map_response_json["name"];
+		}
 	}
 
 	std::string log_path = logs_directory + map_name + "/";
