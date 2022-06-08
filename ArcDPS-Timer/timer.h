@@ -63,18 +63,12 @@ private:
 	API& api;
 
 	TimerStatus status;
+	std::shared_mutex timerstatus_mutex;
 	std::chrono::system_clock::time_point start_time;
 	std::chrono::system_clock::time_point current_time;
-	std::chrono::system_clock::time_point log_start_time;
 	std::vector<TimeSegment> segments;
-
-	std::array<float, 3> last_position;
-	std::set<uintptr_t> log_agents;
-	std::chrono::system_clock::time_point last_damage_ticks;
-
-	std::mutex logagents_mutex;
-	std::shared_mutex timerstatus_mutex;
 	std::shared_mutex segmentstatus_mutex;
+	std::array<float, 3> last_position;
 
 	void sync(nlohmann::json data);
 	std::string format_time(std::chrono::system_clock::time_point time);
