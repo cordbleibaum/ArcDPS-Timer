@@ -38,4 +38,4 @@ private:
 	void emplace_conditions(std::initializer_list<std::function<bool(EncounterData&)>> initializer);
 };
 
-std::function<bool(EncounterData&)> condition_boss_id(uintptr_t boss_id);
+std::function<bool(EncounterData&)> condition_npc_id(uintptr_t boss_id);

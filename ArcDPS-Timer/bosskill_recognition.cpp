@@ -62,54 +62,54 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 
 void BossKillRecognition::add_defaults(){
 	// Fractals
-	emplace_conditions({ condition_boss_id(11265) }); // Swampland - Bloomhunger
-	emplace_conditions({ condition_boss_id(11239) }); // Underground Facility - Dredge
-	emplace_conditions({ condition_boss_id(11240) }); // Underground Facility - Elemental
-	emplace_conditions({ condition_boss_id(11485) }); // Volcanic - Imbued Shaman
-	emplace_conditions({ condition_boss_id(11296) }); // Cliffside - Archdiviner
-	emplace_conditions({ condition_boss_id(19697) }); // Mai Trin Boss Fractal - Mai Trin
-	emplace_conditions({ condition_boss_id(12906) }); // Thaumanova - Thaumanova Anomaly
-	emplace_conditions({ condition_boss_id(11333) }); // Snowblind - Shaman
-	emplace_conditions({ condition_boss_id(11402) }); // Aquatic Ruins - Jellyfish Beast
-	emplace_conditions({ condition_boss_id(16617) }); // Chaos - Gladiator
-	emplace_conditions({ condition_boss_id(20497) }); // Deepstone - The Voice
-	emplace_conditions({ condition_boss_id(12900) }); // Molten Furnace - Engineer
-	emplace_conditions({ condition_boss_id(17051) }); // Nightmare - Ensolyss
-	emplace_conditions({ condition_boss_id(16948) }); // Nightmare CM - Ensolyss
-	emplace_conditions({ condition_boss_id(17830) }); // Shattered Observatory - Arkk
-	emplace_conditions({ condition_boss_id(17759) }); // Shattered Observatory - Arkk CM
-	emplace_conditions({ condition_boss_id(11408) }); // Urban Battleground - Captain Ashym
-	emplace_conditions({ condition_boss_id(19664) }); // Twilight Oasis - Amala
-	emplace_conditions({ condition_boss_id(21421) }); // Sirens Reef - Captain Crowe
-	emplace_conditions({ condition_boss_id(11328) }); // Uncategorized - Asura
-	emplace_conditions({ condition_boss_id(12898) }); // Molten Boss - Berserker
-	emplace_conditions({ condition_boss_id(12267) }); // Aetherblade - Frizz
+	emplace_conditions({ condition_npc_id(11265) }); // Swampland - Bloomhunger
+	emplace_conditions({ condition_npc_id(11239) }); // Underground Facility - Dredge
+	emplace_conditions({ condition_npc_id(11240) }); // Underground Facility - Elemental
+	emplace_conditions({ condition_npc_id(11485) }); // Volcanic - Imbued Shaman
+	emplace_conditions({ condition_npc_id(11296) }); // Cliffside - Archdiviner
+	emplace_conditions({ condition_npc_id(19697) }); // Mai Trin Boss Fractal - Mai Trin
+	emplace_conditions({ condition_npc_id(12906) }); // Thaumanova - Thaumanova Anomaly
+	emplace_conditions({ condition_npc_id(11333) }); // Snowblind - Shaman
+	emplace_conditions({ condition_npc_id(11402) }); // Aquatic Ruins - Jellyfish Beast
+	emplace_conditions({ condition_npc_id(16617) }); // Chaos - Gladiator
+	emplace_conditions({ condition_npc_id(20497) }); // Deepstone - The Voice
+	emplace_conditions({ condition_npc_id(12900) }); // Molten Furnace - Engineer
+	emplace_conditions({ condition_npc_id(17051) }); // Nightmare - Ensolyss
+	emplace_conditions({ condition_npc_id(16948) }); // Nightmare CM - Ensolyss
+	emplace_conditions({ condition_npc_id(17830) }); // Shattered Observatory - Arkk
+	emplace_conditions({ condition_npc_id(17759) }); // Shattered Observatory - Arkk CM
+	emplace_conditions({ condition_npc_id(11408) }); // Urban Battleground - Captain Ashym
+	emplace_conditions({ condition_npc_id(19664) }); // Twilight Oasis - Amala
+	emplace_conditions({ condition_npc_id(21421) }); // Sirens Reef - Captain Crowe
+	emplace_conditions({ condition_npc_id(11328) }); // Uncategorized - Asura
+	emplace_conditions({ condition_npc_id(12898) }); // Molten Boss - Berserker
+	emplace_conditions({ condition_npc_id(12267) }); // Aetherblade - Frizz
 
 	// Raids
-	emplace_conditions({ condition_boss_id(15375) }); // Sabetha
-	emplace_conditions({ condition_boss_id(16115) }); // Matthias Gabrel
-	emplace_conditions({ condition_boss_id(17154) }); // Deimos
-	emplace_conditions({ condition_boss_id(19450) }); // Dhuum
-	emplace_conditions({ condition_boss_id(21041) }); // Qadim
-	emplace_conditions({ condition_boss_id(22000) }); // Qadim the Peerless
-	emplace_conditions({ condition_boss_id(16246) }); // Xera
-	emplace_conditions({ condition_boss_id(16286) }); // Xera
+	emplace_conditions({ condition_npc_id(15375) }); // Sabetha
+	emplace_conditions({ condition_npc_id(16115) }); // Matthias Gabrel
+	emplace_conditions({ condition_npc_id(17154) }); // Deimos
+	emplace_conditions({ condition_npc_id(19450) }); // Dhuum
+	emplace_conditions({ condition_npc_id(21041) }); // Qadim
+	emplace_conditions({ condition_npc_id(22000) }); // Qadim the Peerless
+	emplace_conditions({ condition_npc_id(16246) }); // Xera
+	emplace_conditions({ condition_npc_id(16286) }); // Xera
 
 	// Dungeons
-	emplace_conditions({ condition_boss_id(7018) });  // AC P1
-	emplace_conditions({ condition_boss_id(9077) });  // AC P2
-	emplace_conditions({ condition_boss_id(9078) });  // AC P3
-	emplace_conditions({ condition_boss_id(10580) }); // Arah P2
-	emplace_conditions({ condition_boss_id(10218) }); // CoE P1
-	emplace_conditions({ condition_boss_id(10337) }); // CoE P2
-	emplace_conditions({ condition_boss_id(10404) }); // CoE P3
+	emplace_conditions({ condition_npc_id(7018) });  // AC P1
+	emplace_conditions({ condition_npc_id(9077) });  // AC P2
+	emplace_conditions({ condition_npc_id(9078) });  // AC P3
+	emplace_conditions({ condition_npc_id(10580) }); // Arah P2
+	emplace_conditions({ condition_npc_id(10218) }); // CoE P1
+	emplace_conditions({ condition_npc_id(10337) }); // CoE P2
+	emplace_conditions({ condition_npc_id(10404) }); // CoE P3
 }
 
 void BossKillRecognition::emplace_conditions(std::initializer_list<std::function<bool(EncounterData&)>> initializer) {
 	conditions.emplace_back(initializer);
 }
 
-std::function<bool(EncounterData&)> condition_boss_id(uintptr_t boss_id) {
+std::function<bool(EncounterData&)> condition_npc_id(uintptr_t boss_id) {
 	return [&, boss_id](EncounterData& data) {
 		bool condition = data.log_species_id == boss_id;
 		for (const auto& agent_species_id : data.log_agents) {
@@ -117,7 +117,7 @@ std::function<bool(EncounterData&)> condition_boss_id(uintptr_t boss_id) {
 		}
 
 		if (condition) {
-			log_debug("timer: Boss ID Condition (" + std::to_string(boss_id) + ") returned true");
+			log_debug("timer: NPC ID Condition (" + std::to_string(boss_id) + ") returned true");
 		}
 
 		return condition;
