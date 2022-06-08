@@ -111,16 +111,15 @@ void BossKillRecognition::emplace_conditions(std::initializer_list<std::function
 
 std::function<bool(EncounterData&)> condition_boss_id(uintptr_t boss_id) {
 	return [&, boss_id](EncounterData& data) {
-		if (data.log_species_id == boss_id) {
-			return true;
-		}
-
+		bool condition = data.log_species_id == boss_id;
 		for (const auto& agent_species_id : data.log_agents) {
-			if (agent_species_id == boss_id) {
-				return true;
-			}
+			condition |= agent_species_id == boss_id;
 		}
 
-		return false;
+		if (condition) {
+			log_debug("timer: Boss ID Condition (" + std::to_string(boss_id) + ") returned true");
+		}
+
+		return condition;
 	};
 }
