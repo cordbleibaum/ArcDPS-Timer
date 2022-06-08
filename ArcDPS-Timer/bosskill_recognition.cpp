@@ -11,14 +11,32 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 	if (ev) {
 		if (src && src->prof > 9) {
 			std::scoped_lock<std::mutex> guard(logagents_mutex);
-			data.log_agents.insert(src->prof);
+			
+			if (data.log_agents.find(src->id) == data.log_agents.cend()) {
+				AgentData agent;
+				agent.species_id = src->prof;
+				data.log_agents[src->id] = agent;
+			}
 		}
 		if (dst && dst->prof > 9) { // TODO: make sure minions, pets, etc get excluded
 			std::scoped_lock<std::mutex> guard(logagents_mutex);
-			data.log_agents.insert(dst->prof);
 
-			if ((!ev->is_buffremove && !ev->is_activation && !ev->is_statechange) || (ev->buff && ev->buff_dmg)) {
+			if (data.log_agents.find(dst->id) == data.log_agents.cend()) {
+				AgentData agent;
+				agent.species_id = dst->prof;
+				data.log_agents[dst->id] = agent;
+			}
+
+			if ((!ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff) || (ev->buff && ev->buff_dmg)) {
 				last_damage_ticks = calculate_ticktime(ev->time);
+			}
+
+			if (!ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff) {
+				data.log_agents[dst->id].damage_taken += ev->value;
+			}
+
+			if (ev->buff && ev->buff_dmg) {
+				data.log_agents[dst->id].damage_taken += ev->buff_dmg;
 			}
 		}
 
@@ -42,8 +60,8 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 				}
 
 				bool is_kill = std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), log_species_id) != std::end(settings.additional_boss_ids);
-				for (const auto& agent_species_id : data.log_agents) {
-					is_kill |= std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), agent_species_id) != std::end(settings.additional_boss_ids);
+				for (const auto &[id, agent] : data.log_agents) {
+					is_kill |= std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), agent.species_id) != std::end(settings.additional_boss_ids);
 				}
 
 				data.log_agents.clear();
@@ -78,7 +96,7 @@ void BossKillRecognition::add_defaults(){
 	emplace_conditions({ condition_npc_id(16948) }); // Nightmare CM - Ensolyss
 	emplace_conditions({ condition_npc_id(17830) }); // Shattered Observatory - Arkk
 	emplace_conditions({ condition_npc_id(17759) }); // Shattered Observatory - Arkk CM
-	emplace_conditions({ condition_npc_id(11408) }); // Urban Battleground - Captain Ashym
+	emplace_conditions({ condition_npc_id(11408), condition_npc_damage_taken(11408, 200000)}); // Urban Battleground - Captain Ashym
 	emplace_conditions({ condition_npc_id(19664) }); // Twilight Oasis - Amala
 	emplace_conditions({ condition_npc_id(21421) }); // Sirens Reef - Captain Crowe
 	emplace_conditions({ condition_npc_id(11328) }); // Uncategorized - Asura
@@ -109,15 +127,36 @@ void BossKillRecognition::emplace_conditions(std::initializer_list<std::function
 	conditions.emplace_back(initializer);
 }
 
-std::function<bool(EncounterData&)> condition_npc_id(uintptr_t boss_id) {
-	return [&, boss_id](EncounterData& data) {
-		bool condition = data.log_species_id == boss_id;
-		for (const auto& agent_species_id : data.log_agents) {
-			condition |= agent_species_id == boss_id;
+std::function<bool(EncounterData&)> condition_npc_id(uintptr_t npc_id) {
+	return [&, npc_id](EncounterData& data) {
+		bool condition = data.log_species_id == npc_id;
+		for (const auto &[id, agent] : data.log_agents) {
+			condition |= agent.species_id == npc_id;
 		}
 
 		if (condition) {
-			log_debug("timer: NPC ID Condition (" + std::to_string(boss_id) + ") returned true");
+			log_debug("timer: NPC ID Condition (" + std::to_string(npc_id) + ") returned true");
+		}
+
+		return condition;
+	};
+}
+
+std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id, long damage)
+{
+	return [&, npc_id, damage](EncounterData& data) {
+		bool condition = false;
+		for (const auto& [id, agent] : data.log_agents) {
+			if (agent.species_id == npc_id) {
+				if (agent.damage_taken > damage) {
+					condition = true;
+					break;
+				}
+			}
+		}
+
+		if (condition) {
+			log_debug("timer: NPC Damage Taken Condition (" + std::to_string(npc_id) + ", " + std::to_string(damage) + ") returned true");
 		}
 
 		return condition;

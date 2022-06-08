@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <set>
+#include <map>
 #include <boost/signals2.hpp>
 #include <mutex>
 #include <chrono>
@@ -11,8 +11,13 @@
 #include "mumble_link.h"
 #include "settings.h"
 
+struct AgentData {
+	uintptr_t species_id = 0;
+	long damage_taken = 0;
+};
+
 struct EncounterData {
-	std::set<uintptr_t> log_agents;
+	std::map<uintptr_t, AgentData> log_agents;
 	uintptr_t log_species_id;
 };
 
@@ -38,4 +43,5 @@ private:
 	void emplace_conditions(std::initializer_list<std::function<bool(EncounterData&)>> initializer);
 };
 
-std::function<bool(EncounterData&)> condition_npc_id(uintptr_t boss_id);
+std::function<bool(EncounterData&)> condition_npc_id(uintptr_t npc_id);
+std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id, long damage);
