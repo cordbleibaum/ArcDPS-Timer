@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <ranges>
+#include <map>
 
 #include "arcdps.h"
 #include "util.h"
@@ -92,7 +93,8 @@ void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::
 		{1177, "Nightmare"},
 		{1205, "Shattered Observatory"},
 		{1267, "Twilight Oasis"},
-		{1290, "Deepstone Fractal"}
+		{1290, "Deepstone Fractal"},
+		{1384, "Sunqua Peak Fractal"}
 	};
 	
 	std::string map_name = "Unknown";
