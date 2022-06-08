@@ -92,7 +92,7 @@ void BossKillRecognition::add_defaults(){
 	emplace_conditions({ condition_npc_id(11402) }); // Aquatic Ruins - Jellyfish Beast
 	emplace_conditions({ condition_npc_id(16617) }); // Chaos - Gladiator
 	emplace_conditions({ condition_npc_id(20497) }); // Deepstone - The Voice
-	emplace_conditions({ condition_npc_id(12900) }); // Molten Furnace - Engineer
+	emplace_conditions({ condition_npc_id(12900), condition_map_id(955)}); // Molten Furnace - Engineer
 	emplace_conditions({ condition_npc_id(17051) }); // Nightmare - Ensolyss
 	emplace_conditions({ condition_npc_id(16948) }); // Nightmare CM - Ensolyss
 	emplace_conditions({ condition_npc_id(17830) }); // Shattered Observatory - Arkk
@@ -166,6 +166,7 @@ std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id,
 std::function<bool(EncounterData&)> condition_map_id(uint32_t map_id) {
 	return [&, map_id](EncounterData& data) {
 		bool condition = data.map_id == map_id;
+		
 		if (condition) {
 			log_debug("timer: Map ID Condition (" + std::to_string(map_id) + ") returned true");
 		}
