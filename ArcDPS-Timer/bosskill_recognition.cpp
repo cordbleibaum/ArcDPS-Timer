@@ -74,6 +74,7 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 		}
 		else if (ev->is_statechange == cbtstatechange::CBTS_LOGSTART) {
 			log_start_time = std::chrono::system_clock::now() - std::chrono::milliseconds{ timeGetTime() - ev->time };
+			data.map_id = mumble_link->getMumbleContext()->mapId;
 		}
 	}
 }
@@ -142,8 +143,7 @@ std::function<bool(EncounterData&)> condition_npc_id(uintptr_t npc_id) {
 	};
 }
 
-std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id, long damage)
-{
+std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id, long damage) {
 	return [&, npc_id, damage](EncounterData& data) {
 		bool condition = false;
 		for (const auto& [id, agent] : data.log_agents) {
@@ -157,6 +157,17 @@ std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id,
 
 		if (condition) {
 			log_debug("timer: NPC Damage Taken Condition (" + std::to_string(npc_id) + ", " + std::to_string(damage) + ") returned true");
+		}
+
+		return condition;
+	};
+}
+
+std::function<bool(EncounterData&)> condition_map_id(uint32_t map_id) {
+	return [&, map_id](EncounterData& data) {
+		bool condition = data.map_id == map_id;
+		if (condition) {
+			log_debug("timer: Map ID Condition (" + std::to_string(map_id) + ") returned true");
 		}
 
 		return condition;

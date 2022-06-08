@@ -19,6 +19,7 @@ struct AgentData {
 struct EncounterData {
 	std::map<uintptr_t, AgentData> log_agents;
 	uintptr_t log_species_id;
+	uint32_t map_id;
 };
 
 class BossKillRecognition {
@@ -45,3 +46,4 @@ private:
 
 std::function<bool(EncounterData&)> condition_npc_id(uintptr_t npc_id);
 std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id, long damage);
+std::function<bool(EncounterData&)> condition_map_id(uint32_t map_id);
