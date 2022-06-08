@@ -23,7 +23,7 @@ void API::post_serverapi(std::string method, nlohmann::json payload) {
 				cpr::Header{ {"Content-Type", "application/json"} }
 			);
 		}
-		});
+	});
 	thread.detach();
 }
 

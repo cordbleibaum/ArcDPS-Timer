@@ -90,6 +90,9 @@
     <ClInclude Include="api.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bosskill_recognition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mod.cpp">
@@ -165,6 +168,9 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="api.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bosskill_recognition.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -21,6 +21,7 @@
 #include "util.h"
 #include "log.h"
 #include "api.h"
+#include "bosskill_recognition.h"
 
 Translation translation;
 KeyBindHandler keybind_handler;
@@ -34,6 +35,7 @@ TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
 API api(settings, mumble_link, map_tracker, group_tracker, "http://18.192.87.148:5001/");
 Timer timer(settings, mumble_link, translation, api);
 Logger logger(mumble_link, settings);
+BossKillRecognition bosskill(mumble_link, settings);
 
 std::chrono::system_clock::time_point last_ntp_sync;
 
@@ -83,6 +85,8 @@ arcdps_exports* mod_init() {
 	trigger_watcher.trigger_signal.connect([&](std::string name) {
 		timer.segment(false, name);
 	});
+
+	bosskill.bosskill_signal.connect(std::bind(&Timer::bosskill, std::ref(timer), std::placeholders::_1));
 
 	KeyBindHandler::Subscriber start_subscriber;
 	start_subscriber.Fun = [&](const KeyBinds::Key&) {
@@ -186,6 +190,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id, uint64_t revision) {
 	group_tracker.mod_combat(ev, src, dst, skillname, id);
+	bosskill.mod_combat(ev, src, dst, skillname, id);
 	timer.mod_combat(ev, src, dst, skillname, id);
 
 	return 0;
