@@ -89,7 +89,7 @@ void BossKillRecognition::add_defaults(){
 	emplace_conditions({ condition_boss_id(15375) }); // Sabetha
 	emplace_conditions({ condition_boss_id(16115) }); // Matthias Gabrel
 	emplace_conditions({ condition_boss_id(17154) }); // Deimos
-	emplace_conditions({ condition_boss_id(19450) }); // Dhuum,
+	emplace_conditions({ condition_boss_id(19450) }); // Dhuum
 	emplace_conditions({ condition_boss_id(21041) }); // Qadim
 	emplace_conditions({ condition_boss_id(22000) }); // Qadim the Peerless
 	emplace_conditions({ condition_boss_id(16246) }); // Xera

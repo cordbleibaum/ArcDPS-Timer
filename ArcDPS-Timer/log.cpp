@@ -91,7 +91,6 @@ void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::
 	json events_json = events_save;
 	std::string name = std::format("{:%FT%H-%M-%S}", std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now()));
 	std::ofstream o(log_path + name + ".json");
-	log_debug(log_path + name + ".json");
 	o << std::setw(4) << events_json << std::endl;
 }
 
