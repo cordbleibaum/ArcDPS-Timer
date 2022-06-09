@@ -111,8 +111,7 @@ void BossKillRecognition::add_defaults(){
 	emplace_conditions({ condition_npc_id(19450) }); // Dhuum
 	emplace_conditions({ condition_npc_id(21041) }); // Qadim
 	emplace_conditions({ condition_npc_id(22000) }); // Qadim the Peerless
-	emplace_conditions({ condition_npc_id(16246) }); // Xera
-	emplace_conditions({ condition_npc_id(16286) }); // Xera
+	emplace_conditions({ condition_npc_id(16246), condition_npc_id(16286) }); // Xera
 
 	// Dungeons
 	emplace_conditions({ condition_npc_id(7018) });  // AC P1
