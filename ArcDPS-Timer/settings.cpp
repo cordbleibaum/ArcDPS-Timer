@@ -36,6 +36,7 @@ Settings::Settings(std::string file, Translation& translation, KeyBindHandler& k
 	segment_time_formatter = config.value("segment_time_formatter", "{0:%M:%S}");
 	hide_timer_buttons = config.value("hide_timer_buttons", false);
 	hide_segment_buttons = config.value("hide_segment_buttons", false);
+	segment_window_border = config.value("segment_window_border", true);
 	auto_stop = config.value("auto_stop", false);
 	early_gg_threshold = config.value("early_gg_threshold", 5);
 	show_segments = config.value("show_segments", false);
@@ -82,6 +83,7 @@ void Settings::save() {
 	config["save_logs"] = save_logs;
 	config["additional_boss_ids"] = additional_boss_ids;
 	config["segment_time_formatter"] = segment_time_formatter;
+	config["segment_window_border"] = segment_window_border;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -152,6 +154,7 @@ void Settings::mod_options() {
 
 	ImGui::Checkbox(translation.get("InputHideTimerButtons").c_str(), &hide_timer_buttons);
 	ImGui::Checkbox(translation.get("InputHideSegmentButtons").c_str(), &hide_segment_buttons);
+	ImGui::Checkbox(translation.get("InputSegmentWindowBorder").c_str(), &segment_window_border);
 	ImGui::Checkbox(translation.get("InputUnifiedWindow").c_str(), &unified_window);
 
 	if (ImGuiEx::KeyCodeInput(translation.get("InputStartKey").c_str(), start_key, Language::English, current_hkl)) {

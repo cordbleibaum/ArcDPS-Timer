@@ -158,7 +158,13 @@ void Timer::mod_imgui() {
 		}
 
 		if (settings.show_segments) {
-			if (ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_segments, ImGuiWindowFlags_AlwaysAutoResize)) {
+			ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize;
+
+			if (!settings.segment_window_border) {
+				flags |= ImGuiWindowFlags_NoDecoration;
+			}
+
+			if (ImGui::Begin(translation.get("HeaderSegments").c_str(), &settings.show_segments, flags)) {
 				segment_window_content();
 			}
 			ImGui::End();

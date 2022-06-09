@@ -62,6 +62,7 @@ private:
 		{"ButtonRemove", "Remove"},
 		{"TextAdditionalBossIDs", "Additional Boss IDs"},
 		{"InputSegmentTimeFormatter", "Segment time formatter"},
+		{"InputSegmentWindowBorder", "Segment window border"},
 
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},

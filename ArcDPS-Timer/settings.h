@@ -74,6 +74,7 @@ public:
 	std::string segment_time_formatter;
 	bool hide_timer_buttons;
 	bool hide_segment_buttons;
+	bool segment_window_border;
 	KeyBinds::Key start_key;
 	KeyBinds::Key stop_key;
 	KeyBinds::Key reset_key;
