@@ -154,8 +154,11 @@ void Settings::mod_options() {
 
 	ImGui::Checkbox(translation.get("InputHideTimerButtons").c_str(), &hide_timer_buttons);
 	ImGui::Checkbox(translation.get("InputHideSegmentButtons").c_str(), &hide_segment_buttons);
-	ImGui::Checkbox(translation.get("InputSegmentWindowBorder").c_str(), &segment_window_border);
 	ImGui::Checkbox(translation.get("InputUnifiedWindow").c_str(), &unified_window);
+
+	if (!unified_window) {
+		ImGui::Checkbox(translation.get("InputSegmentWindowBorder").c_str(), &segment_window_border);
+	}
 
 	if (ImGuiEx::KeyCodeInput(translation.get("InputStartKey").c_str(), start_key, Language::English, current_hkl)) {
 		keybind_handler.UpdateKey(start_key_handler, start_key);
