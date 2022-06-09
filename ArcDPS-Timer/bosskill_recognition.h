@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 #include <boost/signals2.hpp>
 #include <mutex>
 #include <chrono>
@@ -14,6 +15,7 @@
 struct AgentData {
 	uintptr_t species_id = 0;
 	long damage_taken = 0;
+	std::chrono::system_clock::time_point last_hit;
 };
 
 struct EncounterData {
@@ -48,5 +50,6 @@ private:
 
 std::function<bool(EncounterData&)> condition_npc_id(uintptr_t npc_id);
 std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id, long damage);
+std::function<bool(EncounterData&)> condition_npc_id_at_least_one(std::set<uintptr_t> npc_ids);
+std::function<bool(EncounterData&)> condition_npc_last_damage_time_distance(uintptr_t npc_id_a, uintptr_t npc_id_b, std::chrono::system_clock::duration distance);
 std::function<bool(EncounterData&)> condition_map_id(uint32_t map_id);
-

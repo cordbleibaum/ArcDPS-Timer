@@ -1,6 +1,8 @@
 #include "bosskill_recognition.h"
 #include "util.h"
 
+using namespace std::chrono_literals;
+
 BossKillRecognition::BossKillRecognition(GW2MumbleLink& mumble_link, Settings& settings)
 :	mumble_link(mumble_link),
 	settings(settings) {
@@ -29,6 +31,7 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 
 			if ((!ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff) || (ev->buff && ev->buff_dmg)) {
 				last_damage_ticks = calculate_ticktime(ev->time);
+				data.log_agents[dst->id].last_hit = last_damage_ticks;
 			}
 
 			if (!ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff) {
@@ -101,7 +104,7 @@ void BossKillRecognition::add_defaults(){
 	emplace_conditions({ condition_npc_id(19664) }); // Twilight Oasis - Amala
 	emplace_conditions({ condition_npc_id(21421) }); // Sirens Reef - Captain Crowe
 	emplace_conditions({ condition_npc_id(11328) }); // Uncategorized - Asura
-	emplace_conditions({ condition_npc_id(12898) }); // Molten Boss - Berserker
+	emplace_conditions({ condition_npc_id_at_least_one({12898, 12897}), condition_npc_last_damage_time_distance(12898, 12897, 8s) }); // Molten Boss - Berserker/Firestorm
 	emplace_conditions({ condition_npc_id(12267) }); // Aetherblade - Frizz
 
 	// Raids
@@ -156,6 +159,64 @@ std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id,
 
 		if (condition) {
 			log_debug("timer: NPC Damage Taken Condition (" + std::to_string(npc_id) + ", " + std::to_string(damage) + ") returned true");
+		}
+
+		return condition;
+	};
+}
+
+std::function<bool(EncounterData&)> condition_npc_id_at_least_one(std::set<uintptr_t> npc_ids)
+{
+	return [&, npc_ids](EncounterData& data) {
+		bool condition = npc_ids.find(data.log_species_id) != npc_ids.end();
+		for (const auto& [id, agent] : data.log_agents) {
+			condition |= npc_ids.find(agent.species_id) != npc_ids.end();
+		}
+
+		if (condition) {
+			std::string npc_ids_string = "";
+			for (auto& id : npc_ids) {
+				npc_ids_string += std::to_string(id) + ", ";
+			}
+			log_debug("timer: NPC ID At Least One Condition (" + npc_ids_string + ") returned true");
+		}
+
+		return condition;
+	};
+}
+
+std::function<bool(EncounterData&)> condition_npc_last_damage_time_distance(uintptr_t npc_id_a, uintptr_t npc_id_b, std::chrono::system_clock::duration distance)
+{
+	return [&, npc_id_a, npc_id_b, distance](EncounterData& data) {
+		bool condition = true;
+
+		bool a_found = false;
+		std::chrono::system_clock::time_point last_hit_a;
+		bool b_found = false;
+		std::chrono::system_clock::time_point last_hit_b;
+
+		for (const auto& [id, agent] : data.log_agents) {
+			if (agent.species_id == npc_id_a) {
+				if (!a_found || agent.last_hit > last_hit_a) {
+					last_hit_a = agent.last_hit;
+				}
+				a_found = true;
+			}
+
+			if (agent.species_id == npc_id_b) {
+				if (!b_found || agent.last_hit > last_hit_b) {
+					last_hit_b = agent.last_hit;
+				}
+				b_found = true;
+			}
+		}
+
+		if (a_found && b_found) {
+			condition = std::chrono::abs(last_hit_a - last_hit_b) > distance;
+		}
+
+		if (condition) {
+			log_debug("timer: NPC Last Damage Distance Condition (" + std::to_string(npc_id_a) + ", " + std::to_string(npc_id_b) + ", " + std::to_string(distance.count()) + ") returned true");
 		}
 
 		return condition;
