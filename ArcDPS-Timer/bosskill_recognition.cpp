@@ -54,6 +54,10 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 					bool is_true = true;
 					for (auto& condition : condition_list) {
 						is_true &= condition(data);
+
+						if (!is_true) {
+							break;
+						}
 					}
 
 					if (is_true) {
