@@ -34,7 +34,8 @@ Settings::Settings(std::string file, Translation& translation, KeyBindHandler& k
 	disable_outside_instances = config.value("disable_outside_instances", true);
 	time_formatter = config.value("time_formatter", "{0:%M:%S}");
 	segment_time_formatter = config.value("segment_time_formatter", "{0:%M:%S}");
-	hide_buttons = config.value("hide_buttons", false);
+	hide_timer_buttons = config.value("hide_timer_buttons", false);
+	hide_segment_buttons = config.value("hide_segment_buttons", false);
 	auto_stop = config.value("auto_stop", false);
 	early_gg_threshold = config.value("early_gg_threshold", 5);
 	show_segments = config.value("show_segments", false);
@@ -62,7 +63,8 @@ void Settings::save() {
 	config["use_custom_id"] = use_custom_id;
 	config["disable_outside_instances"] = disable_outside_instances;
 	config["timer_formatter"] = time_formatter;
-	config["hide_buttons"] = hide_buttons;
+	config["hide_timer_buttons"] = hide_timer_buttons;
+	config["hide_segment_buttons"] = hide_segment_buttons;
 	config["start_key"] = start_key;
 	config["stop_key"] = stop_key;
 	config["reset_key"] = reset_key;
@@ -148,7 +150,8 @@ void Settings::mod_options() {
 		ImGui::SetTooltip(translation.get("TooltipTimerFormatter").c_str());
 	}
 
-	ImGui::Checkbox(translation.get("InputHideButtons").c_str(), &hide_buttons);
+	ImGui::Checkbox(translation.get("InputHideTimerButtons").c_str(), &hide_timer_buttons);
+	ImGui::Checkbox(translation.get("InputHideSegmentButtons").c_str(), &hide_segment_buttons);
 	ImGui::Checkbox(translation.get("InputUnifiedWindow").c_str(), &unified_window);
 
 	if (ImGuiEx::KeyCodeInput(translation.get("InputStartKey").c_str(), start_key, Language::English, current_hkl)) {

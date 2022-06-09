@@ -64,12 +64,12 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 					is_kill |= std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), agent.species_id) != std::end(settings.additional_boss_ids);
 				}
 
-				data.log_agents.clear();
-
 				if (is_kill) {
 					log_debug("timer: stopping on boss kill additional ID");
 					bosskill_signal(ev->time);
 				}
+
+				data.archive();
 			}
 		}
 		else if (ev->is_statechange == cbtstatechange::CBTS_LOGSTART) {
@@ -172,4 +172,8 @@ std::function<bool(EncounterData&)> condition_map_id(uint32_t map_id) {
 
 		return condition;
 	};
+}
+
+void EncounterData::archive() {
+	log_agents.clear();
 }

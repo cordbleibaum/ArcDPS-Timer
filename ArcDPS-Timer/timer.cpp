@@ -281,7 +281,7 @@ void Timer::timer_window_content(float width) {
 
 	ImGui::Dummy(ImVec2(0.0f, 3.0f));
 
-	if (!settings.hide_buttons) {
+	if (!settings.hide_timer_buttons) {
 		ImGui::PushStyleColor(ImGuiCol_Button, settings.prepare_button_color);
 		if (ImGui::Button(translation.get("ButtonPrepare").c_str(), ImVec2(width, ImGui::GetFontSize() * 1.5f))) {
 			log_debug("timer: preparing manually");
@@ -381,12 +381,14 @@ void Timer::segment_window_content() {
 		ImGui::EndTable();
 	}
 
-	if (ImGui::Button(translation.get("ButtonSegment").c_str())) {
-		segment();
-	}
+	if (!settings.hide_segment_buttons) {
+		if (ImGui::Button(translation.get("ButtonSegment").c_str())) {
+			segment();
+		}
 
-	ImGui::SameLine(0, 5);
-	if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
-		clear_segments();
+		ImGui::SameLine(0, 5);
+		if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
+			clear_segments();
+		}
 	}
 }
