@@ -53,7 +53,8 @@ void Logger::segment(int segment_num, std::chrono::system_clock::time_point time
 
 Logger::~Logger() {
 	if (is_instanced) {
-		save_log_thread(events, map_id);
+		std::vector<std::tuple< std::chrono::system_clock::time_point, LogEvent>> current_events(events);
+		save_log_thread(current_events, map_id);
 	}
 }
 
