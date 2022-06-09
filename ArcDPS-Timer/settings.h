@@ -91,6 +91,8 @@ public:
 	ImVec4 stop_button_color;
 	ImVec4 reset_button_color;
 	ImVec4 prepare_button_color;
+	ImVec4 segment_button_color;
+	ImVec4 clear_button_color;
 
 	uint64_t start_key_handler;
 	uint64_t stop_key_handler;

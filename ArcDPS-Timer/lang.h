@@ -56,6 +56,8 @@ private:
 		{"InputStopButtonColor", "Stop Button Color"},
 		{"InputResetButtonColor", "Reset Button Color"},
 		{"InputPrepareButtonColor", "Prepare Button Color"},
+		{"InputSegmentButtonColor", "Segment Button Color"},
+		{"InputClearButtonColor", "Clear Button Color"},
 		{"InputSaveLogs", "Save Logs"},
 		{"InputBossID", "Boss ID"},
 		{"ButtonAdd", "Add"},

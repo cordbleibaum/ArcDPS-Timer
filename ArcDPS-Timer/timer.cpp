@@ -388,13 +388,17 @@ void Timer::segment_window_content() {
 	}
 
 	if (!settings.hide_segment_buttons) {
+		ImGui::PushStyleColor(ImGuiCol_Button, settings.segment_button_color);
 		if (ImGui::Button(translation.get("ButtonSegment").c_str())) {
 			segment();
 		}
-
+		ImGui::PopStyleColor();
+		
+		ImGui::PushStyleColor(ImGuiCol_Button, settings.clear_button_color);
 		ImGui::SameLine(0, 5);
 		if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
 			clear_segments();
 		}
+		ImGui::PopStyleColor();
 	}
 }

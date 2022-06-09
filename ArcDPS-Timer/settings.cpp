@@ -54,6 +54,8 @@ Settings::Settings(std::string file, Translation& translation, KeyBindHandler& k
 	stop_button_color = config.value("stop_button_color", default_color);
 	reset_button_color = config.value("reset_button_color", default_color);
 	prepare_button_color = config.value("prepare_button_color", default_color);
+	segment_button_color = config.value("segment_button_color", default_color);
+	clear_button_color = config.value("clear_button_color", default_color);
 }
 
 void Settings::save() {
@@ -80,6 +82,8 @@ void Settings::save() {
 	config["stop_button_color"] = stop_button_color;
 	config["reset_button_color"] = reset_button_color;
 	config["prepare_button_color"] = prepare_button_color;
+	config["segment_button_color"] = segment_button_color;
+	config["clear_button_color"] = clear_button_color;
 	config["save_logs"] = save_logs;
 	config["additional_boss_ids"] = additional_boss_ids;
 	config["segment_time_formatter"] = segment_time_formatter;
@@ -182,29 +186,45 @@ void Settings::mod_options() {
 
 	ImGui::Separator();
 
-	if (ImGui::ColorButton(translation.get("InputStartButtonColor").c_str(), start_button_color)) {
-		ImGui::OpenPopup("##popupstartcolour");
-	}
-	ImGui::SameLine();
-	ImGui::LabelText("##startbuttoncolor", translation.get("InputStartButtonColor").c_str());
+	if (!hide_timer_buttons) {
+		if (ImGui::ColorButton(translation.get("InputStartButtonColor").c_str(), start_button_color)) {
+			ImGui::OpenPopup("##popupstartcolour");
+		}
+		ImGui::SameLine();
+		ImGui::LabelText("##startbuttoncolor", translation.get("InputStartButtonColor").c_str());
 
-	if (ImGui::ColorButton(translation.get("InputStopButtonColor").c_str(), stop_button_color)) {
-		ImGui::OpenPopup("##popupstopcolour");
-	}
-	ImGui::SameLine();
-	ImGui::LabelText("##stopbuttoncolor", translation.get("InputStopButtonColor").c_str());
+		if (ImGui::ColorButton(translation.get("InputStopButtonColor").c_str(), stop_button_color)) {
+			ImGui::OpenPopup("##popupstopcolour");
+		}
+		ImGui::SameLine();
+		ImGui::LabelText("##stopbuttoncolor", translation.get("InputStopButtonColor").c_str());
 
-	if (ImGui::ColorButton(translation.get("InputResetButtonColor").c_str(), reset_button_color)) {
-		ImGui::OpenPopup("##popupresetcolour");
-	}
-	ImGui::SameLine();
-	ImGui::LabelText("##resetbuttoncolor", translation.get("InputResetButtonColor").c_str());
+		if (ImGui::ColorButton(translation.get("InputResetButtonColor").c_str(), reset_button_color)) {
+			ImGui::OpenPopup("##popupresetcolour");
+		}
+		ImGui::SameLine();
+		ImGui::LabelText("##resetbuttoncolor", translation.get("InputResetButtonColor").c_str());
 
-	if (ImGui::ColorButton(translation.get("InputPrepareButtonColor").c_str(), prepare_button_color)) {
-		ImGui::OpenPopup("##popuppreparecolour");
+		if (ImGui::ColorButton(translation.get("InputPrepareButtonColor").c_str(), prepare_button_color)) {
+			ImGui::OpenPopup("##popuppreparecolour");
+		}
+		ImGui::SameLine();
+		ImGui::LabelText("##preparebuttoncolor", translation.get("InputPrepareButtonColor").c_str());
 	}
-	ImGui::SameLine();
-	ImGui::LabelText("##preparebuttoncolor", translation.get("InputPrepareButtonColor").c_str());
+
+	if (!hide_segment_buttons) {
+		if (ImGui::ColorButton(translation.get("InputSegmentButtonColor").c_str(), segment_button_color)) {
+			ImGui::OpenPopup("##popupsegmentcolour");
+		}
+		ImGui::SameLine();
+		ImGui::LabelText("##segmentbuttoncolor", translation.get("InputSegmentButtonColor").c_str());
+
+		if (ImGui::ColorButton(translation.get("InputClearButtonColor").c_str(), clear_button_color)) {
+			ImGui::OpenPopup("##popupclearcolour");
+		}
+		ImGui::SameLine();
+		ImGui::LabelText("##clearbuttoncolor", translation.get("InputClearButtonColor").c_str());
+	}
 
 	ImGui::PopStyleVar();
 
@@ -236,6 +256,22 @@ void Settings::mod_options() {
 		float color[4] = { prepare_button_color.x, prepare_button_color.y, prepare_button_color.z, prepare_button_color.w };
 		ImGui::ColorPicker4(translation.get("InputPrepareButtonColor").c_str(), color);
 		prepare_button_color = ImVec4(color[0], color[1], color[2], color[3]);
+
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::BeginPopup("##popupsegmentcolour")) {
+		float color[4] = { segment_button_color.x, segment_button_color.y, segment_button_color.z, segment_button_color.w };
+		ImGui::ColorPicker4(translation.get("InputSegmentButtonColor").c_str(), color);
+		segment_button_color = ImVec4(color[0], color[1], color[2], color[3]);
+
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::BeginPopup("##popupclearcolour")) {
+		float color[4] = { clear_button_color.x, clear_button_color.y, clear_button_color.z, clear_button_color.w };
+		ImGui::ColorPicker4(translation.get("InputSegmentButtonColor").c_str(), color);
+		clear_button_color = ImVec4(color[0], color[1], color[2], color[3]);
 
 		ImGui::EndPopup();
 	}
