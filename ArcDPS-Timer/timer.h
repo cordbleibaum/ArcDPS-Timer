@@ -43,7 +43,7 @@ public:
 	void segment(bool local = false, std::string name = "");
 	void clear_segments();
 	void map_change(uint32_t map_id);
-	void bosskill(uint64_t time);
+	void bosskill(std::chrono::system_clock::time_point time);
 
 	void mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id);
 	void mod_imgui();

@@ -244,10 +244,10 @@ void Timer::map_change(uint32_t map_id) {
 	}
 }
 
-void Timer::bosskill(uint64_t time) {
+void Timer::bosskill(std::chrono::system_clock::time_point time) {
 	if (settings.auto_stop) {
 		log_debug("timer: boss kill signal received");
-		stop(calculate_ticktime(time));
+		stop(time);
 	}
 }
 

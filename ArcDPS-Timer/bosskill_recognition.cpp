@@ -30,8 +30,10 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 			}
 
 			if ((!ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff) || (ev->buff && ev->buff_dmg)) {
-				last_damage_ticks = calculate_ticktime(ev->time);
-				data.log_agents[dst->id].last_hit = last_damage_ticks;
+				auto time = calculate_ticktime(ev->time);
+				if (time > data.log_agents[dst->id].last_hit) {
+					data.log_agents[dst->id].last_hit = time;
+				}
 			}
 
 			if (!ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff) {
@@ -50,9 +52,9 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 
 			auto log_duration = std::chrono::system_clock::now() - log_start_time;
 			if (log_duration > std::chrono::seconds(settings.early_gg_threshold)) {
-				for (auto& condition_list : conditions) {
+				for (auto& boss : bosses) {
 					bool is_true = true;
-					for (auto& condition : condition_list) {
+					for (auto& condition : boss.conditions) {
 						is_true &= condition(data);
 
 						if (!is_true) {
@@ -62,7 +64,7 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 
 					if (is_true) {
 						log_debug("timer: stopping on boss kill condition list");
-						bosskill_signal(ev->time);
+						bosskill_signal(boss.timing(data));
 					}
 				}
 
@@ -73,7 +75,7 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 
 				if (is_kill) {
 					log_debug("timer: stopping on boss kill additional ID");
-					bosskill_signal(ev->time);
+					bosskill_signal(timing_last_hit_npc()(data));
 				}
 
 				data.archive();
@@ -88,50 +90,53 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 
 void BossKillRecognition::add_defaults(){
 	// Fractals
-	emplace_conditions({ condition_npc_id(11265) }); // Swampland - Bloomhunger
-	emplace_conditions({ condition_npc_id(11239) }); // Underground Facility - Dredge
-	emplace_conditions({ condition_npc_id(11240) }); // Underground Facility - Elemental
-	emplace_conditions({ condition_npc_damage_taken(11485, 400000) }); // Volcanic - Imbued Shaman
-	emplace_conditions({ condition_npc_damage_taken(11296, 200000) }); // Cliffside - Archdiviner
-	emplace_conditions({ condition_npc_id(19697) }); // Mai Trin Boss Fractal - Mai Trin
-	emplace_conditions({ condition_npc_id(12906) }); // Thaumanova - Thaumanova Anomaly
-	emplace_conditions({ condition_npc_id(11333) }); // Snowblind - Shaman
-	emplace_conditions({ condition_npc_id(11402) }); // Aquatic Ruins - Jellyfish Beast
-	emplace_conditions({ condition_npc_id(16617) }); // Chaos - Gladiator
-	emplace_conditions({ condition_npc_id(20497) }); // Deepstone - The Voice
-	emplace_conditions({ condition_npc_id(12900), condition_map_id(955)}); // Molten Furnace - Engineer
-	emplace_conditions({ condition_npc_id(17051) }); // Nightmare - Ensolyss
-	emplace_conditions({ condition_npc_id(16948) }); // Nightmare CM - Ensolyss
-	emplace_conditions({ condition_npc_id(17830) }); // Shattered Observatory - Arkk
-	emplace_conditions({ condition_npc_id(17759) }); // Shattered Observatory - Arkk CM
-	emplace_conditions({ condition_npc_damage_taken(11408, 400000)}); // Urban Battleground - Captain Ashym
-	emplace_conditions({ condition_npc_id(19664) }); // Twilight Oasis - Amala
-	emplace_conditions({ condition_npc_id(21421) }); // Sirens Reef - Captain Crowe
-	emplace_conditions({ condition_npc_id(11328) }); // Uncategorized - Asura
-	emplace_conditions({ condition_npc_id_at_least_one({12898, 12897}), condition_npc_last_damage_time_distance(12898, 12897, 8s) }); // Molten Boss - Berserker/Firestorm
-	emplace_conditions({ condition_npc_id(12267) }); // Aetherblade - Frizz
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11265) }); // Swampland - Bloomhunger
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11239) }); // Underground Facility - Dredge
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11240) }); // Underground Facility - Elemental
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(11485, 400000) }); // Volcanic - Imbued Shaman
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(11296, 200000) }); // Cliffside - Archdiviner
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(19697) }); // Mai Trin Boss Fractal - Mai Trin
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12906) }); // Thaumanova - Thaumanova Anomaly
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11333) }); // Snowblind - Shaman
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11402) }); // Aquatic Ruins - Jellyfish Beast
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(16617) }); // Chaos - Gladiator
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(20497) }); // Deepstone - The Voice
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12900), condition_map_id(955)}); // Molten Furnace - Engineer
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(17051) }); // Nightmare - Ensolyss
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(16948) }); // Nightmare CM - Ensolyss
+	emplace_conditions(timing_last_hit_npc_id(17830), { condition_npc_id(17830) }); // Shattered Observatory - Arkk
+	emplace_conditions(timing_last_hit_npc_id(17759), { condition_npc_id(17759) }); // Shattered Observatory - Arkk CM
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(11408, 400000)}); // Urban Battleground - Captain Ashym
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(19664) }); // Twilight Oasis - Amala
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(21421) }); // Sirens Reef - Captain Crowe
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11328) }); // Uncategorized - Asura
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id_at_least_one({12898, 12897}), condition_npc_last_damage_time_distance(12898, 12897, 8s) }); // Molten Boss - Berserker/Firestorm
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12267) }); // Aetherblade - Frizz
 
 	// Raids
-	emplace_conditions({ condition_npc_id(15375) }); // Sabetha
-	emplace_conditions({ condition_npc_id(16115) }); // Matthias Gabrel
-	emplace_conditions({ condition_npc_id(17154) }); // Deimos
-	emplace_conditions({ condition_npc_id(19450) }); // Dhuum
-	emplace_conditions({ condition_npc_id(21041) }); // Qadim
-	emplace_conditions({ condition_npc_id(22000) }); // Qadim the Peerless
-	emplace_conditions({ condition_npc_id(16246), condition_npc_id(16286) }); // Xera
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(15375) }); // Sabetha
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(16115) }); // Matthias Gabrel
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(17154) }); // Deimos
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(19450) }); // Dhuum
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(21041) }); // Qadim
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(22000) }); // Qadim the Peerless
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(16246), condition_npc_id(16286) }); // Xera
 
 	// Dungeons
-	emplace_conditions({ condition_npc_id(7018) });  // AC P1
-	emplace_conditions({ condition_npc_id(9077) });  // AC P2
-	emplace_conditions({ condition_npc_id(9078) });  // AC P3
-	emplace_conditions({ condition_npc_id(10580) }); // Arah P2
-	emplace_conditions({ condition_npc_id(10218) }); // CoE P1
-	emplace_conditions({ condition_npc_id(10337) }); // CoE P2
-	emplace_conditions({ condition_npc_id(10404) }); // CoE P3
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(7018) });  // AC P1
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(9077) });  // AC P2
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(9078) });  // AC P3
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(10580) }); // Arah P2
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(10218) }); // CoE P1
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(10337) }); // CoE P2
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(10404) }); // CoE P3
 }
 
-void BossKillRecognition::emplace_conditions(std::initializer_list<std::function<bool(EncounterData&)>> initializer) {
-	conditions.emplace_back(initializer);
+void BossKillRecognition::emplace_conditions(std::function<std::chrono::system_clock::time_point(EncounterData&)> timing, std::initializer_list<std::function<bool(EncounterData&)>> initializer) {
+	BossDescription boss;
+	boss.conditions = initializer;
+	boss.timing = timing;
+	bosses.push_back(boss);
 }
 
 std::function<bool(EncounterData&)> condition_npc_id(uintptr_t npc_id) {
@@ -169,8 +174,7 @@ std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id,
 	};
 }
 
-std::function<bool(EncounterData&)> condition_npc_id_at_least_one(std::set<uintptr_t> npc_ids)
-{
+std::function<bool(EncounterData&)> condition_npc_id_at_least_one(std::set<uintptr_t> npc_ids) {
 	return [&, npc_ids](EncounterData& data) {
 		bool condition = npc_ids.find(data.log_species_id) != npc_ids.end();
 		for (const auto& [id, agent] : data.log_agents) {
@@ -189,8 +193,7 @@ std::function<bool(EncounterData&)> condition_npc_id_at_least_one(std::set<uintp
 	};
 }
 
-std::function<bool(EncounterData&)> condition_npc_last_damage_time_distance(uintptr_t npc_id_a, uintptr_t npc_id_b, std::chrono::system_clock::duration distance)
-{
+std::function<bool(EncounterData&)> condition_npc_last_damage_time_distance(uintptr_t npc_id_a, uintptr_t npc_id_b, std::chrono::system_clock::duration distance) {
 	return [&, npc_id_a, npc_id_b, distance](EncounterData& data) {
 		bool condition = true;
 
@@ -236,6 +239,34 @@ std::function<bool(EncounterData&)> condition_map_id(uint32_t map_id) {
 		}
 
 		return condition;
+	};
+}
+
+std::function<std::chrono::system_clock::time_point(EncounterData&)> timing_last_hit_npc() {
+	return [&](EncounterData& data) {
+		auto time = std::chrono::system_clock::time_point::min();
+
+		for (const auto& [id, agent] : data.log_agents) {
+			if (agent.last_hit > time) {
+				time = agent.last_hit;
+			}
+		}
+
+		return time;
+	};
+}
+
+std::function<std::chrono::system_clock::time_point(EncounterData&)> timing_last_hit_npc_id(uintptr_t npc_id) {
+	return [&, npc_id](EncounterData& data) {
+		auto time = std::chrono::system_clock::time_point::min();
+
+		for (const auto& [id, agent] : data.log_agents) {
+			if (agent.species_id == npc_id && agent.last_hit > time) {
+				time = agent.last_hit;
+			}
+		}
+
+		return time;
 	};
 }
 
