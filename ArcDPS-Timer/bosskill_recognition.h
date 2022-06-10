@@ -23,23 +23,24 @@ struct EncounterData {
 	uintptr_t log_species_id;
 	uint32_t map_id;
 
-	void archive();
+	void archive() noexcept;
 };
 
 struct BossDescription {
-	std::vector<std::function<bool(EncounterData&)>> conditions;
-	std::function<std::chrono::system_clock::time_point(EncounterData&)> timing;
+	BossDescription(std::function<std::chrono::system_clock::time_point(EncounterData&)> timing, std::vector<std::function<bool(EncounterData&)>> conditions);
+	const std::vector<std::function<bool(EncounterData&)>> conditions;
+	const std::function<std::chrono::system_clock::time_point(EncounterData&)> timing;
 };
 
 class BossKillRecognition {
 public:
-	BossKillRecognition(GW2MumbleLink& mumble_link, Settings& settings);
+	BossKillRecognition(GW2MumbleLink& mumble_link, const Settings& settings);
 	void mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id);
 
 	boost::signals2::signal<void(std::chrono::system_clock::time_point time)> bosskill_signal;
 private:
 	GW2MumbleLink& mumble_link;
-	Settings& settings;
+	const Settings& settings;
 
 	std::vector<BossDescription> bosses;
 

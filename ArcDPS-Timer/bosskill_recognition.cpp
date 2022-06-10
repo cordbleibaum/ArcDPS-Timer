@@ -3,7 +3,7 @@
 
 using namespace std::chrono_literals;
 
-BossKillRecognition::BossKillRecognition(GW2MumbleLink& mumble_link, Settings& settings)
+BossKillRecognition::BossKillRecognition(GW2MumbleLink& mumble_link, const Settings& settings)
 :	mumble_link(mumble_link),
 	settings(settings) {
 	add_defaults();
@@ -133,10 +133,8 @@ void BossKillRecognition::add_defaults(){
 }
 
 void BossKillRecognition::emplace_conditions(std::function<std::chrono::system_clock::time_point(EncounterData&)> timing, std::initializer_list<std::function<bool(EncounterData&)>> initializer) {
-	BossDescription boss;
-	boss.conditions = initializer;
-	boss.timing = timing;
-	bosses.push_back(boss);
+	BossDescription boss(timing, initializer);
+	bosses.emplace_back(boss);
 }
 
 std::function<bool(EncounterData&)> condition_npc_id(uintptr_t npc_id) {
@@ -270,6 +268,11 @@ std::function<std::chrono::system_clock::time_point(EncounterData&)> timing_last
 	};
 }
 
-void EncounterData::archive() {
+void EncounterData::archive() noexcept {
 	log_agents.clear();
+}
+
+BossDescription::BossDescription(std::function<std::chrono::system_clock::time_point(EncounterData&)> timing, std::vector<std::function<bool(EncounterData&)>> conditions)
+:	conditions(conditions),
+	timing(timing) {
 }

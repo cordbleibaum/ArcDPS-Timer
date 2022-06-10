@@ -50,5 +50,5 @@ public:
 private:
     NTPInfo request_time_delta(int retries);
 
-    std::string host;
+    const std::string host;
 };

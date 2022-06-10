@@ -5,7 +5,7 @@
 
 #include "arcdps.h"
 
-API::API(Settings& settings, GW2MumbleLink& mumble_link, MapTracker& map_tracker, GroupTracker& group_tracker, std::string server_url)
+API::API(const Settings& settings, GW2MumbleLink& mumble_link, MapTracker& map_tracker, GroupTracker& group_tracker, std::string server_url)
 :   server_url(server_url),
 	settings(settings),
 	mumble_link(mumble_link),

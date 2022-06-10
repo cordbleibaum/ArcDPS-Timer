@@ -13,14 +13,14 @@ enum class ServerStatus { online, offline, outofdate };
 
 class API {
 public:
-	API(Settings& settings, GW2MumbleLink& mumble_link, MapTracker& map_tracker, GroupTracker& group_tracker, std::string server_url);
+	API(const Settings& settings, GW2MumbleLink& mumble_link, MapTracker& map_tracker, GroupTracker& group_tracker, std::string server_url);
 	void post_serverapi(std::string method, nlohmann::json payload = nlohmann::json::object());
 	void check_serverstatus();
 	void sync(std::function<void(nlohmann::json)> data_function);
 
 	ServerStatus server_status = ServerStatus::online;
 private:
-	Settings& settings;
+	const Settings& settings;
 	GW2MumbleLink& mumble_link;
 	MapTracker& map_tracker;
 	GroupTracker& group_tracker;

@@ -8,8 +8,8 @@
 
 #include <boost/asio.hpp>
 
-NTPClient::NTPClient(std::string host) {
-	this->host = host;
+NTPClient::NTPClient(std::string host)
+:	host(host) {
 }
 
 double NTPClient::get_time_delta() {
