@@ -92,7 +92,7 @@ void BossKillRecognition::add_defaults(){
 	emplace_conditions({ condition_npc_id(11239) }); // Underground Facility - Dredge
 	emplace_conditions({ condition_npc_id(11240) }); // Underground Facility - Elemental
 	emplace_conditions({ condition_npc_damage_taken(11485, 400000) }); // Volcanic - Imbued Shaman
-	emplace_conditions({ condition_npc_id(11296) }); // Cliffside - Archdiviner
+	emplace_conditions({ condition_npc_damage_taken(11296, 200000) }); // Cliffside - Archdiviner
 	emplace_conditions({ condition_npc_id(19697) }); // Mai Trin Boss Fractal - Mai Trin
 	emplace_conditions({ condition_npc_id(12906) }); // Thaumanova - Thaumanova Anomaly
 	emplace_conditions({ condition_npc_id(11333) }); // Snowblind - Shaman
