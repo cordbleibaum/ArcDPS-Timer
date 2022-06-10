@@ -105,6 +105,7 @@ private:
 		{"InputRegionName", "Region name"},
 		{"HeaderNameColumn", "Name"},
 		{"ButtonMoveUp", "Move Up"},
-		{"ButtonMoveDown", "Move Down"}
+		{"ButtonMoveDown", "Move Down"},
+		{"ButtonOpenTriggerFolder", "Open trigger folder"}
 	};
 };
