@@ -13,7 +13,7 @@
 
 using json = nlohmann::json;
 
-Logger::Logger(GW2MumbleLink& mumble_link, Settings& settings)
+Logger::Logger(GW2MumbleLink& mumble_link, const Settings& settings)
 :	mumble_link(mumble_link),
 	settings(settings) {
 	if (!std::filesystem::exists(logs_directory)) {
@@ -128,15 +128,17 @@ void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::
 void Logger::add_log() {
 	events.emplace_back(start_time, LogEvent::START);
 
-	int max_segment = 0;
-	for (int segment : std::views::keys(segments)) {
-		if (segment > max_segment) {
-			max_segment = segment;
+	if (segments.size() > 0) {
+		int max_segment = 0;
+		for (int segment : std::views::keys(segments)) {
+			if (segment > max_segment) {
+				max_segment = segment;
+			}
 		}
-	}
 
-	for (int i = 0; i <= max_segment; ++i) {
-		events.emplace_back(segments[i], LogEvent::SEGMENT);
+		for (int i = 0; i <= max_segment; ++i) {
+			events.emplace_back(segments[i], LogEvent::SEGMENT);
+		}
 	}
 	segments.clear();
 

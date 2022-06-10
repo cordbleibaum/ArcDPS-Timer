@@ -98,5 +98,5 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 }
 
 NTPException::NTPException(const std::string& message) 
-: runtime_error(message) {
+:	runtime_error(message) {
 }

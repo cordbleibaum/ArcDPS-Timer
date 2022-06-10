@@ -34,7 +34,7 @@ namespace nlohmann {
 
 class Logger {
 public:
-	Logger(GW2MumbleLink& mumble_link, Settings& settings);
+	Logger(GW2MumbleLink& mumble_link, const Settings& settings);
 	void map_change(uint32_t map_id);
 	void start(std::chrono::system_clock::time_point time);
 	void stop(std::chrono::system_clock::time_point time);
@@ -44,7 +44,7 @@ public:
 
 private:
 	GW2MumbleLink& mumble_link;
-	Settings& settings;
+	const Settings& settings;
 
 	uint32_t map_id = 0;
 	bool is_instanced = false;
