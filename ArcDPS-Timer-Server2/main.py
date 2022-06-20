@@ -186,7 +186,7 @@ class StopHandler(GroupModifyHandler):
         
             segments_unset = [i for i in range(len(self.group.segments)) if self.group.segments[i].is_set == False]
 
-            segment_num
+            segment_num = None
             if len(segments_unset) > 0:
                 segment_num = segments_unset[0]
             else:
