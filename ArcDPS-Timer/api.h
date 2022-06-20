@@ -25,7 +25,7 @@ private:
 	MapTracker& map_tracker;
 	GroupTracker& group_tracker;
 
-	std::string server_url;
+	const std::string server_url;
 	int update_id = -2;
 
 	std::string get_id() const;

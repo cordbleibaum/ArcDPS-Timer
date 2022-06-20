@@ -57,7 +57,7 @@ namespace nlohmann {
 
 class Settings {
 public:
-	Settings(std::string file, Translation& translation, KeyBindHandler& keybind_handler);
+	Settings(std::string file, const Translation& translation, KeyBindHandler& keybind_handler);
 	void save();
 	void mod_options();
 	void mod_windows();
@@ -102,7 +102,7 @@ public:
 
 	HKL current_hkl;
 private:
-	Translation& translation;
+	const Translation& translation;
 	KeyBindHandler& keybind_handler;
 
 	int settings_version;

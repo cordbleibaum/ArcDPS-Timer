@@ -12,7 +12,7 @@ using json = nlohmann::json;
 
 constexpr int current_settings_version = 10;
 
-Settings::Settings(std::string file, Translation& translation, KeyBindHandler& keybind_handler)
+Settings::Settings(std::string file, const Translation& translation, KeyBindHandler& keybind_handler)
 :	settings_version(current_settings_version),
 	config_file(file),
 	translation(translation),

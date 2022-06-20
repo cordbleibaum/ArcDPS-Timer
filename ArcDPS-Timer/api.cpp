@@ -68,7 +68,7 @@ void API::sync(std::function<void(nlohmann::json)> data_function) {
 
 		if (server_status == ServerStatus::online) {
 			std::string id = get_id();
-			if (id == "") {
+			if (id.empty()) {
 				std::this_thread::sleep_for(std::chrono::seconds{ 1 });
 				continue;
 			}

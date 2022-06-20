@@ -1,7 +1,7 @@
 #include "timer.h"
 #include "util.h"
 
-Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, Translation& translation, API& api)
+Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, API& api)
 :	settings(settings),
 	mumble_link(mumble_link),
 	translation(translation),
@@ -260,7 +260,7 @@ void Timer::timer_window_content(float width) {
 		auto duration = std::chrono::round<std::chrono::milliseconds>(current_time - start_time);
 		std::string time_string = "";
 		try {
-			time_string = std::format(settings.time_formatter, duration);
+			time_string = std::vformat(settings.time_formatter, std::make_format_args(duration)); //
 		}
 		catch ([[maybe_unused]] const std::exception& e) {
 			time_string = translation.get("TimeFormatterInvalid");
@@ -356,9 +356,9 @@ void Timer::segment_window_content() {
 				
 				std::string text = "";
 				try {
-					std::string total_string = std::format(settings.time_formatter, time_total);
-					std::string duration_string = std::format(settings.time_formatter, duration_segment);
-					text = total_string + duration_string;
+					std::string total_string = std::vformat(settings.time_formatter, std::make_format_args(time_total));
+					std::string duration_string = std::vformat(settings.time_formatter, std::make_format_args(duration_segment));
+					text = total_string + " (" + duration_string + ")";
 				}
 				catch ([[maybe_unused]] const std::exception& e) {
 					text = translation.get("TimeFormatterInvalid");
@@ -373,9 +373,9 @@ void Timer::segment_window_content() {
 			
 			std::string text = "";
 			try {
-				std::string total_string = std::format(settings.time_formatter, shortest_time);
-				std::string duration_string = std::format(settings.time_formatter, shortest_duration);
-				text = total_string + duration_string;
+				std::string total_string = std::vformat(settings.time_formatter, std::make_format_args(shortest_time));
+				std::string duration_string = std::vformat(settings.time_formatter, std::make_format_args(shortest_duration));
+				text = total_string + " (" + duration_string + ")";
 			}
 			catch ([[maybe_unused]] const std::exception& e) {
 				text = translation.get("TimeFormatterInvalid");

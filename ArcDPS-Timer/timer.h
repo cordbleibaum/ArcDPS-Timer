@@ -35,7 +35,7 @@ struct TimeSegment {
 
 class Timer {
 public:
-	Timer(Settings& settings, GW2MumbleLink& mumble_link, Translation& translation, API& api);
+	Timer(Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, API& api);
 	void start(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void stop(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void reset();
@@ -59,7 +59,7 @@ public:
 private:
 	Settings& settings;
 	GW2MumbleLink& mumble_link;
-	Translation& translation;
+	const Translation& translation;
 	API& api;
 
 	TimerStatus status;
