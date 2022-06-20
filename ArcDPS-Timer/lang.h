@@ -65,6 +65,7 @@ private:
 		{"TextAdditionalBossIDs", "Additional Boss IDs"},
 		{"InputSegmentTimeFormatter", "Segment time formatter"},
 		{"InputSegmentWindowBorder", "Segment window border"},
+		{"InputDisableFractalLobby", "Disable in fractal lobby"},
 
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},

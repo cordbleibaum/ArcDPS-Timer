@@ -48,6 +48,7 @@ Settings::Settings(std::string file, const Translation& translation, KeyBindHand
 	prepare_key = config.value("prepare_key", KeyBinds::Key());
 	segment_key = config.value("segment_key", KeyBinds::Key());
 	additional_boss_ids = config.value("additional_boss_ids", std::set<int>());
+	disable_in_fractal_lobby = config.value("disable_in_fractal_lobby", true);
 
 	ImVec4 default_color = ImVec4(0.62f, 0.60f, 0.65f, 0.30f);
 	start_button_color = config.value("start_button_color", default_color);
@@ -88,6 +89,7 @@ void Settings::save() {
 	config["additional_boss_ids"] = additional_boss_ids;
 	config["segment_time_formatter"] = segment_time_formatter;
 	config["segment_window_border"] = segment_window_border;
+	config["disable_in_fractal_lobby"] = disable_in_fractal_lobby;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -103,6 +105,9 @@ void Settings::mod_options() {
 	}
 
 	ImGui::Checkbox(translation.get("InputOnlyInstance").c_str(), &disable_outside_instances);
+	if (disable_outside_instances) {
+		ImGui::Checkbox(translation.get("InputDisableFractalLobby").c_str(), &disable_in_fractal_lobby);
+	}
 
 	ImGui::Checkbox(translation.get("InputAutoprepare").c_str(), &auto_prepare);
 	if (ImGui::IsItemHovered()) {

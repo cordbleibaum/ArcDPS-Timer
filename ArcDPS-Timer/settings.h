@@ -86,6 +86,7 @@ public:
 	std::set<int> additional_boss_ids;
 	int boss_id_selected = -1;
 	int boss_id_input = 0;
+	bool disable_in_fractal_lobby;
 
 	ImVec4 start_button_color;
 	ImVec4 stop_button_color;

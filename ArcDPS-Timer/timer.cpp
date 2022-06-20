@@ -136,6 +136,10 @@ void Timer::mod_imgui() {
 		return;
 	}
 
+	if (settings.disable_outside_instances && settings.disable_in_fractal_lobby && mumble_link->getMumbleContext()->mapId == 872) {
+		return;
+	}
+
 	if (status == TimerStatus::prepared) {
 		if (checkDelta(last_position[0], mumble_link->fAvatarPosition[0], 0.1f) ||
 			checkDelta(last_position[1], mumble_link->fAvatarPosition[1], 0.1f) ||
