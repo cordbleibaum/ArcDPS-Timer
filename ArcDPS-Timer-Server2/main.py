@@ -142,26 +142,58 @@ class StartHandler(GroupModifyHandler):
                 segment.is_set = False
 
 
+def set_segment(group, segment_num, time, name): 
+    is_new_segment = False
+    if segment_num == len(group.segments):
+        group.segments.append(SegmentStatus())
+        is_new_segment = True
+
+    segment = group.segments[segment_num]
+    segment.is_set = True
+    segment.name = name
+
+    if is_new_segment or time > segment.end:
+        segment.end = time
+
+    if segment_num <  len(group.segments) - 1:
+        adjust_segment = group.segments[segment_num + 1]
+        if adjust_segment.is_set:
+            adjust_segment.start = group.segments[segment_num].end
+            shortest_duration = adjust_segment.end - adjust_segment.start
+            if shortest_duration < adjust_segment.shortest_duration:
+                adjust_segment.shortest_duration = shortest_duration
+
+    if segment_num > 0:
+        segment.start = group.segments[segment_num-1].end
+    else:
+        segment.start = group.start_time
+
+    shortest_time : timedelta = segment.end - group.start_time
+    shortest_duration : timedelta = segment.end - segment.start
+
+    if is_new_segment or (shortest_time < segment.shortest_time):
+        segment.shortest_time = shortest_time
+
+    if is_new_segment or (shortest_duration < segment.shortest_duration):
+        segment.shortest_duration = shortest_duration
+
+
 class StopHandler(GroupModifyHandler):
     async def post(self, _):
         if self.group.status in [TimerStatus.running, TimerStatus.prepared]:
             self.group.status = TimerStatus.stopped
             self.group.stop_time = self.args.time
         
-            segment_num = [i for i in range(len(self.group.segments)) if self.group.segments[i].is_set == False][0]
-            self.group.segments.append(SegmentStatus())
+            segments_unset = [i for i in range(len(self.group.segments)) if self.group.segments[i].is_set == False]
 
-            segment = self.group.segments[segment_num]
-            segment.is_set = True
-            segment.end = self.args.time
-
-            if segment_num > 0:
-                segment.start = self.group.segments[self.args.segment_num-1].end
+            segment_num
+            if len(segments_unset) > 0:
+                segment_num = segments_unset[0]
             else:
-                segment.start = self.group.start_time
+                segment_num = len(self.group.segments)
+                self.group.segments.append(SegmentStatus())
 
-            segment.shortest_time = segment.end - self.group.start_time
-            segment.shortest_duration = segment.end - segment.start
+            set_segment(self.group, segment_num, self.args.time, "")
 
 
 class ResetHandler(GroupModifyHandler):
@@ -209,40 +241,8 @@ class StatusHandler(JsonHandler):
 
 class SegmentHandler(GroupModifyHandler):
     async def post(self, _):
-        is_new_segment = False
         logging.info(f"segment num: {self.args.segment_num}")
-        if self.args.segment_num == len(self.group.segments):
-            self.group.segments.append(SegmentStatus())
-            is_new_segment = True
-
-        segment = self.group.segments[self.args.segment_num]
-        segment.is_set = True
-        segment.name = self.args.name
-
-        if is_new_segment or self.args.time > segment.end:
-            segment.end = self.args.time
-
-        if self.args.segment_num <  len(self.group.segments) - 1:
-            adjust_segment = self.group.segments[self.args.segment_num + 1]
-            if adjust_segment.is_set:
-                adjust_segment.start = self.group.segments[self.args.segment_num].end
-                shortest_duration = adjust_segment.end - adjust_segment.start
-                if shortest_duration < adjust_segment.shortest_duration:
-                    adjust_segment.shortest_duration = shortest_duration
-
-        if self.args.segment_num > 0:
-            segment.start = self.group.segments[self.args.segment_num-1].end
-        else:
-            segment.start = self.group.start_time
-
-        shortest_time : timedelta = segment.end - self.group.start_time
-        shortest_duration : timedelta = segment.end - segment.start
-
-        if is_new_segment or (shortest_time < segment.shortest_time):
-            segment.shortest_time = shortest_time
-
-        if is_new_segment or (shortest_duration < segment.shortest_duration):
-            segment.shortest_duration = shortest_duration
+        set_segment(self.group, self.args.segment_num, self.args.time, self.args.name)
 
 
 class ClearSegmentsHandler(GroupModifyHandler):
