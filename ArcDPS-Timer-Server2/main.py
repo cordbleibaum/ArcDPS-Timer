@@ -191,7 +191,6 @@ class StopHandler(GroupModifyHandler):
                 segment_num = segments_unset[0]
             else:
                 segment_num = len(self.group.segments)
-                self.group.segments.append(SegmentStatus())
 
             set_segment(self.group, segment_num, self.args.time, "")
 
