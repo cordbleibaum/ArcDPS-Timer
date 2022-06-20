@@ -148,7 +148,7 @@ class StopHandler(GroupModifyHandler):
             self.group.status = TimerStatus.stopped
             self.group.stop_time = self.args.time
         
-            segment_num = [i for i in range(len(self.group.segments)) if self.group.segments[i].is_set == false][0]
+            segment_num = [i for i in range(len(self.group.segments)) if self.group.segments[i].is_set == False][0]
             self.group.segments.append(SegmentStatus())
 
             segment = self.group.segments[segment_num]
