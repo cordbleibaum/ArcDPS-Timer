@@ -19,6 +19,14 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 				agent.species_id = src->prof;
 				data.log_agents[src->id] = agent;
 			}
+
+			if (!ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff) {
+				data.log_agents[src->id].damage_dealt += ev->value;
+			}
+
+			if (ev->buff && ev->buff_dmg) {
+				data.log_agents[src->id].damage_dealt += ev->buff_dmg;
+			}
 		}
 		if (dst && dst->prof > 9) { // TODO: make sure minions, pets, etc get excluded
 			std::scoped_lock<std::mutex> guard(logagents_mutex);
@@ -109,7 +117,7 @@ void BossKillRecognition::add_defaults(){
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(11408, 400000)}); // Urban Battleground - Captain Ashym
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(19664) }); // Twilight Oasis - Amala
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(21421) }); // Sirens Reef - Captain Crowe
-	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11328) }); // Uncategorized - Asura
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_dealt(11328, 100) }); // Uncategorized - Asura
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id_at_least_one({12898, 12897}), condition_npc_last_damage_time_distance(12898, 12897, 8s) }); // Molten Boss - Berserker/Firestorm
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12267) }); // Aetherblade - Frizz
 
@@ -151,6 +159,27 @@ std::function<bool(EncounterData&)> condition_npc_id(uintptr_t npc_id) {
 		return condition;
 	};
 }
+
+std::function<bool(EncounterData&)> condition_npc_damage_dealt(uintptr_t npc_id, long damage) {
+	return [&, npc_id, damage](EncounterData& data) {
+		bool condition = false;
+		for (const auto& [id, agent] : data.log_agents) {
+			if (agent.species_id == npc_id) {
+				if (agent.damage_dealt > damage) {
+					condition = true;
+					break;
+				}
+			}
+		}
+
+		if (condition) {
+			log_debug("timer: NPC Damage Dealt Condition (" + std::to_string(npc_id) + ", " + std::to_string(damage) + ") returned true");
+		}
+
+		return condition;
+	};
+}
+
 
 std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id, long damage) {
 	return [&, npc_id, damage](EncounterData& data) {
