@@ -28,7 +28,7 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 				data.log_agents[src->id].damage_dealt += ev->buff_dmg;
 			}
 		}
-		if (dst && dst->prof > 9) { // TODO: make sure minions, pets, etc get excluded
+		if (dst && dst->prof > 9 && ev->iff != IFF_FRIEND) { // TODO: make sure minions, pets, etc get excluded
 			std::scoped_lock<std::mutex> guard(logagents_mutex);
 
 			if (data.log_agents.find(dst->id) == data.log_agents.cend()) {
