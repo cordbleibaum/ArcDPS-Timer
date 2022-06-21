@@ -40,7 +40,7 @@ public:
 	void stop(std::chrono::system_clock::time_point time);
 	void reset(std::chrono::system_clock::time_point time);
 	void segment(int segment_num, std::chrono::system_clock::time_point time);
-	~Logger();
+	void mod_release();
 
 private:
 	GW2MumbleLink& mumble_link;
