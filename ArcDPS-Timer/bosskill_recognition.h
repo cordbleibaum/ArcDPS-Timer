@@ -17,6 +17,7 @@ struct AgentData {
 	long damage_taken = 0;
 	long damage_dealt = 0;
 	std::chrono::system_clock::time_point last_hit;
+	int kills;
 };
 
 struct EncounterData {
@@ -55,6 +56,7 @@ private:
 };
 
 std::function<bool(EncounterData&)> condition_npc_id(uintptr_t npc_id);
+std::function<bool(EncounterData&)> condition_npc_killed(uintptr_t npc_id);
 std::function<bool(EncounterData&)> condition_npc_damage_dealt(uintptr_t npc_id, long damage);
 std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id, long damage);
 std::function<bool(EncounterData&)> condition_npc_id_at_least_one(std::set<uintptr_t> npc_ids);

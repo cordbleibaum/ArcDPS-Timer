@@ -46,6 +46,10 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 
 			if (!ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff) {
 				data.log_agents[dst->id].damage_taken += ev->value;
+
+				if (ev->result == CBTR_KILLINGBLOW) {
+					data.log_agents[dst->id].kills += 1;
+				}
 			}
 
 			if (ev->buff && ev->buff_dmg) {
@@ -99,8 +103,8 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 void BossKillRecognition::add_defaults(){
 	// Fractals
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11265) }); // Swampland - Bloomhunger
-	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11239) }); // Underground Facility - Dredge
-	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11240) }); // Underground Facility - Elemental
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_killed(11239) }); // Underground Facility - Dredge
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_killed(11240) }); // Underground Facility - Elemental
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(11485, 400000) }); // Volcanic - Imbued Shaman
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(11296, 200000) }); // Cliffside - Archdiviner
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(19697) }); // Mai Trin Boss Fractal - Mai Trin
@@ -154,6 +158,21 @@ std::function<bool(EncounterData&)> condition_npc_id(uintptr_t npc_id) {
 
 		if (condition) {
 			log_debug("timer: NPC ID Condition (" + std::to_string(npc_id) + ") returned true");
+		}
+
+		return condition;
+	};
+}
+
+std::function<bool(EncounterData&)> condition_npc_killed(uintptr_t npc_id) {
+	return [&, npc_id](EncounterData& data) {
+		bool condition = data.log_species_id == npc_id;
+		for (const auto& [id, agent] : data.log_agents) {
+			condition |= (agent.species_id == npc_id) && (agent.kills > 0);
+		}
+
+		if (condition) {
+			log_debug("timer: NPC Killed Condition (" + std::to_string(npc_id) + ") returned true");
 		}
 
 		return condition;
