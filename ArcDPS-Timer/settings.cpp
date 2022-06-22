@@ -38,7 +38,7 @@ Settings::Settings(std::string file, const Translation& translation, KeyBindHand
 	hide_segment_buttons = config.value("hide_segment_buttons", false);
 	segment_window_border = config.value("segment_window_border", true);
 	auto_stop = config.value("auto_stop", false);
-	early_gg_threshold = config.value("early_gg_threshold", 5);
+	early_gg_threshold = config.value("early_gg_threshold", 10);
 	show_segments = config.value("show_segments", false);
 	unified_window = config.value("unified_window", false);
 	save_logs = config.value("save_logs", true);
