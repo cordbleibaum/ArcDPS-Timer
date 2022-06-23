@@ -70,7 +70,7 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 			size_t len = socket.receive_from(boost::asio::buffer(recvBuffer), sender_endpoint);
 			t3 = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
 
-			NTPPacket* packetResponse = (NTPPacket*)recvBuffer.data();
+			const NTPPacket* packetResponse = (NTPPacket*)recvBuffer.data();
 			t1 = (ntohl(packetResponse->rxTm_s) - 2208988800U) * 1000LL + (((double)ntohl(packetResponse->rxTm_f) / std::numeric_limits<uint32_t>::max()) * 1000LL);
 			t2 = (ntohl(packetResponse->txTm_s) - 2208988800U) * 1000LL + (((double)ntohl(packetResponse->txTm_f) / std::numeric_limits<uint32_t>::max()) * 1000LL);
 		}).wait_for(std::chrono::milliseconds{ (int)(retry_a * std::pow(retry_b, retry)) });

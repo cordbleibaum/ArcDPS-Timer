@@ -295,7 +295,7 @@ void TriggerEditor::mod_imgui() {
         if (ImGui::Button(translation.get("ButtonOpenTriggerFolder").c_str())) {
             TCHAR buffer[MAX_PATH] = { 0 };
             GetModuleFileName(NULL, buffer, MAX_PATH);
-            std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
+            const std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
             auto trigger_dir = std::wstring(buffer).substr(0, pos);
             trigger_dir += L"\\addons\\arcdps\\arcdps-timer-triggers";
             ShellExecute(NULL, L"open", trigger_dir.c_str(), NULL, NULL, SW_SHOWDEFAULT);

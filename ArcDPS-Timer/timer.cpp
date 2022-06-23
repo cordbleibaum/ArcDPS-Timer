@@ -360,8 +360,8 @@ void Timer::segment_window_content() {
 				
 				std::string text = "";
 				try {
-					std::string total_string = std::vformat(settings.time_formatter, std::make_format_args(time_total));
-					std::string duration_string = std::vformat(settings.time_formatter, std::make_format_args(duration_segment));
+					const std::string total_string = std::vformat(settings.time_formatter, std::make_format_args(time_total));
+					const std::string duration_string = std::vformat(settings.time_formatter, std::make_format_args(duration_segment));
 					text = total_string + " (" + duration_string + ")";
 				}
 				catch ([[maybe_unused]] const std::exception& e) {
@@ -377,8 +377,8 @@ void Timer::segment_window_content() {
 			
 			std::string text = "";
 			try {
-				std::string total_string = std::vformat(settings.time_formatter, std::make_format_args(shortest_time));
-				std::string duration_string = std::vformat(settings.time_formatter, std::make_format_args(shortest_duration));
+				const std::string total_string = std::vformat(settings.time_formatter, std::make_format_args(shortest_time));
+				const std::string duration_string = std::vformat(settings.time_formatter, std::make_format_args(shortest_duration));
 				text = total_string + " (" + duration_string + ")";
 			}
 			catch ([[maybe_unused]] const std::exception& e) {

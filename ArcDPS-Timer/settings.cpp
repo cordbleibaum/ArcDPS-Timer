@@ -50,7 +50,7 @@ Settings::Settings(std::string file, const Translation& translation, KeyBindHand
 	additional_boss_ids = config.value("additional_boss_ids", std::set<int>());
 	disable_in_fractal_lobby = config.value("disable_in_fractal_lobby", true);
 
-	ImVec4 default_color = ImVec4(0.62f, 0.60f, 0.65f, 0.30f);
+	const ImVec4 default_color = ImVec4(0.62f, 0.60f, 0.65f, 0.30f);
 	start_button_color = config.value("start_button_color", default_color);
 	stop_button_color = config.value("stop_button_color", default_color);
 	reset_button_color = config.value("reset_button_color", default_color);
