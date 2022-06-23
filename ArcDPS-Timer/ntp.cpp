@@ -30,7 +30,7 @@ double NTPClient::get_time_delta() {
 		}
 	}
 
-	double offset = best_bias.offset;
+	const double offset = best_bias.offset;
 	if (offset > 10) {
 		throw NTPException("Time sync failed, offset too large to be plausible");
 	}

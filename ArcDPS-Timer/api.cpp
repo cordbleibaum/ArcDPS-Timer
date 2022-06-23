@@ -15,8 +15,8 @@ API::API(const Settings& settings, GW2MumbleLink& mumble_link, MapTracker& map_t
 
 void API::post_serverapi(std::string method, nlohmann::json payload) {
 	std::thread thread([&, method, payload]() {
-		std::string id = get_id();
-		if (id != "") {
+		const auto id = get_id();
+		if (!id.empty()) {
 			cpr::Post(
 				cpr::Url{ server_url + "groups/" + id + "/" + method },
 				cpr::Body{ payload.dump() },
@@ -37,7 +37,7 @@ void API::check_serverstatus() {
 		server_status = ServerStatus::offline;
 	}
 	else {
-		auto data = nlohmann::json::parse(response.text);
+		const auto data = nlohmann::json::parse(response.text);
 
 		constexpr int server_version = 8;
 		if (data["version"] != server_version) {
@@ -60,20 +60,20 @@ std::string API::get_id() const {
 	return group_tracker.get_group_id();
 }
 
-void API::sync(std::function<void(nlohmann::json)> data_function) {
+void API::sync(std::function<void(const nlohmann::json&)> data_function) {
 	while (true) {
 		if (server_status == ServerStatus::outofdate) {
 			return;
 		}
 
 		if (server_status == ServerStatus::online) {
-			std::string id = get_id();
+			const std::string id = get_id();
 			if (id.empty()) {
 				std::this_thread::sleep_for(std::chrono::seconds{ 1 });
 				continue;
 			}
 
-			nlohmann::json payload{ {"update_id", update_id} };
+			const nlohmann::json payload{ {"update_id", update_id} };
 			cpr::AsyncResponse response_future = cpr::PostAsync(
 				cpr::Url{ server_url + "groups/" + id + "/" },
 				cpr::Body{ payload.dump() },

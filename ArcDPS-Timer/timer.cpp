@@ -66,7 +66,7 @@ void Timer::prepare() {
 	prepare_signal(current_time);
 }
 
-void Timer::sync(nlohmann::json data) {
+void Timer::sync(const nlohmann::json& data) {
 	{
 		std::unique_lock lock(timerstatus_mutex);
 					
@@ -93,7 +93,7 @@ void Timer::sync(nlohmann::json data) {
 
 		segments.clear();
 		int i = 0;
-		for (json::iterator it = data["segments"].begin(); it != data["segments"].end(); ++it) {
+		for (json::const_iterator it = data["segments"].begin(); it != data["segments"].end(); ++it) {
 			TimeSegment segment;
 			segment.is_set = (*it)["is_set"];
 			segment.start = parse_time((*it)["start"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
@@ -120,8 +120,8 @@ void Timer::reset_segments() {
 void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id) {
 	if (ev) {
 		if (ev->is_activation) {
-			std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
-			double duration = duration_dbl.count();
+			const std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - start_time;
+			const double duration = duration_dbl.count();
 
 			if (status == TimerStatus::prepared || (status == TimerStatus::running && duration < 3)) {
 				log_debug("timer: starting on skill");
@@ -210,8 +210,8 @@ void Timer::segment(bool local, std::string name) {
 	segment.start = segment_num > 0 ? segments[segment_num - 1].end : start_time;
 	segment.name = name;
 
-	auto time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
-	auto duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+	const auto time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+	const auto duration = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
 	if (is_new || time < segment.shortest_time) {
 		segment.shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
 	}
@@ -261,7 +261,7 @@ void Timer::timer_window_content(float width) {
 	{
 		std::shared_lock lock(timerstatus_mutex);
 
-		auto duration = std::chrono::round<std::chrono::milliseconds>(current_time - start_time);
+		const auto duration = std::chrono::round<std::chrono::milliseconds>(current_time - start_time);
 		std::string time_string = "";
 		try {
 			time_string = std::vformat(settings.time_formatter, std::make_format_args(duration)); //
@@ -283,7 +283,7 @@ void Timer::timer_window_content(float width) {
 			break;
 		}
 
-		auto textWidth = ImGui::CalcTextSize(time_string.c_str()).x;
+		const auto textWidth = ImGui::CalcTextSize(time_string.c_str()).x;
 		ImGui::SameLine(0, 0);
 		ImGui::SetCursorPosX((width - textWidth) * 0.5f);
 		ImGui::Text(time_string.c_str());
@@ -355,8 +355,8 @@ void Timer::segment_window_content() {
 
 			ImGui::TableNextColumn();
 			if (segment.is_set) {
-				auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
-				auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+				const auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - start_time);
+				const auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
 				
 				std::string text = "";
 				try {
@@ -372,8 +372,8 @@ void Timer::segment_window_content() {
 			}
 
 			ImGui::TableNextColumn();
-			auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
-			auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
+			const auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
+			const auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
 			
 			std::string text = "";
 			try {

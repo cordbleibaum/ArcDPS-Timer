@@ -144,7 +144,7 @@ arcdps_exports* mod_init() {
 
 uintptr_t mod_release() {
 	g_singletonManagerInstance.Shutdown();
-	settings.save();
+	settings.mod_release();
 	logger.mod_release();
 	return 0;
 }

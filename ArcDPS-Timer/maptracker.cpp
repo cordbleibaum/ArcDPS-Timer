@@ -22,7 +22,7 @@ void MapTracker::watch() {
 
 		std::unique_lock lock(mapcode_mutex);
 
-		sockaddr_in* address = (sockaddr_in*) &(mumble_link->getMumbleContext()->serverAddress[0]);
+		const sockaddr_in* address = (sockaddr_in*) &(mumble_link->getMumbleContext()->serverAddress[0]);
 		if (address->sin_family == AF_INET) {
 			map_code = CRC32()(mumble_link->getMumbleContext()->serverAddress, sizeof(sockaddr_in));
 		}

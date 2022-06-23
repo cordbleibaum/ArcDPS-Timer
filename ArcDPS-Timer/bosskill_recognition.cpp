@@ -55,7 +55,7 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 
 		if (ev->is_statechange == cbtstatechange::CBTS_LOGEND) {
 			std::scoped_lock<std::mutex> guard(logagents_mutex);
-			uintptr_t log_species_id = ev->src_agent;
+			const uintptr_t log_species_id = ev->src_agent;
 			data.log_species_id = ev->src_agent;
 
 			auto log_duration = std::chrono::system_clock::now() - log_start_time;
@@ -99,10 +99,10 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 void BossKillRecognition::add_defaults(){
 	// Fractals
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11265) }); // Swampland - Bloomhunger
-	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11239) }); // Underground Facility - Dredge
-	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11240) }); // Underground Facility - Elemental
+	emplace_conditions(timing_last_hit_npc_id(11239), { condition_npc_id(11239) }); // Underground Facility - Dredge
+	emplace_conditions(timing_last_hit_npc_id(11240), { condition_npc_id(11240) }); // Underground Facility - Elemental
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(11485, 400000) }); // Volcanic - Imbued Shaman
-	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(11296, 200000) }); // Cliffside - Archdiviner
+	emplace_conditions(timing_last_hit_npc_id(11296), { condition_npc_damage_taken(11296, 200000) }); // Cliffside - Archdiviner
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(19697) }); // Mai Trin Boss Fractal - Mai Trin
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12906) }); // Thaumanova - Thaumanova Anomaly
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11333) }); // Snowblind - Shaman

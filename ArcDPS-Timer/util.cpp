@@ -1,10 +1,10 @@
-#include "util.h"
+  #include "util.h"
 
 #include <sstream>
 #include <string>
 
 std::chrono::system_clock::time_point calculate_ticktime(uint64_t boot_ticks) {
-	auto ticks_diff = timeGetTime() - boot_ticks;
+	const auto ticks_diff = timeGetTime() - boot_ticks;
 	return std::chrono::system_clock::now() - std::chrono::milliseconds(ticks_diff);
 }
 

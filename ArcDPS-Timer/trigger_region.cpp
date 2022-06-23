@@ -14,7 +14,7 @@
 
 using json = nlohmann::json;
 
-bool TriggerRegion::trigger(Eigen::Vector3f player_position)
+bool TriggerRegion::trigger(const Eigen::Vector3f& player_position)
 {
     if (is_triggered) return false;
 
@@ -68,14 +68,14 @@ PlaneTrigger::PlaneTrigger(Eigen::Vector2f side1, Eigen::Vector2f side2, float h
 
 bool PlaneTrigger::check(Eigen::Vector3f player_position) {
     if (player_position.z() > z && player_position.z() < z + height) {
-        auto player_position_2d = Eigen::Vector2f(player_position.x(), player_position.y());
+        const auto player_position_2d = Eigen::Vector2f(player_position.x(), player_position.y());
 
-        auto e1 = side2 - side1;
-        auto e2 = player_position_2d - side1;
-        float alpha = e1.dot(e2) / e1.dot(e1);
+        const auto e1 = side2 - side1;
+        const auto e2 = player_position_2d - side1;
+        const float alpha = e1.dot(e2) / e1.dot(e1);
 
-        auto projected_point = (1.0f - alpha) * side1 + alpha * side2;
-        float distance = (projected_point - player_position_2d).norm();
+        const auto projected_point = (1.0f - alpha) * side1 + alpha * side2;
+        const float distance = (projected_point - player_position_2d).norm();
 
         if (alpha >= 0 && alpha <= 1.0 && distance < thickness) {
             return true;
@@ -90,7 +90,7 @@ std::string PlaneTrigger::get_typename_id() const {
 }
 
 Eigen::Vector3f PlaneTrigger::get_middle() const {
-    auto middle_xy = (side1 + side2) / 2;
+    const auto middle_xy = (side1 + side2) / 2;
     return Eigen::Vector3f(middle_xy.x(), middle_xy.y(), z + height/2);
 }
 
@@ -121,7 +121,7 @@ void TriggerWatcher::reset() {
 }
 
 void TriggerWatcher::map_change(uint32_t map_id) {
-    json triggers_out = regions;
+    const json triggers_out = regions;
     std::ofstream o(trigger_directory + std::to_string(last_map_id) + ".json");
     o << std::setw(4) << triggers_out << std::endl;
 
@@ -135,7 +135,7 @@ void TriggerWatcher::map_change(uint32_t map_id) {
 }
 
 TriggerWatcher::~TriggerWatcher() {
-    json triggers_out = regions;
+    const json triggers_out = regions;
     std::ofstream o(trigger_directory + std::to_string(last_map_id) + ".json");
     o << std::setw(4) << triggers_out << std::endl;
 }
@@ -237,11 +237,11 @@ void TriggerEditor::mod_imgui() {
             ImGui::Text(translation.get(region->get_typename_id()).c_str());
 
             ImGui::TableNextColumn();
-            auto middle = region->get_middle();
+            const auto middle = region->get_middle();
             ImGui::Text("%.1f %.1f %.1f", middle.x(), middle.y(), middle.z());
 
             ImGui::TableNextColumn();
-            Eigen::Vector3f player_position = Eigen::Vector3f(mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
+            const Eigen::Vector3f player_position = Eigen::Vector3f(mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
             if (region->check(player_position)) {
                 ImGui::TextColored(ImVec4(0, 1, 0, 1), translation.get("TextYes").c_str());
             }
@@ -304,7 +304,7 @@ void TriggerEditor::mod_imgui() {
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
 
         ImGui::BeginTable("##setstable", 1);
-        for (auto& [name, _] : trigger_sets) {
+        for (const auto& [name, _] : trigger_sets) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             if (ImGui::Selectable(name.c_str(), name == set_name, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap)) {
@@ -360,7 +360,7 @@ void TriggerEditor::map_change(uint32_t map_id) {
 }
 
 void TriggerEditor::save_sets() {
-    json triggers_out = trigger_sets;
+    const json triggers_out = trigger_sets;
     std::ofstream o(trigger_set_directory + std::to_string(mumble_link->getMumbleContext()->mapId) + ".json");
     o << std::setw(4) << triggers_out << std::endl;
 }

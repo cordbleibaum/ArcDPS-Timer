@@ -70,7 +70,7 @@ private:
 	std::shared_mutex segmentstatus_mutex;
 	std::array<float, 3> last_position;
 
-	void sync(nlohmann::json data);
+	void sync(const nlohmann::json& data);
 	std::string format_time(std::chrono::system_clock::time_point time);
 	void reset_segments();
 	void timer_window_content(float width = ImGui::GetWindowSize().x);

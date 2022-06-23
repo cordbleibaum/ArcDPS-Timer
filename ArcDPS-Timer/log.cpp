@@ -74,7 +74,7 @@ void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::
 
 	log_debug("timer: saving log");
 
-	std::map<uint32_t, std::string> map_name_overrides = {
+	const std::map<uint32_t, std::string> map_name_overrides = {
 		{872, "Mistlock Observatory"},
 		{947, "Uncategorized Fractal"},
 		{948, "Snowblind Fractal"},
@@ -100,26 +100,26 @@ void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::
 	
 	std::string map_name = "Unknown";
 	if (map_name_overrides.find(current_map_id) != map_name_overrides.end()) {
-		map_name = map_name_overrides[current_map_id];
+		map_name = map_name_overrides.at(current_map_id);
 	}
 	else {
-		auto map_response = cpr::Get(
+		const auto map_response = cpr::Get(
 			cpr::Url{ "https://api.guildwars2.com/v2/maps/" + std::to_string(current_map_id) },
 			cpr::Timeout{ 8000 }
 		);
 
 		if (map_response.status_code == cpr::status::HTTP_OK) {
-			json map_response_json = json::parse(map_response.text);
+			const json map_response_json = json::parse(map_response.text);
 			map_name = map_response_json["name"];
 		}
 	}
 
-	std::string log_path = logs_directory + map_name + "/";
+	const std::string log_path = logs_directory + map_name + "/";
 	if (!std::filesystem::exists(log_path)) {
 		std::filesystem::create_directory(log_path);
 	}
 
-	json events_json = events_save;
+	const json events_json = events_save;
 	std::string name = std::format("{:%FT%H-%M-%S}", std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now()));
 	std::ofstream o(log_path + name + ".json");
 	o << std::setw(4) << events_json << std::endl;

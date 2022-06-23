@@ -14,7 +14,7 @@ std::string GroupTracker::get_group_id() const {
 void GroupTracker::calculate_groupcode() {
 	std::string playersConcat = "";
 
-	for (auto it = group_players.begin(); it != group_players.end(); ++it) {
+	for (auto it = group_players.cbegin(); it != group_players.cend(); ++it) {
 		playersConcat = playersConcat + (*it);
 	}
 

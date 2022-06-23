@@ -13,12 +13,12 @@ Translation::Translation() {
 		json translations_in;
 		input >> translations_in;
 
-		for (auto& [key, value] : translations_in.items()) {
+		for (const auto& [key, value] : translations_in.items()) {
 			translations[key] = value;
 		}
 	}
 }
 
-const std::string& Translation::get(std::string name) const {
+const std::string& Translation::get(const std::string& name) const {
 	return translations.at(name);
 }

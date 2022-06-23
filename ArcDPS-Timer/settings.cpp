@@ -59,7 +59,7 @@ Settings::Settings(std::string file, const Translation& translation, KeyBindHand
 	clear_button_color = config.value("clear_button_color", default_color);
 }
 
-void Settings::save() {
+void Settings::mod_release() {
 	json config;
 	config["show_timer"] = show_timer;
 	config["version"] = settings_version;

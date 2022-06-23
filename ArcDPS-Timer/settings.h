@@ -58,7 +58,7 @@ namespace nlohmann {
 class Settings {
 public:
 	Settings(std::string file, const Translation& translation, KeyBindHandler& keybind_handler);
-	void save();
+	void mod_release();
 	void mod_options();
 	void mod_windows();
 	bool mod_wnd(HWND pWindowHandle, UINT pMessage, WPARAM pAdditionalW, LPARAM pAdditionalL);
