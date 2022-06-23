@@ -58,9 +58,9 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 			const uintptr_t log_species_id = ev->src_agent;
 			data.log_species_id = ev->src_agent;
 
-			auto log_duration = std::chrono::system_clock::now() - log_start_time;
+			const auto log_duration = std::chrono::system_clock::now() - log_start_time;
 			if (log_duration > std::chrono::seconds(settings.early_gg_threshold)) {
-				for (auto& boss : bosses) {
+				for (const auto& boss : bosses) {
 					bool is_true = true;
 					for (auto& condition : boss.conditions) {
 						is_true &= condition(data);
@@ -259,7 +259,7 @@ std::function<bool(EncounterData&)> condition_npc_last_damage_time_distance(uint
 
 std::function<bool(EncounterData&)> condition_map_id(uint32_t map_id) {
 	return [&, map_id](EncounterData& data) {
-		bool condition = data.map_id == map_id;
+		const bool condition = data.map_id == map_id;
 		
 		if (condition) {
 			log_debug("timer: Map ID Condition (" + std::to_string(map_id) + ") returned true");

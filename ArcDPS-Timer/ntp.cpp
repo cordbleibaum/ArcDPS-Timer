@@ -46,7 +46,6 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 	long long t0, t3, t1, t2;
 	bool ntp_success = false;
 	int retry = 0;
-	NTPInfo info;
 
 	constexpr int retry_a = 500;
 	constexpr int retry_b = 2;
@@ -85,14 +84,16 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 		case std::future_status::timeout:
 			retry++;
 			if (retry > retries) {
-				return info;
+				return NTPInfo();
 			}
 			break;
 		}
 	}
 
-	info.offset = ((t1-t0) + (t2-t3))/(2000.0);
-	info.bias = ((t3-t2) + (t1-t0))/(2000.0);
+	const NTPInfo info = {
+		.offset = ((t3 - t2) + (t1 - t0)) / (2000.0),
+		.bias = ((t1 - t0) + (t2 - t3)) / (2000.0)
+	};
 
 	return info;
 }
