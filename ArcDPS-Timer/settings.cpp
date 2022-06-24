@@ -94,144 +94,156 @@ void Settings::mod_release() {
 	o << std::setw(4) << config << std::endl;
 }
 
-void Settings::mod_options() {
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
+void Settings::mod_options() {	
+	ImGui::BeginTabBar("#tabs_settings");
 
-	ImGui::Checkbox(translation.get("InputSaveLogs").c_str(), &save_logs);
+	if (ImGui::BeginTabItem(translation.get("TabGeneral").c_str())) {
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
 
-	ImGui::Checkbox(translation.get("InputUseCustomID").c_str(), &use_custom_id);
-	if (use_custom_id) {
-		ImGui::InputText(translation.get("InputCustomID").c_str(), &custom_id);
-	}
+		ImGui::Checkbox(translation.get("InputSaveLogs").c_str(), &save_logs);
 
-	ImGui::Checkbox(translation.get("InputOnlyInstance").c_str(), &disable_outside_instances);
-	if (disable_outside_instances) {
-		ImGui::Checkbox(translation.get("InputDisableFractalLobby").c_str(), &disable_in_fractal_lobby);
-	}
-
-	ImGui::Checkbox(translation.get("InputAutoprepare").c_str(), &auto_prepare);
-	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip(translation.get("TooltipAutoPrepare").c_str());
-	}
-
-	ImGui::Checkbox(translation.get("InputAutostop").c_str(), &auto_stop);
-	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip(translation.get("TooltipAutoStop").c_str());
-	}
-
-	ImGui::InputInt(translation.get("InputEarlyGG").c_str(), &early_gg_threshold);
-	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip(translation.get("TooltipEarlyGG").c_str());
-	}
-
-	ImGui::Separator();
-
-	ImGui::Text(translation.get("TextAdditionalBossIDs").c_str());
-
-	ImGui::BeginTable("##bossidstable", 1);
-	for (int id : additional_boss_ids) {
-		ImGui::TableNextRow();
-		ImGui::TableNextColumn();
-		if (ImGui::Selectable(std::to_string(id).c_str(), id == boss_id_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap)) {
-			boss_id_selected = id;
+		ImGui::Checkbox(translation.get("InputUseCustomID").c_str(), &use_custom_id);
+		if (use_custom_id) {
+			ImGui::InputText(translation.get("InputCustomID").c_str(), &custom_id);
 		}
-	}
-	ImGui::EndTable();
 
-	ImGui::InputInt(translation.get("InputBossID").c_str(), &boss_id_input);
-	if (ImGui::Button(translation.get("ButtonAdd").c_str())) {
-		additional_boss_ids.insert(boss_id_input);
-	}
-	ImGui::SameLine();
-	ImGui::PushID("delete_set");
-	if (ImGui::Button(translation.get("ButtonRemove").c_str())) {
-		additional_boss_ids.erase(boss_id_selected);
-	}
-	ImGui::PopID();
+		ImGui::Checkbox(translation.get("InputOnlyInstance").c_str(), &disable_outside_instances);
+		if (disable_outside_instances) {
+			ImGui::Checkbox(translation.get("InputDisableFractalLobby").c_str(), &disable_in_fractal_lobby);
+		}
 
-	ImGui::Separator();
-	
-	ImGui::InputText(translation.get("InputTimeFormatter").c_str(), &time_formatter);
-	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip(translation.get("TooltipTimerFormatter").c_str());
-	}
+		ImGui::Checkbox(translation.get("InputAutoprepare").c_str(), &auto_prepare);
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip(translation.get("TooltipAutoPrepare").c_str());
+		}
 
-	ImGui::InputText(translation.get("InputSegmentTimeFormatter").c_str(), &segment_time_formatter);
-	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip(translation.get("TooltipTimerFormatter").c_str());
-	}
+		ImGui::Checkbox(translation.get("InputAutostop").c_str(), &auto_stop);
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip(translation.get("TooltipAutoStop").c_str());
+		}
 
-	ImGui::Checkbox(translation.get("InputHideTimerButtons").c_str(), &hide_timer_buttons);
-	ImGui::Checkbox(translation.get("InputHideSegmentButtons").c_str(), &hide_segment_buttons);
-	ImGui::Checkbox(translation.get("InputUnifiedWindow").c_str(), &unified_window);
+		ImGui::InputInt(translation.get("InputEarlyGG").c_str(), &early_gg_threshold);
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip(translation.get("TooltipEarlyGG").c_str());
+		}
 
-	if (!unified_window) {
-		ImGui::Checkbox(translation.get("InputSegmentWindowBorder").c_str(), &segment_window_border);
-	}
+		ImGui::Separator();
 
-	if (ImGuiEx::KeyCodeInput(translation.get("InputStartKey").c_str(), start_key, Language::English, current_hkl)) {
-		keybind_handler.UpdateKey(start_key_handler, start_key);
-	}
+		ImGui::Text(translation.get("TextAdditionalBossIDs").c_str());
 
-	if (ImGuiEx::KeyCodeInput(translation.get("InputStopKey").c_str(), stop_key, Language::English, current_hkl)) {
-		keybind_handler.UpdateKey(stop_key_handler, stop_key);
-	}
+		ImGui::BeginTable("##bossidstable", 1);
+		for (int id : additional_boss_ids) {
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::Selectable(std::to_string(id).c_str(), id == boss_id_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap)) {
+				boss_id_selected = id;
+			}
+		}
+		ImGui::EndTable();
 
-	if (ImGuiEx::KeyCodeInput(translation.get("InputResetKey").c_str(), reset_key, Language::English, current_hkl)) {
-		keybind_handler.UpdateKey(reset_key_handler, reset_key);
-	}
-
-	if (ImGuiEx::KeyCodeInput(translation.get("InputPrepareKey").c_str(), prepare_key, Language::English, current_hkl)) {
-		keybind_handler.UpdateKey(prepare_key_handler, prepare_key);
-	}
-
-	if (ImGuiEx::KeyCodeInput(translation.get("InputSegmentKey").c_str(), segment_key, Language::English, current_hkl)) {
-		keybind_handler.UpdateKey(segment_key_handler, segment_key);
-	}
-
-	ImGui::Separator();
-
-	if (!hide_timer_buttons) {
-		if (ImGui::ColorButton(translation.get("InputStartButtonColor").c_str(), start_button_color)) {
-			ImGui::OpenPopup("##popupstartcolour");
+		ImGui::InputInt(translation.get("InputBossID").c_str(), &boss_id_input);
+		if (ImGui::Button(translation.get("ButtonAdd").c_str())) {
+			additional_boss_ids.insert(boss_id_input);
 		}
 		ImGui::SameLine();
-		ImGui::LabelText("##startbuttoncolor", translation.get("InputStartButtonColor").c_str());
-
-		if (ImGui::ColorButton(translation.get("InputStopButtonColor").c_str(), stop_button_color)) {
-			ImGui::OpenPopup("##popupstopcolour");
+		ImGui::PushID("delete_set");
+		if (ImGui::Button(translation.get("ButtonRemove").c_str())) {
+			additional_boss_ids.erase(boss_id_selected);
 		}
-		ImGui::SameLine();
-		ImGui::LabelText("##stopbuttoncolor", translation.get("InputStopButtonColor").c_str());
+		ImGui::PopID();
 
-		if (ImGui::ColorButton(translation.get("InputResetButtonColor").c_str(), reset_button_color)) {
-			ImGui::OpenPopup("##popupresetcolour");
-		}
-		ImGui::SameLine();
-		ImGui::LabelText("##resetbuttoncolor", translation.get("InputResetButtonColor").c_str());
+		ImGui::Separator();
 
-		if (ImGui::ColorButton(translation.get("InputPrepareButtonColor").c_str(), prepare_button_color)) {
-			ImGui::OpenPopup("##popuppreparecolour");
+		ImGui::InputText(translation.get("InputTimeFormatter").c_str(), &time_formatter);
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip(translation.get("TooltipTimerFormatter").c_str());
 		}
-		ImGui::SameLine();
-		ImGui::LabelText("##preparebuttoncolor", translation.get("InputPrepareButtonColor").c_str());
+
+		ImGui::InputText(translation.get("InputSegmentTimeFormatter").c_str(), &segment_time_formatter);
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip(translation.get("TooltipTimerFormatter").c_str());
+		}
+
+		if (ImGuiEx::KeyCodeInput(translation.get("InputStartKey").c_str(), start_key, Language::English, current_hkl)) {
+			keybind_handler.UpdateKey(start_key_handler, start_key);
+		}
+
+		if (ImGuiEx::KeyCodeInput(translation.get("InputStopKey").c_str(), stop_key, Language::English, current_hkl)) {
+			keybind_handler.UpdateKey(stop_key_handler, stop_key);
+		}
+
+		if (ImGuiEx::KeyCodeInput(translation.get("InputResetKey").c_str(), reset_key, Language::English, current_hkl)) {
+			keybind_handler.UpdateKey(reset_key_handler, reset_key);
+		}
+
+		if (ImGuiEx::KeyCodeInput(translation.get("InputPrepareKey").c_str(), prepare_key, Language::English, current_hkl)) {
+			keybind_handler.UpdateKey(prepare_key_handler, prepare_key);
+		}
+
+		if (ImGuiEx::KeyCodeInput(translation.get("InputSegmentKey").c_str(), segment_key, Language::English, current_hkl)) {
+			keybind_handler.UpdateKey(segment_key_handler, segment_key);
+		}
+
+		ImGui::PopStyleVar();
+		ImGui::EndTabItem();
 	}
 
-	if (!hide_segment_buttons) {
-		if (ImGui::ColorButton(translation.get("InputSegmentButtonColor").c_str(), segment_button_color)) {
-			ImGui::OpenPopup("##popupsegmentcolour");
-		}
-		ImGui::SameLine();
-		ImGui::LabelText("##segmentbuttoncolor", translation.get("InputSegmentButtonColor").c_str());
+	if (ImGui::BeginTabItem(translation.get("TabAppearence").c_str())) {
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
 
-		if (ImGui::ColorButton(translation.get("InputClearButtonColor").c_str(), clear_button_color)) {
-			ImGui::OpenPopup("##popupclearcolour");
+		ImGui::Checkbox(translation.get("InputHideTimerButtons").c_str(), &hide_timer_buttons);
+		ImGui::Checkbox(translation.get("InputHideSegmentButtons").c_str(), &hide_segment_buttons);
+		ImGui::Checkbox(translation.get("InputUnifiedWindow").c_str(), &unified_window);
+
+		if (!unified_window) {
+			ImGui::Checkbox(translation.get("InputSegmentWindowBorder").c_str(), &segment_window_border);
 		}
-		ImGui::SameLine();
-		ImGui::LabelText("##clearbuttoncolor", translation.get("InputClearButtonColor").c_str());
+
+		ImGui::Separator();
+
+		if (!hide_timer_buttons) {
+			if (ImGui::ColorButton(translation.get("InputStartButtonColor").c_str(), start_button_color)) {
+				ImGui::OpenPopup("##popupstartcolour");
+			}
+			ImGui::SameLine();
+			ImGui::LabelText("##startbuttoncolor", translation.get("InputStartButtonColor").c_str());
+
+			if (ImGui::ColorButton(translation.get("InputStopButtonColor").c_str(), stop_button_color)) {
+				ImGui::OpenPopup("##popupstopcolour");
+			}
+			ImGui::SameLine();
+			ImGui::LabelText("##stopbuttoncolor", translation.get("InputStopButtonColor").c_str());
+
+			if (ImGui::ColorButton(translation.get("InputResetButtonColor").c_str(), reset_button_color)) {
+				ImGui::OpenPopup("##popupresetcolour");
+			}
+			ImGui::SameLine();
+			ImGui::LabelText("##resetbuttoncolor", translation.get("InputResetButtonColor").c_str());
+
+			if (ImGui::ColorButton(translation.get("InputPrepareButtonColor").c_str(), prepare_button_color)) {
+				ImGui::OpenPopup("##popuppreparecolour");
+			}
+			ImGui::SameLine();
+			ImGui::LabelText("##preparebuttoncolor", translation.get("InputPrepareButtonColor").c_str());
+		}
+
+		if (!hide_segment_buttons) {
+			if (ImGui::ColorButton(translation.get("InputSegmentButtonColor").c_str(), segment_button_color)) {
+				ImGui::OpenPopup("##popupsegmentcolour");
+			}
+			ImGui::SameLine();
+			ImGui::LabelText("##segmentbuttoncolor", translation.get("InputSegmentButtonColor").c_str());
+
+			if (ImGui::ColorButton(translation.get("InputClearButtonColor").c_str(), clear_button_color)) {
+				ImGui::OpenPopup("##popupclearcolour");
+			}
+			ImGui::SameLine();
+			ImGui::LabelText("##clearbuttoncolor", translation.get("InputClearButtonColor").c_str());
+		}
+
+		ImGui::PopStyleVar();
+		ImGui::EndTabItem();
 	}
-
-	ImGui::PopStyleVar();
 
 	if (ImGui::BeginPopup("##popupstartcolour")) {
 		float color[4] = { start_button_color.x, start_button_color.y, start_button_color.z, start_button_color.w };

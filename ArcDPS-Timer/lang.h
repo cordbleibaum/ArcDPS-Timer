@@ -66,6 +66,8 @@ private:
 		{"InputSegmentTimeFormatter", "Segment time formatter"},
 		{"InputSegmentWindowBorder", "Segment window border"},
 		{"InputDisableFractalLobby", "Disable in fractal lobby"},
+		{"TabGeneral", "General"},
+		{"TabAppearence", "Appearance"},
 
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},
