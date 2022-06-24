@@ -91,8 +91,8 @@ NTPInfo NTPClient::request_time_delta(int retries) {
 	}
 
 	const NTPInfo info = {
-		.offset = ((t3 - t2) + (t1 - t0)) / (2000.0),
-		.bias = ((t1 - t0) + (t2 - t3)) / (2000.0)
+		.offset = ((t1 - t0) + (t2 - t3)) / (2000.0),
+		.bias = ((t3 - t2) + (t1 - t0)) / (2000.0)
 	};
 
 	return info;
