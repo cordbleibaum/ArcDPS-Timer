@@ -69,7 +69,7 @@ private:
 		{"TabGeneral", "General"},
 		{"TabAppearence", "Appearance"},
 		{"TabAbout", "About"},
-		{"TextAbout1", "ArcDPS Timer addon"},
+		{"TextAbout1", "ArcDPS Timer Addon"},
 		{"TextAbout2", "For new verseions, source code and feedback: "},
 		{"TextAbout3", "(C) 2022 Cord Bleibaum (thecord.5873)"},
 		{"ButtonSource", "GitHub"},
