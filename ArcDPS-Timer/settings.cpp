@@ -264,6 +264,8 @@ void Settings::mod_options() {
 		ImGui::EndTabItem();
 	}
 
+	ImGui::EndTabBar();
+
 	if (ImGui::BeginPopup("##popupstartcolour")) {
 		float color[4] = { start_button_color.x, start_button_color.y, start_button_color.z, start_button_color.w };
 		ImGui::ColorPicker4(translation.get("InputStartButtonColor").c_str(), color);
