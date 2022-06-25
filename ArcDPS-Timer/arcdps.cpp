@@ -26,9 +26,9 @@ void log(std::string str) {
 }
 
 void log_debug(std::string str) {
-	if constexpr (!NDEBUG) {
-		log(str);
-	}
+#ifndef NDEBUG
+	log(str);
+#endif // !NDEBUG
 }
 
 extern "C" __declspec(dllexport) void* get_init_addr(char* arcversion, ImGuiContext * imguictx, void* id3dptr, HANDLE arcdll, void* mallocfn, void* freefn, uint32_t d3dversion) {

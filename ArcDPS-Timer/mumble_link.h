@@ -11,7 +11,7 @@ public:
     ~GW2MumbleLink();
     LinkedMem* operator->() const;
 private:
-    LinkedMem* pMumbleLink;
+    LinkedMem* pMumbleLink = nullptr;
     HANDLE hMumbleLink;
 };
 
