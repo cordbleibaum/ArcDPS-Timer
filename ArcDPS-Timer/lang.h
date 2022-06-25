@@ -68,6 +68,11 @@ private:
 		{"InputDisableFractalLobby", "Disable in fractal lobby"},
 		{"TabGeneral", "General"},
 		{"TabAppearence", "Appearance"},
+		{"TabAbout", "About"},
+		{"TextAbout1", "ArcDPS Timer addon"},
+		{"TextAbout2", "For new verseions, source code and feedback: "},
+		{"TextAbout3", "(C) 2022 Cord Bleibaum (thecord.5873)"},
+		{"ButtonSource", "GitHub"},
 
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},

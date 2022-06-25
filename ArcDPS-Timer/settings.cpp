@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <shellapi.h>
 
 using json = nlohmann::json;
 
@@ -240,6 +241,24 @@ void Settings::mod_options() {
 			ImGui::SameLine();
 			ImGui::LabelText("##clearbuttoncolor", translation.get("InputClearButtonColor").c_str());
 		}
+
+		ImGui::PopStyleVar();
+		ImGui::EndTabItem();
+	}
+
+	if (ImGui::BeginTabItem(translation.get("TabAbout").c_str())) {
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
+
+		ImGui::Text(translation.get("TextAbout1").c_str());
+		ImGui::Dummy(ImVec2(0, 5));
+		
+		ImGui::Text(translation.get("TextAbout2").c_str());
+		ImGui::SameLine();
+		if (ImGui::SmallButton(translation.get("ButtonSource").c_str())) {
+			ShellExecute(NULL, L"open", L"https://github.com/cordbleibaum/ArcDPS-Timer", NULL, NULL, SW_SHOWDEFAULT);
+		}
+
+		ImGui::Text(translation.get("TextAbout3").c_str());
 
 		ImGui::PopStyleVar();
 		ImGui::EndTabItem();
