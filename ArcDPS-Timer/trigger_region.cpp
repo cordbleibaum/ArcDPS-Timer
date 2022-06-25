@@ -156,7 +156,7 @@ void TriggerEditor::mod_imgui() {
         ImGui::Columns(2, "##editorcolumns", false);
         ImGui::SetColumnWidth(-1, 480);
 
-        std::string position_string = translation.get("TextPlayerPosition") + "%.1f %.1f %.1f";
+        const std::string position_string = translation.get("TextPlayerPosition") + "%.1f %.1f %.1f";
         ImGui::Text(position_string.c_str(), mumble_link->fAvatarPosition[0], mumble_link->fAvatarPosition[2], mumble_link->fAvatarPosition[1]);
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
 

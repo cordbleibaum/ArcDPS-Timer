@@ -28,7 +28,7 @@ void API::post_serverapi(std::string method, nlohmann::json payload) {
 }
 
 void API::check_serverstatus() {
-	auto response = cpr::Get(
+	const auto response = cpr::Get(
 		cpr::Url{ server_url },
 		cpr::Timeout{ 1000 }
 	);
@@ -83,7 +83,7 @@ void API::sync(std::function<void(const nlohmann::json&)> data_function) {
 				})
 			);
 
-			auto response = response_future.get();
+			const auto response = response_future.get();
 			if (response.error.code == cpr::ErrorCode::REQUEST_CANCELLED) {
 				continue;
 			}

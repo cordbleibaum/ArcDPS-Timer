@@ -16,7 +16,7 @@ double NTPClient::get_time_delta() {
 	std::vector<NTPInfo> samples;
 
 	for (int i = 0; i < 3; ++i) {
-		NTPInfo info = request_time_delta(5);
+		const NTPInfo info = request_time_delta(5);
 		if (std::abs(info.offset) > 0) {
 			samples.push_back(info);
 		}
