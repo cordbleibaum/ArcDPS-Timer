@@ -2,6 +2,7 @@
 
 #include "lang.h"
 #include "imgui/imgui.h"
+#include "maptracker.h"
 
 #include <Windows.h>
 #include <string>
@@ -57,11 +58,13 @@ namespace nlohmann {
 
 class Settings {
 public:
-	Settings(std::string file, const Translation& translation, KeyBindHandler& keybind_handler);
+	Settings(std::string file, const Translation& translation, KeyBindHandler& keybind_handler, const MapTracker& map_tracker, GW2MumbleLink& mumble_link);
 	void mod_release();
 	void mod_options();
 	void mod_windows();
 	bool mod_wnd(HWND pWindowHandle, UINT pMessage, WPARAM pAdditionalW, LPARAM pAdditionalL);
+
+	bool is_enabled() const;
 
 	bool show_timer;
 	bool show_segments;
@@ -69,7 +72,6 @@ public:
 	bool use_custom_id;
 	bool unified_window;
 	std::string custom_id;
-	bool disable_outside_instances;
 	std::string time_formatter;
 	std::string segment_time_formatter;
 	bool hide_timer_buttons;
@@ -105,7 +107,13 @@ public:
 private:
 	const Translation& translation;
 	KeyBindHandler& keybind_handler;
+	const MapTracker& map_tracker;
+	GW2MumbleLink& mumble_link;
+
+	bool disable_outside_instances;
 
 	int settings_version;
 	std::string config_file;
+
+	void color_picker_popup( std::string text_key, ImVec4& color);
 };

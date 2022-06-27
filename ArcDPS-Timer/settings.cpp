@@ -13,11 +13,13 @@ using json = nlohmann::json;
 
 constexpr int current_settings_version = 10;
 
-Settings::Settings(std::string file, const Translation& translation, KeyBindHandler& keybind_handler)
+Settings::Settings(std::string file, const Translation& translation, KeyBindHandler& keybind_handler, const MapTracker& map_tracker, GW2MumbleLink& mumble_link)
 :	settings_version(current_settings_version),
 	config_file(file),
 	translation(translation),
-	keybind_handler(keybind_handler)
+	keybind_handler(keybind_handler),
+	map_tracker(map_tracker),
+	mumble_link(mumble_link)
 {
 	json config;
 	config["filler"] = "empty";
@@ -266,53 +268,12 @@ void Settings::mod_options() {
 
 	ImGui::EndTabBar();
 
-	if (ImGui::BeginPopup("##popupstartcolour")) {
-		float color[4] = { start_button_color.x, start_button_color.y, start_button_color.z, start_button_color.w };
-		ImGui::ColorPicker4(translation.get("InputStartButtonColor").c_str(), color);
-		start_button_color = ImVec4(color[0], color[1], color[2], color[3]);
-
-		ImGui::EndPopup();
-	}
-
-	if (ImGui::BeginPopup("##popupstopcolour")) {
-		float color[4] = { stop_button_color.x, stop_button_color.y, stop_button_color.z, stop_button_color.w };
-		ImGui::ColorPicker4(translation.get("InputStopButtonColor").c_str(), color);
-		stop_button_color = ImVec4(color[0], color[1], color[2], color[3]);
-
-		ImGui::EndPopup();
-	}
-
-	if (ImGui::BeginPopup("##popupresetcolour")) {
-		float color[4] = { reset_button_color.x, reset_button_color.y, reset_button_color.z, reset_button_color.w };
-		ImGui::ColorPicker4(translation.get("InputResetButtonColor").c_str(), color);
-		reset_button_color = ImVec4(color[0], color[1], color[2], color[3]);
-
-		ImGui::EndPopup();
-	}
-
-	if (ImGui::BeginPopup("##popuppreparecolour")) {
-		float color[4] = { prepare_button_color.x, prepare_button_color.y, prepare_button_color.z, prepare_button_color.w };
-		ImGui::ColorPicker4(translation.get("InputPrepareButtonColor").c_str(), color);
-		prepare_button_color = ImVec4(color[0], color[1], color[2], color[3]);
-
-		ImGui::EndPopup();
-	}
-
-	if (ImGui::BeginPopup("##popupsegmentcolour")) {
-		float color[4] = { segment_button_color.x, segment_button_color.y, segment_button_color.z, segment_button_color.w };
-		ImGui::ColorPicker4(translation.get("InputSegmentButtonColor").c_str(), color);
-		segment_button_color = ImVec4(color[0], color[1], color[2], color[3]);
-
-		ImGui::EndPopup();
-	}
-
-	if (ImGui::BeginPopup("##popupclearcolour")) {
-		float color[4] = { clear_button_color.x, clear_button_color.y, clear_button_color.z, clear_button_color.w };
-		ImGui::ColorPicker4(translation.get("InputSegmentButtonColor").c_str(), color);
-		clear_button_color = ImVec4(color[0], color[1], color[2], color[3]);
-
-		ImGui::EndPopup();
-	}
+	color_picker_popup("InputStartButtonColor", start_button_color);
+	color_picker_popup("InputStopButtonColor", stop_button_color);
+	color_picker_popup("InputResetButtonColor", reset_button_color);
+	color_picker_popup("InputPrepareButtonColor", prepare_button_color);
+	color_picker_popup("InputSegmentButtonColor", segment_button_color);
+	color_picker_popup("InputClearButtonColor", clear_button_color);
 }
 
 void Settings::mod_windows() {
@@ -327,4 +288,25 @@ void Settings::mod_windows() {
 
 bool Settings::mod_wnd(HWND pWindowHandle, UINT pMessage, WPARAM pAdditionalW, LPARAM pAdditionalL) {
 	return ImGuiEx::KeyCodeInputWndHandle(pWindowHandle, pMessage, pAdditionalW, pAdditionalL);
+}
+
+bool Settings::is_enabled() const {
+	if (disable_outside_instances && mumble_link->getMumbleContext()->mapType != MapType::MAPTYPE_INSTANCE) {
+		return false;
+	}
+
+	if (disable_outside_instances && disable_in_fractal_lobby && mumble_link->getMumbleContext()->mapId == 872) {
+		return false;
+	}
+
+	return true;
+}
+
+void Settings::color_picker_popup(std::string text_key, ImVec4& color) {
+	if (ImGui::BeginPopup(std::string("##"+text_key).c_str())) {
+		float color_array[4] = { start_button_color.x, start_button_color.y, start_button_color.z, start_button_color.w };
+		ImGui::ColorPicker4(translation.get(text_key).c_str(), color_array);
+		color = ImVec4(color_array[0], color_array[1], color_array[2], color_array[3]);
+		ImGui::EndPopup();
+	}
 }

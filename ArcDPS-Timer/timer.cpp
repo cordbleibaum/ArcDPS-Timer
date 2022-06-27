@@ -132,11 +132,7 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 }
 
 void Timer::mod_imgui() {
-	if (settings.disable_outside_instances && mumble_link->getMumbleContext()->mapType != MapType::MAPTYPE_INSTANCE) {
-		return;
-	}
-
-	if (settings.disable_outside_instances && settings.disable_in_fractal_lobby && mumble_link->getMumbleContext()->mapId == 872) {
+	if (!settings.is_enabled()) {
 		return;
 	}
 

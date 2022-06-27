@@ -25,11 +25,11 @@
 
 Translation translation;
 KeyBindHandler keybind_handler;
-Settings settings("addons/arcdps/timer.json", translation, keybind_handler);
 GW2MumbleLink mumble_link;
 NTPClient ntp("pool.ntp.org");
 GroupTracker group_tracker;
 MapTracker map_tracker(mumble_link);
+Settings settings("addons/arcdps/timer.json", translation, keybind_handler, map_tracker, mumble_link);
 TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
 API api(settings, mumble_link, map_tracker, group_tracker, "http://18.192.87.148:5001/");

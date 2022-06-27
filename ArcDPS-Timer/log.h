@@ -47,7 +47,7 @@ private:
 	const Settings& settings;
 
 	uint32_t map_id = 0;
-	bool is_instanced = false;
+	bool is_enabled = false;
 
 	std::chrono::system_clock::time_point start_time;
 	std::chrono::system_clock::time_point end_time;
