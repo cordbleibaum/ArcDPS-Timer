@@ -58,7 +58,7 @@ namespace nlohmann {
 
 struct SettingsSet {
 	bool is_enabled = true;
-	bool auto_prepare = true;
+	bool auto_prepare = false;
 	bool auto_stop = true;
 	int early_gg_threshold = 10;
 };

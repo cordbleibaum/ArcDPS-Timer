@@ -60,7 +60,9 @@ Settings::Settings(std::string file, const Translation& translation, KeyBindHand
 	segment_button_color = config.value("segment_button_color", default_color);
 	clear_button_color = config.value("clear_button_color", default_color);
 
-	dungeon_fractal_settings = config.value("dungeon_fractal_settings", SettingsSet());
+	SettingsSet fractal_defaults;
+	fractal_defaults.auto_prepare = true;
+	dungeon_fractal_settings = config.value("dungeon_fractal_settings", fractal_defaults);
 	raid_settings = config.value("raid_settings", SettingsSet());
 	strike_settings = config.value("strike_settings", SettingsSet());
 }
