@@ -130,4 +130,5 @@ private:
 	SettingsSet strike_settings;
 
 	void color_picker_popup( std::string text_key, ImVec4& color);
+	std::optional<SettingsSet> get_current_set() const;
 };

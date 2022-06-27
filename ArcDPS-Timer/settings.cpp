@@ -339,16 +339,9 @@ bool Settings::is_enabled() const {
 		return false;
 	}
 
-	switch (map_tracker.get_instance_type()) {
-	case InstanceType::Dungeon:
-	case InstanceType::Fractal:
-		return dungeon_fractal_settings.is_enabled;
-	case InstanceType::Raid:
-		return raid_settings.is_enabled;
-	case InstanceType::Strike:
-		return strike_settings.is_enabled;
-	default:
-		break;
+	std::optional<SettingsSet> current_set = get_current_set();
+	if (current_set.has_value()) {
+		return current_set.value().is_enabled;
 	}
 
 	return true;
@@ -364,19 +357,9 @@ bool Settings::should_autoprepare() const {
 	}
 
 	bool result = auto_prepare;
-	switch (map_tracker.get_instance_type()) {
-	case InstanceType::Dungeon:
-	case InstanceType::Fractal:
-		result &= dungeon_fractal_settings.auto_prepare;
-		break;
-	case InstanceType::Raid:
-		result &= raid_settings.auto_prepare;
-	break;
-	case InstanceType::Strike:
-		result &= strike_settings.auto_prepare;
-		break;	
-	default:
-		break;
+	std::optional<SettingsSet> current_set = get_current_set();
+	if (current_set.has_value()) {
+		result &= current_set.value().auto_prepare;
 	}
 
 	return result;
@@ -384,19 +367,10 @@ bool Settings::should_autoprepare() const {
 
 bool Settings::should_autostop() const {
 	bool result = auto_stop;
-	switch (map_tracker.get_instance_type()) {
-	case InstanceType::Dungeon:
-	case InstanceType::Fractal:
-		result &= dungeon_fractal_settings.auto_stop;
-		break;
-	case InstanceType::Raid:
-		result &= raid_settings.auto_stop;
-		break;
-	case InstanceType::Strike:
-		result &= strike_settings.auto_stop;
-		break;
-	default:
-		break;
+
+	std::optional<SettingsSet> current_set = get_current_set();
+	if (current_set.has_value()) {
+		result &= current_set.value().auto_stop;
 	}
 
 	return result;
@@ -408,5 +382,19 @@ void Settings::color_picker_popup(std::string text_key, ImVec4& color) {
 		ImGui::ColorPicker4(translation.get(text_key).c_str(), color_array);
 		color = ImVec4(color_array[0], color_array[1], color_array[2], color_array[3]);
 		ImGui::EndPopup();
+	}
+}
+
+std::optional<SettingsSet> Settings::get_current_set() const {
+	switch (map_tracker.get_instance_type()) {
+	case InstanceType::Dungeon:
+	case InstanceType::Fractal:
+		return dungeon_fractal_settings;
+	case InstanceType::Raid:
+		return raid_settings;
+	case InstanceType::Strike:
+		return strike_settings;
+	default:
+		return std::nullopt;
 	}
 }
