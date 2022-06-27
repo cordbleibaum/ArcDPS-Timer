@@ -41,7 +41,6 @@ Settings::Settings(std::string file, const Translation& translation, KeyBindHand
 	hide_segment_buttons = config.value("hide_segment_buttons", false);
 	segment_window_border = config.value("segment_window_border", true);
 	auto_stop = config.value("auto_stop", false);
-	early_gg_threshold = config.value("early_gg_threshold", 10);
 	show_segments = config.value("show_segments", false);
 	unified_window = config.value("unified_window", false);
 	save_logs = config.value("save_logs", true);
@@ -81,7 +80,6 @@ void Settings::mod_release() {
 	config["reset_key"] = reset_key;
 	config["prepare_key"] = prepare_key;
 	config["auto_stop"] = auto_stop;
-	config["early_gg_threshold"] = early_gg_threshold;
 	config["segment_key"] = segment_key;
 	config["show_segments"] = show_segments;
 	config["custom_id"] = custom_id;
@@ -130,11 +128,6 @@ void Settings::mod_options() {
 		ImGui::Checkbox(translation.get("InputAutostop").c_str(), &auto_stop);
 		if (ImGui::IsItemHovered()) {
 			ImGui::SetTooltip(translation.get("TooltipAutoStop").c_str());
-		}
-
-		ImGui::InputInt(translation.get("InputEarlyGG").c_str(), &early_gg_threshold);
-		if (ImGui::IsItemHovered()) {
-			ImGui::SetTooltip(translation.get("TooltipEarlyGG").c_str());
 		}
 
 		ImGui::Separator();
@@ -262,6 +255,11 @@ void Settings::mod_options() {
 		ImGui::Checkbox(translation.get("InputSetAutoPrepare").c_str(), &dungeon_fractal_settings.auto_prepare);
 		ImGui::Checkbox(translation.get("InputSetAutoStop").c_str(), &dungeon_fractal_settings.auto_stop);
 
+		ImGui::InputInt(translation.get("InputEarlyGG").c_str(), &dungeon_fractal_settings.early_gg_threshold);
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip(translation.get("TooltipEarlyGG").c_str());
+		}
+
 		ImGui::PopStyleVar();
 		ImGui::EndTabItem();
 	}
@@ -273,6 +271,11 @@ void Settings::mod_options() {
 		ImGui::Checkbox(translation.get("InputSetAutoPrepare").c_str(), &raid_settings.auto_prepare);
 		ImGui::Checkbox(translation.get("InputSetAutoStop").c_str(), &raid_settings.auto_stop);
 
+		ImGui::InputInt(translation.get("InputEarlyGG").c_str(), &raid_settings.early_gg_threshold);
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip(translation.get("TooltipEarlyGG").c_str());
+		}
+
 		ImGui::PopStyleVar();
 		ImGui::EndTabItem();
 	}
@@ -283,6 +286,11 @@ void Settings::mod_options() {
 		ImGui::Checkbox(translation.get("InputSetEnabled").c_str(), &strike_settings.is_enabled);
 		ImGui::Checkbox(translation.get("InputSetAutoPrepare").c_str(), &strike_settings.auto_prepare);
 		ImGui::Checkbox(translation.get("InputSetAutoStop").c_str(), &strike_settings.auto_stop);
+
+		ImGui::InputInt(translation.get("InputEarlyGG").c_str(), &strike_settings.early_gg_threshold);
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip(translation.get("TooltipEarlyGG").c_str());
+		}
 
 		ImGui::PopStyleVar();
 		ImGui::EndTabItem();
@@ -374,6 +382,15 @@ bool Settings::should_autostop() const {
 	}
 
 	return result;
+}
+
+int Settings::get_early_gg_threshold() const {
+	std::optional<SettingsSet> current_set = get_current_set();
+	if (current_set.has_value()) {
+		return current_set.value().early_gg_threshold;
+	}
+
+	return 0;
 }
 
 void Settings::color_picker_popup(std::string text_key, ImVec4& color) {

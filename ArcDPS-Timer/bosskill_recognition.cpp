@@ -59,7 +59,7 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 			data.log_species_id = ev->src_agent;
 
 			const auto log_duration = std::chrono::system_clock::now() - log_start_time;
-			if (log_duration > std::chrono::seconds(settings.early_gg_threshold)) {
+			if (log_duration > std::chrono::seconds(settings.get_early_gg_threshold())) {
 				for (const auto& boss : bosses) {
 					bool is_true = true;
 					for (auto& condition : boss.conditions) {

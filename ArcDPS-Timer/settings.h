@@ -60,9 +60,10 @@ struct SettingsSet {
 	bool is_enabled = true;
 	bool auto_prepare = true;
 	bool auto_stop = true;
+	int early_gg_threshold = 10;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SettingsSet, is_enabled, auto_prepare, auto_stop)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SettingsSet, is_enabled, auto_prepare, auto_stop, early_gg_threshold)
 
 class Settings {
 public:
@@ -75,6 +76,7 @@ public:
 	bool is_enabled() const;
 	bool should_autoprepare() const;
 	bool should_autostop() const;
+	int get_early_gg_threshold() const;
 
 	bool show_timer;
 	bool show_segments;
@@ -90,7 +92,6 @@ public:
 	KeyBinds::Key stop_key;
 	KeyBinds::Key reset_key;
 	KeyBinds::Key prepare_key;
-	int early_gg_threshold;
 	KeyBinds::Key segment_key;
 	bool save_logs;
 	std::set<int> additional_boss_ids;
