@@ -43,6 +43,41 @@ class GroupStatus(object):
         self.changeSemaphore = tornado.locks.Semaphore(1)
         self.update_id = -1
 
+        def set_segment(self, segment_num, time, name): 
+            is_new_segment = False
+            if segment_num == len(self.segments):
+                self.segments.append(SegmentStatus())
+                is_new_segment = True
+
+            segment = self.segments[segment_num]
+            segment.is_set = True
+            segment.name = name
+
+            if is_new_segment or time > segment.end:
+                segment.end = time
+
+            if segment_num <  len(self.segments) - 1:
+                adjust_segment = self.segments[segment_num + 1]
+                if adjust_segment.is_set:
+                    adjust_segment.start = self.segments[segment_num].end
+                    shortest_duration = adjust_segment.end - adjust_segment.start
+                    if shortest_duration < adjust_segment.shortest_duration:
+                        adjust_segment.shortest_duration = shortest_duration
+
+            if segment_num > 0:
+                segment.start = self.segments[segment_num-1].end
+            else:
+                segment.start = self.start_time
+
+            shortest_time : timedelta = segment.end - self.start_time
+            shortest_duration : timedelta = segment.end - segment.start
+
+            if is_new_segment or (shortest_time < segment.shortest_time):
+                segment.shortest_time = shortest_time
+
+            if is_new_segment or (shortest_duration < segment.shortest_duration):
+                segment.shortest_duration = shortest_duration
+
 
 class GroupStatusEncoder(json.JSONEncoder):
     def default(self, group):
@@ -142,42 +177,6 @@ class StartHandler(GroupModifyHandler):
                 segment.is_set = False
 
 
-def set_segment(group, segment_num, time, name): 
-    is_new_segment = False
-    if segment_num == len(group.segments):
-        group.segments.append(SegmentStatus())
-        is_new_segment = True
-
-    segment = group.segments[segment_num]
-    segment.is_set = True
-    segment.name = name
-
-    if is_new_segment or time > segment.end:
-        segment.end = time
-
-    if segment_num <  len(group.segments) - 1:
-        adjust_segment = group.segments[segment_num + 1]
-        if adjust_segment.is_set:
-            adjust_segment.start = group.segments[segment_num].end
-            shortest_duration = adjust_segment.end - adjust_segment.start
-            if shortest_duration < adjust_segment.shortest_duration:
-                adjust_segment.shortest_duration = shortest_duration
-
-    if segment_num > 0:
-        segment.start = group.segments[segment_num-1].end
-    else:
-        segment.start = group.start_time
-
-    shortest_time : timedelta = segment.end - group.start_time
-    shortest_duration : timedelta = segment.end - segment.start
-
-    if is_new_segment or (shortest_time < segment.shortest_time):
-        segment.shortest_time = shortest_time
-
-    if is_new_segment or (shortest_duration < segment.shortest_duration):
-        segment.shortest_duration = shortest_duration
-
-
 class StopHandler(GroupModifyHandler):
     async def post(self, _):
         if self.group.status in [TimerStatus.running, TimerStatus.prepared]:
@@ -192,7 +191,7 @@ class StopHandler(GroupModifyHandler):
             else:
                 segment_num = len(self.group.segments)
 
-            set_segment(self.group, segment_num, self.args.time, "")
+            self.group.set_segment(self.group, segment_num, self.args.time, "")
 
 
 class ResetHandler(GroupModifyHandler):
@@ -241,7 +240,7 @@ class StatusHandler(JsonHandler):
 class SegmentHandler(GroupModifyHandler):
     async def post(self, _):
         logging.info(f"segment num: {self.args.segment_num}")
-        set_segment(self.group, self.args.segment_num, self.args.time, self.args.name)
+        self.group.set_segment(self.args.segment_num, self.args.time, self.args.name)
 
 
 class ClearSegmentsHandler(GroupModifyHandler):

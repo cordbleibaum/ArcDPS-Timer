@@ -11,7 +11,7 @@ using json = nlohmann::json;
 #include "arcdps-extension/Widgets.h"
 #include "arcdps-extension/KeyInput.h"
 
-constexpr int current_settings_version = 10;
+constexpr int current_settings_version = 11;
 
 Settings::Settings(std::string file, const Translation& translation, KeyBindHandler& keybind_handler, const MapTracker& map_tracker, GW2MumbleLink& mumble_link)
 :	settings_version(current_settings_version),
