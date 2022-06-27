@@ -19,13 +19,15 @@ std::string MapTracker::get_instance_id() {
 InstanceType MapTracker::get_instance_type() const {
 	switch (map_id)
 	{
-	case std::to_underlying(MapID::AetherbladeRetreat):
+	case std::to_underlying(MapID::AetherbladeFractal):
+	case std::to_underlying(MapID::CaptainMaiTrinBoss):
 	case std::to_underlying(MapID::AquaticRuinsFractal):
 	case std::to_underlying(MapID::ChaosFractal):
 	case std::to_underlying(MapID::CliffsideFractal):
 	case std::to_underlying(MapID::DeepstoneFractal):
 	case std::to_underlying(MapID::MistlockObservatory):
 	case std::to_underlying(MapID::MoltenFurnace):
+	case std::to_underlying(MapID::MoltenBoss):
 	case std::to_underlying(MapID::VolcanicFractal):
 	case std::to_underlying(MapID::UncategorizedFractal):
 	case std::to_underlying(MapID::ShatteredObservatory):
