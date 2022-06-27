@@ -60,6 +60,10 @@ Settings::Settings(std::string file, const Translation& translation, KeyBindHand
 	prepare_button_color = config.value("prepare_button_color", default_color);
 	segment_button_color = config.value("segment_button_color", default_color);
 	clear_button_color = config.value("clear_button_color", default_color);
+
+	dungeon_fractal_settings = config.value("dungeon_fractal_settings", SettingsSet());
+	raid_settings = config.value("raid_settings", SettingsSet());
+	strike_settings = config.value("strike_settings", SettingsSet());
 }
 
 void Settings::mod_release() {
@@ -68,7 +72,7 @@ void Settings::mod_release() {
 	config["version"] = settings_version;
 	config["auto_prepare"] = auto_prepare;
 	config["use_custom_id"] = use_custom_id;
-	config["disable_outside_instances"] = disable_outside_instances;
+	config["settings"] = disable_outside_instances;
 	config["timer_formatter"] = time_formatter;
 	config["hide_timer_buttons"] = hide_timer_buttons;
 	config["hide_segment_buttons"] = hide_segment_buttons;
@@ -93,6 +97,9 @@ void Settings::mod_release() {
 	config["segment_time_formatter"] = segment_time_formatter;
 	config["segment_window_border"] = segment_window_border;
 	config["disable_in_fractal_lobby"] = disable_in_fractal_lobby;
+	config["dungeon_fractal_settings"] = dungeon_fractal_settings;
+	config["raid_settings"] = raid_settings;
+	config["strike_settings"] = strike_settings;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -248,6 +255,39 @@ void Settings::mod_options() {
 		ImGui::EndTabItem();
 	}
 
+	if (ImGui::BeginTabItem(translation.get("TabFractalsDungeons").c_str())) {
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
+
+		ImGui::Checkbox(translation.get("InputSetEnabled").c_str(), &dungeon_fractal_settings.is_enabled);
+		ImGui::Checkbox(translation.get("InputSetAutoPrepare").c_str(), &dungeon_fractal_settings.auto_prepare);
+		ImGui::Checkbox(translation.get("InputSetAutoStop").c_str(), &dungeon_fractal_settings.auto_stop);
+
+		ImGui::PopStyleVar();
+		ImGui::EndTabItem();
+	}
+
+	if (ImGui::BeginTabItem(translation.get("TabRaids").c_str())) {
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
+
+		ImGui::Checkbox(translation.get("InputSetEnabled").c_str(), &raid_settings.is_enabled);
+		ImGui::Checkbox(translation.get("InputSetAutoPrepare").c_str(), &raid_settings.auto_prepare);
+		ImGui::Checkbox(translation.get("InputSetAutoStop").c_str(), &raid_settings.auto_stop);
+
+		ImGui::PopStyleVar();
+		ImGui::EndTabItem();
+	}
+
+	if (ImGui::BeginTabItem(translation.get("TabStrikes").c_str())) {
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
+
+		ImGui::Checkbox(translation.get("InputSetEnabled").c_str(), &strike_settings.is_enabled);
+		ImGui::Checkbox(translation.get("InputSetAutoPrepare").c_str(), &strike_settings.auto_prepare);
+		ImGui::Checkbox(translation.get("InputSetAutoStop").c_str(), &strike_settings.auto_stop);
+
+		ImGui::PopStyleVar();
+		ImGui::EndTabItem();
+	}
+
 	if (ImGui::BeginTabItem(translation.get("TabAbout").c_str())) {
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
 
@@ -299,7 +339,67 @@ bool Settings::is_enabled() const {
 		return false;
 	}
 
+	switch (map_tracker.get_instance_type()) {
+	case InstanceType::Dungeon:
+	case InstanceType::Fractal:
+		return dungeon_fractal_settings.is_enabled;
+	case InstanceType::Raid:
+		return raid_settings.is_enabled;
+	case InstanceType::Strike:
+		return strike_settings.is_enabled;
+	default:
+		break;
+	}
+
 	return true;
+}
+
+bool Settings::should_autoprepare() const {
+	if (mumble_link->getMumbleContext()->mapType != MapType::MAPTYPE_INSTANCE) {
+		return false;
+	}
+
+	if (disable_outside_instances && disable_in_fractal_lobby && mumble_link->getMumbleContext()->mapId == 872) {
+		return false;
+	}
+
+	bool result = auto_prepare;
+	switch (map_tracker.get_instance_type()) {
+	case InstanceType::Dungeon:
+	case InstanceType::Fractal:
+		result &= dungeon_fractal_settings.auto_prepare;
+		break;
+	case InstanceType::Raid:
+		result &= raid_settings.auto_prepare;
+	break;
+	case InstanceType::Strike:
+		result &= strike_settings.auto_prepare;
+		break;	
+	default:
+		break;
+	}
+
+	return result;
+}
+
+bool Settings::should_autostop() const {
+	bool result = auto_stop;
+	switch (map_tracker.get_instance_type()) {
+	case InstanceType::Dungeon:
+	case InstanceType::Fractal:
+		result &= dungeon_fractal_settings.auto_stop;
+		break;
+	case InstanceType::Raid:
+		result &= raid_settings.auto_stop;
+		break;
+	case InstanceType::Strike:
+		result &= strike_settings.auto_stop;
+		break;
+	default:
+		break;
+	}
+
+	return result;
 }
 
 void Settings::color_picker_popup(std::string text_key, ImVec4& color) {

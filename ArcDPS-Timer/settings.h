@@ -56,6 +56,14 @@ namespace nlohmann {
 	};
 }
 
+struct SettingsSet {
+	bool is_enabled = true;
+	bool auto_prepare = true;
+	bool auto_stop = true;
+};
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SettingsSet, is_enabled, auto_prepare, auto_stop)
+
 class Settings {
 public:
 	Settings(std::string file, const Translation& translation, KeyBindHandler& keybind_handler, const MapTracker& map_tracker, GW2MumbleLink& mumble_link);
@@ -65,10 +73,11 @@ public:
 	bool mod_wnd(HWND pWindowHandle, UINT pMessage, WPARAM pAdditionalW, LPARAM pAdditionalL);
 
 	bool is_enabled() const;
+	bool should_autoprepare() const;
+	bool should_autostop() const;
 
 	bool show_timer;
 	bool show_segments;
-	bool auto_prepare;
 	bool use_custom_id;
 	bool unified_window;
 	std::string custom_id;
@@ -81,14 +90,12 @@ public:
 	KeyBinds::Key stop_key;
 	KeyBinds::Key reset_key;
 	KeyBinds::Key prepare_key;
-	bool auto_stop;
 	int early_gg_threshold;
 	KeyBinds::Key segment_key;
 	bool save_logs;
 	std::set<int> additional_boss_ids;
 	int boss_id_selected = -1;
 	int boss_id_input = 0;
-	bool disable_in_fractal_lobby;
 
 	ImVec4 start_button_color;
 	ImVec4 stop_button_color;
@@ -111,9 +118,16 @@ private:
 	GW2MumbleLink& mumble_link;
 
 	bool disable_outside_instances;
+	bool disable_in_fractal_lobby;
+	bool auto_prepare;
+	bool auto_stop;
 
 	int settings_version;
 	std::string config_file;
+
+	SettingsSet dungeon_fractal_settings;
+	SettingsSet raid_settings;
+	SettingsSet strike_settings;
 
 	void color_picker_popup( std::string text_key, ImVec4& color);
 };

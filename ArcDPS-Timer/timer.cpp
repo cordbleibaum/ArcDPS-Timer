@@ -235,7 +235,7 @@ void Timer::clear_segments() {
 }
 
 void Timer::map_change(uint32_t map_id) {
-	if (settings.auto_prepare && mumble_link->getMumbleContext()->mapType == MapType::MAPTYPE_INSTANCE) {
+	if (settings.should_autoprepare()) {
 		defer([&]() {
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 			log_debug("timer: preparing on map change");
@@ -245,7 +245,7 @@ void Timer::map_change(uint32_t map_id) {
 }
 
 void Timer::bosskill(std::chrono::system_clock::time_point time) {
-	if (settings.auto_stop) {
+	if (settings.should_autostop()) {
 		log_debug("timer: boss kill signal received");
 		stop(time);
 	}
