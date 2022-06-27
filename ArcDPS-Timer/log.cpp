@@ -78,7 +78,7 @@ void Logger::save_log_thread(std::vector<std::tuple< std::chrono::system_clock::
 		{872, "Mistlock Observatory"},
 		{947, "Uncategorized Fractal"},
 		{948, "Snowblind Fractal"},
-		{949, "Snowblind Fractal"},
+		{949, "Swampland Fractal"},
 		{950, "Urban Battleground Fractal"},
 		{951, "Aquatic Ruins Fractal"},
 		{952, "Cliffside Fractal"},
