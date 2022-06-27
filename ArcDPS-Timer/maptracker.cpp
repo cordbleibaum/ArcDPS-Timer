@@ -16,7 +16,7 @@ std::string MapTracker::get_instance_id() {
 	return map_code;
 }
 
-InstanceType MapTracker::get_instance_type() {
+InstanceType MapTracker::get_instance_type() const {
 	switch (map_id)
 	{
 	case std::to_underlying(MapID::AetherbladeRetreat):
