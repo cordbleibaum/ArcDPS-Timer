@@ -40,7 +40,42 @@ InstanceType MapTracker::get_instance_type() const {
 	case std::to_underlying(MapID::SolidOceanFractal):
 	case std::to_underlying(MapID::ThaumanovaReactor):
 		return InstanceType::Fractal;
-		break;
+	case std::to_underlying(MapID::SpiritVale):
+	case std::to_underlying(MapID::StrongholdOfTheFaithful):
+	case std::to_underlying(MapID::SalvationPass):
+	case std::to_underlying(MapID::BastionOfThePenitent):
+	case std::to_underlying(MapID::HallOfChains):
+	case std::to_underlying(MapID::MythwrightGambit):
+	case std::to_underlying(MapID::TheKeyOfAhdashim):
+		return InstanceType::Raid;
+	case std::to_underlying(MapID::AscalonianCatacombs):
+	case std::to_underlying(MapID::AscalonianCatacombsStory):
+	case std::to_underlying(MapID::CaudecusManor):
+	case std::to_underlying(MapID::CaudecusManorStory):
+	case std::to_underlying(MapID::TwilightArbor):
+	case std::to_underlying(MapID::TwilightArborStory):
+	case std::to_underlying(MapID::SorrowsEmbrace):
+	case std::to_underlying(MapID::SorrowsEmbraceStory):
+	case std::to_underlying(MapID::CitadelOfFlame):
+	case std::to_underlying(MapID::CitadelOfFlameStory):
+	case std::to_underlying(MapID::HonorOfTheWaves):
+	case std::to_underlying(MapID::HonorOfTheWavesStory):
+	case std::to_underlying(MapID::CrucibleOfEternity):
+	case std::to_underlying(MapID::CrucibleOfEternityStory):
+	case std::to_underlying(MapID::TheRuinedCityOfArah):
+		return InstanceType::Dungeon;
+	case std::to_underlying(MapID::XunlaiJadeJunkyard):
+	case std::to_underlying(MapID::KainengOverlook):
+	case std::to_underlying(MapID::HarvestTemple):
+	case std::to_underlying(MapID::AetherbladeHideout):
+	case std::to_underlying(MapID::ShiverpeaksPass):
+	case std::to_underlying(MapID::ColdWar):
+	case std::to_underlying(MapID::WhisperOfJormag):
+	case std::to_underlying(MapID::Boneskinner):
+	case std::to_underlying(MapID::VoiceOfthFallenAndClawOfTheFallen):
+	case std::to_underlying(MapID::FraenirOfJormag):
+	case std::to_underlying(MapID::ForgingSteel):
+		return InstanceType::Strike;
 	default:
 		return InstanceType::Unknown;
 		break;

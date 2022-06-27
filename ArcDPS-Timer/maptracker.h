@@ -29,7 +29,46 @@ enum class MapID {
 	ShatteredObservatory = 1205,
 	TwilightOasis = 1267,
 	DeepstoneFractal = 1290,
-	SunquaPeakFractal = 1384
+	SunquaPeakFractal = 1384,
+
+	// Raids
+	SpiritVale = 1062,
+	SalvationPass = 1149,
+	StrongholdOfTheFaithful = 1156,
+	BastionOfThePenitent = 1188,
+	HallOfChains = 1264,
+	MythwrightGambit = 1303,
+	TheKeyOfAhdashim = 1323,
+
+	// Dungeons
+	AscalonianCatacombs = 36,
+	AscalonianCatacombsStory = 33,
+	CaudecusManor = 76,
+	CaudecusManorStory = 75,
+	TwilightArbor = 67,
+	TwilightArborStory = 68,
+	SorrowsEmbrace = 64,
+	SorrowsEmbraceStory = 63,
+	CitadelOfFlame = 69,
+	CitadelOfFlameStory = 66,
+	HonorOfTheWaves = 71,
+	HonorOfTheWavesStory = 70,
+	CrucibleOfEternity = 82,
+	CrucibleOfEternityStory = 81,
+	TheRuinedCityOfArah = 112,
+
+	// Strikes
+	XunlaiJadeJunkyard = 1450,
+	KainengOverlook = 1451,
+	HarvestTemple = 1437,
+	AetherbladeHideout = 1432,
+	ShiverpeaksPass = 1332,
+	ColdWar = 1374,
+	WhisperOfJormag = 1359,
+	Boneskinner = 1339,
+	VoiceOfthFallenAndClawOfTheFallen = 1346,
+	FraenirOfJormag = 1341,
+	ForgingSteel = 1368,
 };
 
 enum class InstanceType {
