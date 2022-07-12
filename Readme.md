@@ -2,6 +2,19 @@
 
 This addon aims to make speedrunning fractals more convenient by having an easy to use timer. It also has a segment function for measuring splits.
 
+## Feature overview
+
+* Group sync for timer
+* Auto start
+* Auto stop (still experimental)
+* Timing segments
+* Automatic segments
+* Fully keybindable
+* Translation support
+* Logging (still early)
+
+Overall status: beta version, some first testing done, but likely still many bugs
+
 ## Contact
 For any errors, feature requests and questions, simply open a new issue here. 
 
