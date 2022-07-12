@@ -1,10 +1,10 @@
 # ArcDPS Timer Addon
 
-This addon aims to make speedrunning fractals more convenient by having an easy to use timer. It also has a segment function for measuring splits.
+This addon aims to make speedrunning in GW2 more convenient by having an easy to use timer. It also has a segment function for measuring splits.
 
 ## Feature overview
 
-* Group sync for timer
+* Group sync for timer (in instances via server IP, otherwise via group member list)
 * Auto start
 * Auto stop (still experimental)
 * Timing segments
