@@ -230,6 +230,11 @@ void Settings::mod_options() {
 			}
 			ImGui::SameLine();
 			ImGui::LabelText("##preparebuttoncolor", translation.get("InputPrepareButtonColor").c_str());
+
+			color_picker_popup("InputStartButtonColor", "popupstartcolour", start_button_color);
+			color_picker_popup("InputStopButtonColor", "popupstopcolour", stop_button_color);
+			color_picker_popup("InputResetButtonColor", "popupresetcolour", reset_button_color);
+			color_picker_popup("InputPrepareButtonColor", "popuppreparecolour", prepare_button_color);
 		}
 
 		if (!hide_segment_buttons) {
@@ -244,6 +249,9 @@ void Settings::mod_options() {
 			}
 			ImGui::SameLine();
 			ImGui::LabelText("##clearbuttoncolor", translation.get("InputClearButtonColor").c_str());
+
+			color_picker_popup("InputSegmentButtonColor", "popupsegmentcolour", segment_button_color);
+			color_picker_popup("InputClearButtonColor", "popupclearcolour", clear_button_color);
 		}
 
 		ImGui::PopStyleVar();
@@ -317,13 +325,6 @@ void Settings::mod_options() {
 	}
 
 	ImGui::EndTabBar();
-
-	color_picker_popup("InputStartButtonColor", start_button_color);
-	color_picker_popup("InputStopButtonColor", stop_button_color);
-	color_picker_popup("InputResetButtonColor", reset_button_color);
-	color_picker_popup("InputPrepareButtonColor", prepare_button_color);
-	color_picker_popup("InputSegmentButtonColor", segment_button_color);
-	color_picker_popup("InputClearButtonColor", clear_button_color);
 }
 
 void Settings::mod_windows() {
@@ -395,8 +396,8 @@ int Settings::get_early_gg_threshold() const {
 	return 0;
 }
 
-void Settings::color_picker_popup(std::string text_key, ImVec4& color) {
-	if (ImGui::BeginPopup(std::string("##"+text_key).c_str())) {
+void Settings::color_picker_popup(std::string text_key, std::string popup_key, ImVec4& color) {
+	if (ImGui::BeginPopup(std::string("##"+ popup_key).c_str())) {
 		float color_array[4] = { start_button_color.x, start_button_color.y, start_button_color.z, start_button_color.w };
 		ImGui::ColorPicker4(translation.get(text_key).c_str(), color_array);
 		color = ImVec4(color_array[0], color_array[1], color_array[2], color_array[3]);
