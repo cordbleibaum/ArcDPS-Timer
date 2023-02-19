@@ -1,11 +1,12 @@
 #include "timer.h"
 #include "util.h"
 
-Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, API& api)
+Timer::Timer(Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, API& api, MapTracker& map_tracker)
 :	settings(settings),
 	mumble_link(mumble_link),
 	translation(translation),
-	api(api)
+	api(api),
+	map_tracker(map_tracker)
 {
 	start_time = current_time = std::chrono::system_clock::now();
 	status = TimerStatus::stopped;
@@ -40,6 +41,13 @@ void Timer::stop(std::chrono::system_clock::time_point time) {
 		segment(true);
 		status = TimerStatus::stopped;
 		current_time = time;
+
+		HistoryEntry entry;
+		entry.start = start_time;
+		entry.end = current_time;
+		entry.name = map_tracker.get_map_name();
+		history.push_back(entry);
+
 		api.post_serverapi("stop", {{"time", format_time(current_time)}});
 		stop_signal(current_time);
 	}
@@ -77,6 +85,11 @@ void Timer::sync(const nlohmann::json& data) {
 		}
 		else if (data["status"] == "stopped") {
 			current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
+
+			if (status == TimerStatus::stopped && !history.empty()) {
+				history.back().end = current_time;
+			}
+
 			stop_signal(current_time);
 			status = TimerStatus::stopped;
 		}
@@ -132,6 +145,31 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 }
 
 void Timer::mod_imgui() {
+	if (settings.show_history) {
+		if (ImGui::Begin("History", &settings.show_history)) {
+			if (ImGui::Button(translation.get("ButtonClearHistory").c_str())) {
+				history.clear();
+			}
+
+			ImGui::BeginChild("history_entries");
+			for (auto& entry : history) {
+				const auto duration = std::chrono::round<std::chrono::milliseconds>(entry.end - entry.start);
+				std::string time_string = "";
+				try {
+					time_string = std::vformat(settings.time_formatter, std::make_format_args(duration)); //
+				}
+				catch ([[maybe_unused]] const std::exception& e) {
+					time_string = translation.get("TimeFormatterInvalid");
+				}
+
+				std::string entry_string = entry.name + " " + time_string;
+				ImGui::Text(entry_string.c_str());
+			}
+			ImGui::EndChild();
+		}
+		ImGui::End();
+	}
+
 	if (!settings.is_enabled()) {
 		return;
 	}

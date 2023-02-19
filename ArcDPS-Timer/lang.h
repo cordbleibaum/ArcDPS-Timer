@@ -27,6 +27,7 @@ private:
 		{"HeaderLastColumn", "Last Time (Duration)"},
 		{"HeaderBestColumn", "Best Time (Duration)"},
 		{"HeaderNameColumn", "Name"},
+		{"ButtonClearHistory", "Clear"},
 
 		// settings.cpp
 		{"InputUseCustomID", "Use Custom Group ID"},

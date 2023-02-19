@@ -33,9 +33,15 @@ struct TimeSegment {
 	std::chrono::system_clock::duration shortest_time = std::chrono::system_clock::duration::zero();
 };
 
+struct HistoryEntry {
+	std::string name = "";
+	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+	std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+};
+
 class Timer {
 public:
-	Timer(Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, API& api);
+	Timer(Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, API& api, MapTracker& map_tracker);
 	void start(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void stop(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 	void reset();
@@ -61,6 +67,7 @@ private:
 	GW2MumbleLink& mumble_link;
 	const Translation& translation;
 	API& api;
+	MapTracker& map_tracker;
 
 	TimerStatus status;
 	std::shared_mutex timerstatus_mutex;
@@ -75,4 +82,6 @@ private:
 	void reset_segments();
 	void timer_window_content(float width = ImGui::GetWindowSize().x);
 	void segment_window_content();
+
+	std::vector<HistoryEntry> history;
 };

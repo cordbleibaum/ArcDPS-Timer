@@ -83,6 +83,8 @@ class MapTracker {
 public:
 	MapTracker(GW2MumbleLink& mumble_link);
 	std::string get_instance_id();
+	std::string get_map_name();
+	std::string get_map_name(uint32_t current_map_id);
 	InstanceType get_instance_type() const;
 	void watch();
 

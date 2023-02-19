@@ -33,8 +33,8 @@ Settings settings("addons/arcdps/timer.json", translation, keybind_handler, map_
 TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
 API api(settings, mumble_link, map_tracker, group_tracker, "http://18.192.87.148:5001/");
-Timer timer(settings, mumble_link, translation, api);
-Logger logger(mumble_link, settings);
+Timer timer(settings, mumble_link, translation, api, map_tracker);
+Logger logger(mumble_link, settings, map_tracker);
 BossKillRecognition bosskill(mumble_link, settings);
 
 std::chrono::system_clock::time_point last_ntp_sync;

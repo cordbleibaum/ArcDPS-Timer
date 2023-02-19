@@ -332,12 +332,13 @@ void Settings::mod_options() {
 void Settings::mod_windows() {
 	if (!unified_window) {
 		ImGui::Checkbox(translation.get("WindowOptionTimer").c_str(), &show_timer);
+		ImGui::Checkbox(translation.get("WindowOptionHistory").c_str(), &show_history);
 		ImGui::Checkbox(translation.get("WindowOptionSegments").c_str(), &show_segments);
 	}
 	else {
 		ImGui::Checkbox(translation.get("WindowOptionUnified").c_str(), &show_timer);
+		ImGui::Checkbox(translation.get("WindowOptionHistory").c_str(), &show_history);
 	}
-	ImGui::Checkbox(translation.get("WindowOptionHistory").c_str(), &show_history);
 }
 
 bool Settings::mod_wnd(HWND pWindowHandle, UINT pMessage, WPARAM pAdditionalW, LPARAM pAdditionalL) {
