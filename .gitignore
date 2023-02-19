@@ -363,4 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /ArcDPS-Timer-Server/env
 /ArcDPS-Timer-Server2/env
-/vcpkg_installed/x64-windows-static
+/vcpkg_installed/

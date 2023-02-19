@@ -79,6 +79,7 @@ private:
 		{"InputSetEnabled", "Enable Timer"},
 		{"InputSetAutoPrepare", "Enable Auto Prepare"},
 		{"InputSetAutoStop", "Enable Auto Stop"},
+		{"WindowOptionHistory", "Timer History"},
 
 		// trigger_region.cpp
 		{"WindowOptionTriggerEditor", "=> Editor"},

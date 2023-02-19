@@ -3,6 +3,7 @@
 #include "lang.h"
 #include "imgui/imgui.h"
 #include "maptracker.h"
+#include "util.h"
 
 #include <Windows.h>
 #include <string>
@@ -80,6 +81,7 @@ public:
 
 	bool show_timer;
 	bool show_segments;
+	bool show_history;
 	bool use_custom_id;
 	bool unified_window;
 	std::string custom_id;

@@ -31,6 +31,7 @@ Settings::Settings(std::string file, const Translation& translation, KeyBindHand
 		}
 	}
 	show_timer = config.value("show_timer", true);
+	show_history = config.value("show_history", false);
 	auto_prepare = config.value("auto_prepare", true);
 	use_custom_id = config.value("use_custom_id", false);
 	custom_id = config.value("custom_id", "");
@@ -100,6 +101,7 @@ void Settings::mod_release() {
 	config["dungeon_fractal_settings"] = dungeon_fractal_settings;
 	config["raid_settings"] = raid_settings;
 	config["strike_settings"] = strike_settings;
+	config["show_history"] = show_history;
 	std::ofstream o(config_file);
 	o << std::setw(4) << config << std::endl;
 }
@@ -335,6 +337,7 @@ void Settings::mod_windows() {
 	else {
 		ImGui::Checkbox(translation.get("WindowOptionUnified").c_str(), &show_timer);
 	}
+	ImGui::Checkbox(translation.get("WindowOptionHistory").c_str(), &show_history);
 }
 
 bool Settings::mod_wnd(HWND pWindowHandle, UINT pMessage, WPARAM pAdditionalW, LPARAM pAdditionalL) {

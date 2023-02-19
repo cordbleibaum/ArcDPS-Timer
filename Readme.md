@@ -37,13 +37,13 @@ To create your own translation you can take the example file in [translation](/t
 This project is licensed with the MIT License.
 
 ### Dear ImGui
-[Dear ImGui](https://github.com/ocornut/imgui) is also licensed with the MIT License and included as git submodule to this project.
+[Dear ImGui](https://github.com/ocornut/imgui) is also licensed with the MIT License and included as git submodule to this project
 
 ### json
 [json](https://github.com/nlohmann/json) is a json library created by nlohmann and licensed with the MIT License. It is included with vcpkg
 
 ### cpr
-[cpr](https://github.com/libcpr/cpr) is a http library, that is licensed with the MIT License. It is included with vcpkg and itself has dependencies.  Currently you need to use the head version as a neccessary fix is not yet included in a release
+[cpr](https://github.com/libcpr/cpr) is a http library, that is licensed with the MIT License. It is included with vcpkg and itself has dependencies
 
 ### boost
 [boost](https://www.boost.org/) is a general collection of C++ libraries, that is licensed with the Boost Software License. It is included with vcpkg
