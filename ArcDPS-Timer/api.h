@@ -17,6 +17,7 @@ public:
 	void post_serverapi(std::string method, nlohmann::json payload = nlohmann::json::object());
 	void check_serverstatus();
 	void sync(std::function<void(const nlohmann::json&)> data_function);
+	std::string get_id() const;
 
 	ServerStatus server_status = ServerStatus::online;
 private:
@@ -27,6 +28,4 @@ private:
 
 	const std::string server_url;
 	int update_id = -2;
-
-	std::string get_id() const;
 };

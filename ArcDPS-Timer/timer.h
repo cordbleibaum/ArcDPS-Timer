@@ -35,6 +35,7 @@ struct TimeSegment {
 
 struct HistoryEntry {
 	std::string name = "";
+	std::string group_id = "";
 	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 	std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
 };

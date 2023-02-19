@@ -293,6 +293,10 @@ std::function<std::chrono::system_clock::time_point(EncounterData&)> timing_last
 			}
 		}
 
+		if (time == std::chrono::system_clock::time_point::min()) {
+			log_debug("timer: last hit not found");
+		}
+
 		return time;
 	};
 }

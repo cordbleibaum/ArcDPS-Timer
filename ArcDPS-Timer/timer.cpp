@@ -86,7 +86,7 @@ void Timer::sync(const nlohmann::json& data) {
 		else if (data["status"] == "stopped") {
 			current_time = parse_time(data["stop_time"]) - std::chrono::milliseconds((int)(clock_offset * 1000.0));
 
-			if (status == TimerStatus::stopped && !history.empty()) {
+			if (status == TimerStatus::stopped && !history.empty() && api.get_id() == history.back().group_id) {
 				history.back().end = current_time;
 			}
 
