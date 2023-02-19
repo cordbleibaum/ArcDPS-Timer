@@ -173,5 +173,8 @@
     <ClCompile Include="bosskill_recognition.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="arcdps-extension\Localization.cpp">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

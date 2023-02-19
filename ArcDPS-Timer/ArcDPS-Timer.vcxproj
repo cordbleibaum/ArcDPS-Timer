@@ -207,6 +207,7 @@
     <ClCompile Include="arcdps-extension\imgui_stdlib.cpp" />
     <ClCompile Include="arcdps-extension\KeyBindHandler.cpp" />
     <ClCompile Include="arcdps-extension\KeyInput.cpp" />
+    <ClCompile Include="arcdps-extension\Localization.cpp" />
     <ClCompile Include="arcdps-extension\Singleton.cpp" />
     <ClCompile Include="arcdps-extension\Widgets.cpp" />
     <ClCompile Include="arcdps.cpp" />
