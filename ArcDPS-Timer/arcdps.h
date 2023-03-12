@@ -17,3 +17,8 @@ void log(std::string str);
 void log_debug(std::string str);
 
 extern arcdps_exports arc_exports;
+
+namespace arcdps {
+	bool is_buffdmg(cbtevent* ev);
+	bool is_directdmg(cbtevent* ev);
+}

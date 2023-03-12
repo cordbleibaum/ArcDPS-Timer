@@ -14,41 +14,41 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 		if (src && src->prof > 9) {
 			std::scoped_lock<std::mutex> guard(logagents_mutex);
 			
-			if (data.log_agents.find(src->id) == data.log_agents.cend()) {
+			if (data.log_agents.contains(src->id)) {
 				AgentData agent;
 				agent.species_id = src->prof;
 				data.log_agents[src->id] = agent;
 			}
 
-			if (!ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff) {
+			if (arcdps::is_directdmg(ev)) {
 				data.log_agents[src->id].damage_dealt += ev->value;
 			}
 
-			if (ev->buff && ev->buff_dmg) {
+			if (arcdps::is_buffdmg(ev)) {
 				data.log_agents[src->id].damage_dealt += ev->buff_dmg;
 			}
 		}
 		if (dst && dst->prof > 9 && ev->iff != IFF_FRIEND) { // TODO: make sure minions, pets, etc get excluded
 			std::scoped_lock<std::mutex> guard(logagents_mutex);
 
-			if (data.log_agents.find(dst->id) == data.log_agents.cend()) {
+			if (data.log_agents.contains(dst->id)) {
 				AgentData agent;
 				agent.species_id = dst->prof;
 				data.log_agents[dst->id] = agent;
 			}
 
-			if ((!ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff) || (ev->buff && ev->buff_dmg)) {
+			if (arcdps::is_directdmg(ev) || arcdps::is_buffdmg(ev)) {
 				auto time = calculate_ticktime(ev->time);
 				if (time > data.log_agents[dst->id].last_hit) {
 					data.log_agents[dst->id].last_hit = time;
 				}
 			}
 
-			if (!ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff) {
+			if (arcdps::is_directdmg(ev)) {
 				data.log_agents[dst->id].damage_taken += ev->value;
 			}
 
-			if (ev->buff && ev->buff_dmg) {
+			if (arcdps::is_buffdmg(ev)) {
 				data.log_agents[dst->id].damage_taken += ev->buff_dmg;
 			}
 		}
@@ -58,7 +58,7 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 			const uintptr_t log_species_id = ev->src_agent;
 			data.log_species_id = ev->src_agent;
 
-			const auto log_duration = std::chrono::system_clock::now() - log_start_time;
+			const auto log_duration = std::chrono::system_clock::now() - log_start_time - 3s; // substracting arcdps delay
 			if (log_duration > std::chrono::seconds(settings.get_early_gg_threshold())) {
 				for (const auto& boss : bosses) {
 					bool is_true = true;
@@ -76,9 +76,9 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 					}
 				}
 
-				bool is_kill = std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), log_species_id) != std::end(settings.additional_boss_ids);
+				bool is_kill = settings.additional_boss_ids.contains(log_species_id);
 				for (const auto &[id, agent] : data.log_agents) {
-					is_kill |= std::find(std::begin(settings.additional_boss_ids), std::end(settings.additional_boss_ids), agent.species_id) != std::end(settings.additional_boss_ids);
+					is_kill |= settings.additional_boss_ids.contains(agent.species_id);
 				}
 
 				if (is_kill) {
@@ -97,6 +97,7 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 }
 
 void BossKillRecognition::add_defaults(){
+	// TODO: check if hit to npc should be a more general condition
 	// Fractals
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11265) }); // Swampland - Bloomhunger
 	emplace_conditions(timing_last_hit_npc_id(11239), { condition_npc_id(11239) }); // Underground Facility - Dredge
@@ -111,7 +112,7 @@ void BossKillRecognition::add_defaults(){
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(20497) }); // Deepstone - The Voice
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12900), condition_map_id(955)}); // Molten Furnace - Engineer
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(17051) }); // Nightmare - Ensolyss
-	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(16948) }); // Nightmare CM - Ensolyss
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(16948, 10000000) }); // Nightmare CM - Ensolyss 14,059,890 HP, lower to have leeway for measurement errors
 	emplace_conditions(timing_last_hit_npc_id(17830), { condition_npc_id(17830) }); // Shattered Observatory - Arkk
 	emplace_conditions(timing_last_hit_npc_id(17759), { condition_npc_id(17759) }); // Shattered Observatory - Arkk CM
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(11408, 400000)}); // Urban Battleground - Captain Ashym
@@ -165,6 +166,7 @@ std::function<bool(EncounterData&)> condition_npc_damage_dealt(uintptr_t npc_id,
 		bool condition = false;
 		for (const auto& [id, agent] : data.log_agents) {
 			if (agent.species_id == npc_id) {
+				log_debug("timer: NPC Damage Dealt Condition found " + std::to_string(agent.damage_dealt) + " damage");
 				if (agent.damage_dealt > damage) {
 					condition = true;
 					break;
@@ -203,9 +205,9 @@ std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id,
 
 std::function<bool(EncounterData&)> condition_npc_id_at_least_one(std::set<uintptr_t> npc_ids) {
 	return [&, npc_ids](EncounterData& data) {
-		bool condition = npc_ids.find(data.log_species_id) != npc_ids.end();
+		bool condition = npc_ids.contains(data.log_species_id);
 		for (const auto& [id, agent] : data.log_agents) {
-			condition |= npc_ids.find(agent.species_id) != npc_ids.end();
+			condition |= npc_ids.contains(agent.species_id);
 		}
 
 		if (condition) {

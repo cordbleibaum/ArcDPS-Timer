@@ -44,3 +44,13 @@ extern "C" __declspec(dllexport) void* get_init_addr(char* arcversion, ImGuiCont
 extern "C" __declspec(dllexport) void* get_release_addr() {
 	return mod_release;
 }
+
+namespace arcdps {
+	bool is_buffdmg(cbtevent* ev) {
+		return ev->buff && ev->buff_dmg && !ev->value;
+	}
+
+	bool is_directdmg(cbtevent* ev) {
+		return !ev->is_buffremove && !ev->is_activation && !ev->is_statechange && !ev->buff;
+	}
+}
