@@ -60,6 +60,9 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 
 			const auto log_duration = std::chrono::system_clock::now() - log_start_time - 3s; // substracting arcdps delay
 			if (log_duration > std::chrono::seconds(settings.get_early_gg_threshold())) {
+				data.lastPlayerX = mumble_link->getMumbleContext()->playerX;
+				data.lastPlayerY = mumble_link->getMumbleContext()->playerY;
+
 				for (const auto& boss : bosses) {
 					bool is_true = true;
 					for (auto& condition : boss.conditions) {
@@ -108,6 +111,10 @@ void BossKillRecognition::add_defaults(){
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12906) }); // Thaumanova - Thaumanova Anomaly
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11333) }); // Snowblind - Shaman
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11402) }); // Aquatic Ruins - Jellyfish Beast
+
+
+
+
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(16617) }); // Chaos - Gladiator
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(20497) }); // Deepstone - The Voice
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12900), condition_map_id(955)}); // Molten Furnace - Engineer
@@ -115,12 +122,13 @@ void BossKillRecognition::add_defaults(){
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(16948, 10000000) }); // Nightmare CM - Ensolyss 14,059,890 HP, lower to have leeway for measurement errors
 	emplace_conditions(timing_last_hit_npc_id(17830), { condition_npc_id(17830) }); // Shattered Observatory - Arkk
 	emplace_conditions(timing_last_hit_npc_id(17759), { condition_npc_id(17759) }); // Shattered Observatory - Arkk CM
-	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(11408, 400000)}); // Urban Battleground - Captain Ashym
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_taken(11408, 400000) }); // Urban Battleground - Captain Ashym
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(19664) }); // Twilight Oasis - Amala
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(21421) }); // Sirens Reef - Captain Crowe
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_damage_dealt(11328, 100) }); // Uncategorized - Asura
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id_at_least_one({12898, 12897}), condition_npc_last_damage_time_distance(12898, 12897, 8s) }); // Molten Boss - Berserker/Firestorm
-	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12267) }); // Aetherblade - Frizz
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12267), condition_near_position2d(-80, 167, 22)}); // Aetherblade - Frizz
+	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(23254), condition_near_position2d(175, 35, 30)}); // Sunqua Peak
 
 	// Raids
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(15375) }); // Sabetha
@@ -268,6 +276,20 @@ std::function<bool(EncounterData&)> condition_map_id(uint32_t map_id) {
 		}
 
 		return condition;
+	};
+}
+
+std::function<bool(EncounterData&)> condition_near_position2d(float x, float y, float range) {
+	return [&, x, y, range](EncounterData& data) {
+		float distance = std::sqrt(std::pow(data.lastPlayerX - x, 2) + std::pow(data.lastPlayerY - y, 2));
+
+		bool condition = distance < range;
+
+		if (condition) {
+			log_debug("timer: near position condition(" + std::to_string(x) + ", " + std::to_string(y) + " - " + std::to_string(range) + ") returned true;");
+		}
+
+		return distance < range;
 	};
 }
 

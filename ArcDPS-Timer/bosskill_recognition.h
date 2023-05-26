@@ -24,6 +24,9 @@ struct EncounterData {
 	uintptr_t log_species_id;
 	uint32_t map_id;
 
+	float lastPlayerX;
+	float lastPlayerY;
+
 	void archive() noexcept;
 };
 
@@ -60,6 +63,7 @@ std::function<bool(EncounterData&)> condition_npc_damage_taken(uintptr_t npc_id,
 std::function<bool(EncounterData&)> condition_npc_id_at_least_one(std::set<uintptr_t> npc_ids);
 std::function<bool(EncounterData&)> condition_npc_last_damage_time_distance(uintptr_t npc_id_a, uintptr_t npc_id_b, std::chrono::system_clock::duration distance);
 std::function<bool(EncounterData&)> condition_map_id(uint32_t map_id);
+std::function<bool(EncounterData&)> condition_near_position2d(float x, float y, float range);
 
 std::function<std::chrono::system_clock::time_point(EncounterData&)> timing_last_hit_npc();
 std::function<std::chrono::system_clock::time_point(EncounterData&)> timing_last_hit_npc_id(uintptr_t npc_id);
