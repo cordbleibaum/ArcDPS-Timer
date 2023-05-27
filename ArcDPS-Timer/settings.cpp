@@ -74,7 +74,7 @@ void Settings::mod_release() {
 	config["version"] = settings_version;
 	config["auto_prepare"] = auto_prepare;
 	config["use_custom_id"] = use_custom_id;
-	config["settings"] = disable_outside_instances;
+	config["disable_outside_instances"] = disable_outside_instances;
 	config["timer_formatter"] = time_formatter;
 	config["hide_timer_buttons"] = hide_timer_buttons;
 	config["hide_segment_buttons"] = hide_segment_buttons;
