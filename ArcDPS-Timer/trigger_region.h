@@ -1,13 +1,18 @@
 #pragma once
 
-#include <Eigen/Dense>
 #include <array>
 #include <string>
 #include <memory>
-#include <nlohmann/json.hpp>
-#include <boost/signals2.hpp>
 #include <typeinfo>
 #include <map>
+
+#include <nlohmann/json.hpp>
+#include <boost/signals2.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
+#include <Eigen/Dense>
 
 #include "lang.h"
 #include "mumble_link.h"
@@ -22,6 +27,7 @@ public:
 	bool get_is_triggered() const;
 
 	std::string name = "";
+	boost::uuids::uuid uuid = boost::uuids::random_generator()();
 protected:
 	bool is_triggered = false;
 };
@@ -78,6 +84,24 @@ namespace nlohmann {
 	};
 
 	template <>
+	struct adl_serializer<boost::uuids::uuid> {
+		static void to_json(json& j, const boost::uuids::uuid& data) {
+			j = boost::uuids::to_string(data);
+		}
+
+		static void from_json(const json& j, boost::uuids::uuid& data) {
+			if (j.is_null()) {
+				data = boost::uuids::nil_uuid();
+			}
+			else {
+				std::string uuid_string;
+				j.get_to(uuid_string);
+				data = boost::lexical_cast<boost::uuids::uuid>(uuid_string);
+			}
+		}
+	};
+
+	template <>
 	struct adl_serializer<Eigen::Vector2f> {
 		static void to_json(json& j, const Eigen::Vector2f& vec) {
 			j["x"] = vec.x();
@@ -109,8 +133,8 @@ namespace nlohmann {
 	};
 }
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SphereTrigger, position, radius, name)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlaneTrigger, side1, side2, height, z, thickness, name)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SphereTrigger, position, radius, name, uuid)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlaneTrigger, side1, side2, height, z, thickness, name, uuid)
 
 class TriggerWatcher {
 public:
