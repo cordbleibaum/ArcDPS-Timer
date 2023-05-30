@@ -46,6 +46,10 @@ std::vector<HistoryEntry> EventStore::get_history() {
 	return history;
 }
 
+std::vector<TimeSegment> EventStore::get_segments() {
+	return std::vector<TimeSegment>();
+}
+
 void EventStore::reevaluate_state() {
 	std::sort(entries.begin(), entries.end(), [](const EventLogEntry& a, const EventLogEntry& b) {
 		return a.time < b.time;

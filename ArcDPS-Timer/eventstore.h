@@ -102,6 +102,7 @@ public:
 	void dispatch_event(EventLogEntry entry);
 	TimerState get_timer_state();
 	std::vector<HistoryEntry> get_history();
+	std::vector<TimeSegment> get_segments();
 
 	double clock_offset = 0;
 private:

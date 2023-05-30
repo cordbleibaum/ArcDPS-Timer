@@ -173,54 +173,35 @@ void Timer::timer_window_content(float width) {
 
 void Timer::segment_window_content() {
 	TimerState state = store.get_timer_state();
+	std::vector<TimeSegment> segments = store.get_segments();
 
-	{
-		std::shared_lock lock(segmentstatus_mutex);
+	ImGui::BeginTable("##segmenttable", 4, ImGuiTableFlags_Hideable);
+	ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
+	ImGui::TableSetupColumn(translation.get("HeaderNameColumn").c_str(), ImGuiTableColumnFlags_DefaultHide);
+	ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
+	ImGui::TableSetupColumn(translation.get("HeaderBestColumn").c_str());
+	ImGui::TableHeadersRow();
 
-		ImGui::BeginTable("##segmenttable", 4, ImGuiTableFlags_Hideable);
-		ImGui::TableSetupColumn(translation.get("HeaderNumColumn").c_str());
-		ImGui::TableSetupColumn(translation.get("HeaderNameColumn").c_str(), ImGuiTableColumnFlags_DefaultHide);
-		ImGui::TableSetupColumn(translation.get("HeaderLastColumn").c_str());
-		ImGui::TableSetupColumn(translation.get("HeaderBestColumn").c_str());
-		ImGui::TableHeadersRow();
+	for (size_t i = 0; i < segments.size(); ++i) {
+		const auto& segment = segments[i];
 
-		for (size_t i = 0; i < segments.size(); ++i) {
-			const auto& segment = segments[i];
+		ImGui::TableNextRow();
 
-			ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::Text(std::to_string(i).c_str());
 
-			ImGui::TableNextColumn();
-			ImGui::Text(std::to_string(i).c_str());
+		ImGui::TableNextColumn();
+		ImGui::Text(segment.name.c_str());
 
-			ImGui::TableNextColumn();
-			ImGui::Text(segment.name.c_str());
-
-			ImGui::TableNextColumn();
-			if (segment.is_set) {
-				const auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - state.start_time);
-				const auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
+		ImGui::TableNextColumn();
+		if (segment.is_set) {
+			const auto time_total = std::chrono::round<std::chrono::milliseconds>(segment.end - state.start_time);
+			const auto duration_segment = std::chrono::round<std::chrono::milliseconds>(segment.end - segment.start);
 				
-				std::string text = "";
-				try {
-					const std::string total_string = std::vformat(settings.time_formatter, std::make_format_args(time_total));
-					const std::string duration_string = std::vformat(settings.time_formatter, std::make_format_args(duration_segment));
-					text = total_string + " (" + duration_string + ")";
-				}
-				catch ([[maybe_unused]] const std::exception& e) {
-					text = translation.get("TimeFormatterInvalid");
-				}
-
-				ImGui::Text(text.c_str());
-			}
-
-			ImGui::TableNextColumn();
-			const auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
-			const auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
-			
 			std::string text = "";
 			try {
-				const std::string total_string = std::vformat(settings.time_formatter, std::make_format_args(shortest_time));
-				const std::string duration_string = std::vformat(settings.time_formatter, std::make_format_args(shortest_duration));
+				const std::string total_string = std::vformat(settings.time_formatter, std::make_format_args(time_total));
+				const std::string duration_string = std::vformat(settings.time_formatter, std::make_format_args(duration_segment));
 				text = total_string + " (" + duration_string + ")";
 			}
 			catch ([[maybe_unused]] const std::exception& e) {
@@ -230,8 +211,24 @@ void Timer::segment_window_content() {
 			ImGui::Text(text.c_str());
 		}
 
-		ImGui::EndTable();
+		ImGui::TableNextColumn();
+		const auto shortest_time = std::chrono::round<std::chrono::milliseconds>(segment.shortest_time);
+		const auto shortest_duration = std::chrono::round<std::chrono::milliseconds>(segment.shortest_duration);
+			
+		std::string text = "";
+		try {
+			const std::string total_string = std::vformat(settings.time_formatter, std::make_format_args(shortest_time));
+			const std::string duration_string = std::vformat(settings.time_formatter, std::make_format_args(shortest_duration));
+			text = total_string + " (" + duration_string + ")";
+		}
+		catch ([[maybe_unused]] const std::exception& e) {
+			text = translation.get("TimeFormatterInvalid");
+		}
+
+		ImGui::Text(text.c_str());
 	}
+
+	ImGui::EndTable();
 
 	if (!settings.hide_segment_buttons) {
 		ImGui::PushStyleColor(ImGuiCol_Button, settings.segment_button_color);

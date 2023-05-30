@@ -40,8 +40,6 @@ private:
 	MapTracker& map_tracker;
 	EventStore& store;
 
-	std::vector<TimeSegment> segments;
-	std::shared_mutex segmentstatus_mutex;
 	std::array<float, 3> last_position;
 
 	void timer_window_content(float width = ImGui::GetWindowSize().x);
