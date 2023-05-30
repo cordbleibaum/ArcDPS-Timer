@@ -4,7 +4,9 @@
 #include <cmath>
 #include <chrono>
 #include <functional>
+
 #include <boost/signals2/signal.hpp>
+#include <boost/uuid/uuid.hpp>
 
 #include "arcdps-extension/imgui_stdlib.h"
 #include "arcdps-extension/KeyBindHandler.h"
@@ -22,6 +24,7 @@
 #include "log.h"
 #include "api.h"
 #include "bosskill_recognition.h"
+#include "eventstore.h"
 
 Translation translation;
 KeyBindHandler keybind_handler;
@@ -33,7 +36,8 @@ Settings settings("addons/arcdps/timer.json", translation, keybind_handler, map_
 TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
 API api(settings, mumble_link, map_tracker, group_tracker, "http://18.192.87.148:5001/");
-Timer timer(settings, mumble_link, translation, api, map_tracker);
+EventStore store(api);
+Timer timer(store, settings, mumble_link, translation, api, map_tracker);
 Logger logger(mumble_link, settings, map_tracker);
 BossKillRecognition bosskill(mumble_link, settings);
 
@@ -67,31 +71,34 @@ arcdps_exports* mod_init() {
 		}
 	});
 
-	timer.segment_reset_signal.connect(std::bind(&TriggerWatcher::reset, std::ref(trigger_watcher)));
-	timer.start_signal.connect(std::bind(&Logger::start, std::ref(logger), std::placeholders::_1));
-	timer.stop_signal.connect(std::bind(&Logger::stop, std::ref(logger), std::placeholders::_1));
-	timer.reset_signal.connect(std::bind(&Logger::reset, std::ref(logger), std::placeholders::_1));
-	timer.segment_signal.connect(std::bind(&Logger::segment, std::ref(logger), std::placeholders::_1, std::placeholders::_2));
-
 	map_tracker.map_change_signal.connect(std::bind(&Timer::map_change, std::ref(timer), std::placeholders::_1));
 	map_tracker.map_change_signal.connect(std::bind(&Logger::map_change, std::ref(logger), std::placeholders::_1));
 	map_tracker.map_change_signal.connect(std::bind(&TriggerWatcher::map_change, std::ref(trigger_watcher), std::placeholders::_1));
 	map_tracker.map_change_signal.connect(std::bind(&TriggerEditor::map_change, std::ref(trigger_editor), std::placeholders::_1));
 
+	map_tracker.map_change_signal.connect([&](uint32_t map_id) {
+		store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::map_change, EventSource::other, map_tracker.get_map_name()));
+	});
+
 	mod_windows_signal.connect(std::bind(&Settings::mod_windows, std::ref(settings)));
 	mod_windows_signal.connect(std::bind(&TriggerEditor::mod_windows, std::ref(trigger_editor)));
 	mod_options_signal.connect(std::bind(&Settings::mod_options, std::ref(settings)));
 
-	trigger_watcher.trigger_signal.connect([&](std::string name) {
-		timer.segment(false, name);
+	trigger_watcher.trigger_signal.connect([&](std::string name, boost::uuids::uuid uuid) {
+		store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::segment, EventSource::combat, uuid));
 	});
 
-	bosskill.bosskill_signal.connect(std::bind(&Timer::bosskill, std::ref(timer), std::placeholders::_1));
+	bosskill.bosskill_signal.connect([&](const auto& time) {
+		if (settings.should_autostop()) {
+			log_debug("timer: boss kill signal received");
+			store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::stop, EventSource::combat));
+		}
+	});
 
 	KeyBindHandler::Subscriber start_subscriber;
 	start_subscriber.Fun = [&](const KeyBinds::Key&) {
 		log_debug("timer: starting manually");
-		timer.start();
+		store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::start, EventSource::manual));
 		return true;
 	};
 	start_subscriber.Key = settings.start_key;
@@ -101,7 +108,7 @@ arcdps_exports* mod_init() {
 	KeyBindHandler::Subscriber stop_subscriber;
 	stop_subscriber.Fun = [&](const KeyBinds::Key&) {
 		log_debug("timer: stopping manually");
-		timer.stop();
+		store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::stop, EventSource::manual));
 		return true;
 	};
 	stop_subscriber.Key = settings.stop_key;
@@ -111,7 +118,7 @@ arcdps_exports* mod_init() {
 	KeyBindHandler::Subscriber reset_subscriber;
 	reset_subscriber.Fun = [&](const KeyBinds::Key&) {
 		log_debug("timer: resetting manually");
-		timer.reset();
+		store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::reset, EventSource::manual));
 		return true;
 	};
 	reset_subscriber.Key = settings.reset_key;
@@ -121,7 +128,7 @@ arcdps_exports* mod_init() {
 	KeyBindHandler::Subscriber prepare_subscriber;
 	prepare_subscriber.Fun = [&](const KeyBinds::Key&) {
 		log_debug("timer: preparing manually");
-		timer.prepare();
+		store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::prepare, EventSource::manual));
 		return true;
 	};
 	prepare_subscriber.Key = settings.prepare_key;
@@ -131,7 +138,7 @@ arcdps_exports* mod_init() {
 	KeyBindHandler::Subscriber segment_subscriber;
 	segment_subscriber.Fun = [&](const KeyBinds::Key&) {
 		log_debug("timer: segment manually");
-		timer.segment();
+		store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::segment, EventSource::manual));
 		return true;
 	};
 	segment_subscriber.Key = settings.segment_key;
@@ -170,7 +177,7 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 		defer([&]() {
 			last_ntp_sync = std::chrono::system_clock::now();
 			try {
-				timer.clock_offset = ntp.get_time_delta();
+				store.clock_offset = ntp.get_time_delta();
 				log_debug("timer: clock offset: " + std::to_string(timer.clock_offset));
 			}
 			catch (NTPException& ex) {

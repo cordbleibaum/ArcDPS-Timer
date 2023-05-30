@@ -7,6 +7,7 @@
 #include "maptracker.h"
 #include "lang.h"
 #include "api.h"
+#include "eventstore.h"
 
 #include <chrono>
 #include <set>
@@ -22,67 +23,28 @@ using json = nlohmann::json;
 #include <cpr/cpr.h>
 #include <boost/signals2.hpp>
 
-enum class TimerStatus { stopped, prepared, running };
-
-struct TimeSegment {
-	bool is_set = false;
-	std::string name = "";
-	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-	std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
-	std::chrono::system_clock::duration shortest_duration = std::chrono::system_clock::duration::zero();
-	std::chrono::system_clock::duration shortest_time = std::chrono::system_clock::duration::zero();
-};
-
-struct HistoryEntry {
-	std::string name = "";
-	std::string group_id = "";
-	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-	std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
-};
-
 class Timer {
 public:
-	Timer(Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, API& api, MapTracker& map_tracker);
-	void start(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
-	void stop(std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
-	void reset();
-	void prepare();
-	void segment(bool local = false, std::string name = "");
-	void clear_segments();
+	Timer(EventStore& store, Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, API& api, MapTracker& map_tracker);
 	void map_change(uint32_t map_id);
-	void bosskill(std::chrono::system_clock::time_point time);
 
 	void mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id);
 	void mod_imgui();
 
 	double clock_offset = 0;
-
-	boost::signals2::signal<void()> segment_reset_signal;
-	boost::signals2::signal<void(std::chrono::system_clock::time_point)> start_signal;
-	boost::signals2::signal<void(std::chrono::system_clock::time_point)> stop_signal;
-	boost::signals2::signal<void(std::chrono::system_clock::time_point)> reset_signal;
-	boost::signals2::signal<void(std::chrono::system_clock::time_point)> prepare_signal;
-	boost::signals2::signal<void(int, std::chrono::system_clock::time_point)> segment_signal;
 private:
 	Settings& settings;
 	GW2MumbleLink& mumble_link;
 	const Translation& translation;
 	API& api;
 	MapTracker& map_tracker;
+	EventStore& store;
 
-	TimerStatus status;
-	std::shared_mutex timerstatus_mutex;
-	std::chrono::system_clock::time_point start_time;
-	std::chrono::system_clock::time_point current_time;
 	std::vector<TimeSegment> segments;
 	std::shared_mutex segmentstatus_mutex;
 	std::array<float, 3> last_position;
 
-	void sync(const nlohmann::json& data);
-	std::string format_time(std::chrono::system_clock::time_point time);
-	void reset_segments();
 	void timer_window_content(float width = ImGui::GetWindowSize().x);
 	void segment_window_content();
-
-	std::vector<HistoryEntry> history;
+	void history_window_content();
 };

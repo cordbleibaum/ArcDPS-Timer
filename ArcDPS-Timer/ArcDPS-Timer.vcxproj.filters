@@ -19,6 +19,9 @@
     <Filter Include="Library Source Files">
       <UniqueIdentifier>{4adc5eb7-cf10-4b65-9640-119c6437e77c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Library Integration Header Files">
+      <UniqueIdentifier>{4e35a274-b09e-4f81-9422-ca2248e30d98}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arcdps.h">
@@ -92,6 +95,15 @@
     </ClInclude>
     <ClInclude Include="bosskill_recognition.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="eventstore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="uuid.h">
+      <Filter>Library Integration Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="eigen.h">
+      <Filter>Library Integration Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -175,6 +187,9 @@
     </ClCompile>
     <ClCompile Include="arcdps-extension\Localization.cpp">
       <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="eventstore.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

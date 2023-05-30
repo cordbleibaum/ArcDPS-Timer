@@ -8,9 +8,9 @@
 
 #include <nlohmann/json.hpp>
 #include <boost/signals2.hpp>
-#include <Eigen/Dense>
 
 #include "uuid.h"
+#include "eigen.h"
 
 #include "lang.h"
 #include "mumble_link.h"
@@ -62,44 +62,6 @@ void region_from_json(const nlohmann::json& j, TriggerRegion*& region);
 
 namespace nlohmann {
 	template <>
-	struct adl_serializer<Eigen::Vector3f> {
-		static void to_json(json& j, const Eigen::Vector3f& vec) {
-			j["x"] = vec.x();
-			j["y"] = vec.y();
-			j["z"] = vec.z();
-		}
-
-		static void from_json(const json& j, Eigen::Vector3f& vec) {
-			if (j.is_null()) {
-				vec = Eigen::Vector3f::Zero();
-			}
-			else {
-				j.at("x").get_to(vec.x());
-				j.at("y").get_to(vec.y());
-				j.at("z").get_to(vec.z());
-			}
-		}
-	};
-
-	template <>
-	struct adl_serializer<Eigen::Vector2f> {
-		static void to_json(json& j, const Eigen::Vector2f& vec) {
-			j["x"] = vec.x();
-			j["y"] = vec.y();
-		}
-
-		static void from_json(const json& j, Eigen::Vector2f& vec) {
-			if (j.is_null()) {
-				vec = Eigen::Vector2f::Zero();
-			}
-			else {
-				j.at("x").get_to(vec.x());
-				j.at("y").get_to(vec.y());
-			}
-		}
-	};
-
-	template <>
 	struct adl_serializer<std::shared_ptr<TriggerRegion>> {
 		static void to_json(json& j, const std::shared_ptr<TriggerRegion>& ptr) {
 			region_to_json(j, (TriggerRegion*) ptr.get());
@@ -124,7 +86,7 @@ public:
 	void map_change(uint32_t map_id);
 	~TriggerWatcher();
 
-	boost::signals2::signal<void(std::string)> trigger_signal;
+	boost::signals2::signal<void(std::string, boost::uuids::uuid)> trigger_signal;
 
 	std::vector<std::shared_ptr<TriggerRegion>> regions;
 private:

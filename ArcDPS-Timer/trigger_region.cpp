@@ -106,7 +106,7 @@ bool TriggerWatcher::watch() {
 
     for (int i = 0; i < regions.size(); ++i) {
         if (regions[i]->trigger(player_position)) {
-            trigger_signal(regions[i]->name);
+            trigger_signal(regions[i]->name, regions[i]->uuid);
             return true;
         }
     }

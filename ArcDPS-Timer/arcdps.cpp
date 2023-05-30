@@ -9,14 +9,14 @@ e3_func_ptr ARC_LOG_FILE;
 e3_func_ptr ARC_LOG;
 
 void log_arc(std::string str) {
-	size_t(*log)(char*) = (size_t(*)(char*))ARC_LOG;
-	if (log) (*log)(str.data());
+	size_t(*store)(char*) = (size_t(*)(char*))ARC_LOG;
+	if (store) (*store)(str.data());
 	return;
 }
 
 void log_file(std::string str) {
-	size_t(*log)(char*) = (size_t(*)(char*))ARC_LOG_FILE;
-	if (log) (*log)(str.data());
+	size_t(*store)(char*) = (size_t(*)(char*))ARC_LOG_FILE;
+	if (store) (*store)(str.data());
 	return;
 }
 
