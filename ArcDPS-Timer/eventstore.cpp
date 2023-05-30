@@ -77,6 +77,7 @@ void EventStore::reevaluate_state() {
 
 		if (entry.type == EventType::map_change) {
 			current_map = entry.name.value_or("Unknown");
+			segment_index = 0;
 		}
 		else if (entry.type == EventType::reset) {
 			start = entry.time;
