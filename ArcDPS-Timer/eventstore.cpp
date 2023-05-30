@@ -15,7 +15,7 @@ EventStore::EventStore(API& api)
 	status_sync_thread.detach();
 }
 
-void EventStore::dispatch_event(EventLogEntry entry) {
+void EventStore::dispatch_event(EventEntry entry) {
 	if (entry.type == EventType::start && entry.source == EventSource::combat) {
 		TimerState state = get_timer_state();
 
@@ -47,21 +47,24 @@ std::vector<HistoryEntry> EventStore::get_history() {
 }
 
 std::vector<TimeSegment> EventStore::get_segments() {
-	return std::vector<TimeSegment>();
+	return segments;
 }
 
 void EventStore::reevaluate_state() {
-	std::sort(entries.begin(), entries.end(), [](const EventLogEntry& a, const EventLogEntry& b) {
+	std::sort(entries.begin(), entries.end(), [](const EventEntry& a, const EventEntry& b) {
 		return a.time < b.time;
 	});
 
 	TimerStatus status = TimerStatus::stopped;
 	auto start = std::chrono::system_clock::time_point::max();
 	auto stop = std::chrono::system_clock::time_point::max();
+	auto segment = std::chrono::system_clock::time_point::max();
+	std::vector<TimeSegment>::size_type segment_index = 0;
 	bool was_prepared = false;
 
 	std::set<boost::uuids::uuid> processed_uuids;
 	history.clear();
+	segments.clear();
 
 	std::string current_map = "Unknown";
 
@@ -74,17 +77,22 @@ void EventStore::reevaluate_state() {
 
 		if (entry.type == EventType::map_change) {
 			current_map = entry.name.value_or("Unknown");
-			processed_uuids.insert(entry.uuid);
 		}
 		else if (entry.type == EventType::reset) {
 			start = entry.time;
 			stop = entry.time;
 			status = TimerStatus::stopped;
-			processed_uuids.insert(entry.uuid);
+
+			for (auto& current_segment : segments) {
+				current_segment.is_set = false;
+			}
 		}
 		else if (entry.type == EventType::history_clear) {
 			history.clear();
-			processed_uuids.insert(entry.uuid);
+		}
+		else if (entry.type == EventType::segment_clear) {
+			segments.clear();
+			segment_index = 0;
 		}
 		else {
 			switch (status) {
@@ -93,6 +101,33 @@ void EventStore::reevaluate_state() {
 					stop = entry.time;
 					status = TimerStatus::stopped;
 					history.emplace_back(start, stop, current_map);
+
+					if (segments.size() == segment_index) {
+						segments.emplace_back();
+					}
+
+					auto& current_segment = segments[segment_index++];
+					current_segment.is_set = true;
+					current_segment.start = segment;
+					current_segment.end = stop;
+					current_segment.shortest_time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+					current_segment.shortest_duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - segment);
+
+					segment = entry.time;
+				}
+				else if (entry.type == EventType::segment) {
+					if (segments.size() == segment_index) {
+						segments.emplace_back();
+					}
+
+					auto& current_segment = segments[segment_index++];
+					current_segment.is_set = true;
+					current_segment.start = segment;
+					current_segment.end = entry.time;
+					current_segment.shortest_time = std::chrono::duration_cast<std::chrono::milliseconds>(entry.time - start);
+					current_segment.shortest_duration = std::chrono::duration_cast<std::chrono::milliseconds>(entry.time - segment);
+
+					segment = entry.time;
 				}
 				else {
 					entry.is_relevant = false;
@@ -101,8 +136,13 @@ void EventStore::reevaluate_state() {
 			case TimerStatus::stopped:
 				if (entry.type == EventType::start) {
 					start = entry.time;
+					segment = entry.time;
 					status = TimerStatus::running;
 					was_prepared = false;
+
+					for (auto& current_segment : segments) {
+						current_segment.is_set = false;
+					}
 				}
 				else if (entry.type == EventType::prepare) {
 					start = entry.time;
@@ -116,8 +156,13 @@ void EventStore::reevaluate_state() {
 			case TimerStatus::prepared:
 				if (entry.type == EventType::start) {
 					start = entry.time;
+					segment = entry.time;
 					status = TimerStatus::running;
 					was_prepared = true;
+
+					for (auto& current_segment : segments) {
+						current_segment.is_set = false;
+					}
 				}
 				else if (entry.type == EventType::stop) {
 					stop = entry.time;
@@ -149,7 +194,7 @@ void EventStore::sync(const nlohmann::json& data) {
 	std::lock_guard<std::shared_mutex> lock(log_mutex);
 
 	for (auto& entry : data) {
-		entries.push_back(EventLogEntry(
+		entries.push_back(EventEntry(
 			std::chrono::system_clock::time_point(std::chrono::milliseconds(entry["time"].get<int64_t>())),
 			entry["type"].get<EventType>(),
 			entry["source"].get<EventSource>(),
@@ -160,7 +205,7 @@ void EventStore::sync(const nlohmann::json& data) {
 	reevaluate_state();
 }
 
-void EventStore::add_event(EventLogEntry entry) {
+void EventStore::add_event(EventEntry entry) {
 	std::lock_guard<std::shared_mutex> lock(log_mutex);
 	entries.push_back(entry);
 	reevaluate_state();
@@ -177,21 +222,21 @@ std::string EventStore::format_time(std::chrono::system_clock::time_point time) 
 	return std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(time + std::chrono::milliseconds((int)(clock_offset * 1000.0))));
 }
 
-EventLogEntry::EventLogEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source) 
+EventEntry::EventEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source) 
 : time(time),
 	type(type),
 	source(source) {
 	uuid = boost::uuids::random_generator()();
 }
 
-EventLogEntry::EventLogEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, boost::uuids::uuid uuid) 
+EventEntry::EventEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, boost::uuids::uuid uuid) 
 :	time(time),
 	type(type),
 	source(source),
 	uuid(uuid) {
 }
 
-EventLogEntry::EventLogEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, boost::uuids::uuid uuid, std::string name)
+EventEntry::EventEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, boost::uuids::uuid uuid, std::string name)
 :   time(time),
 	type(type),
 	source(source),
@@ -199,7 +244,7 @@ EventLogEntry::EventLogEntry(std::chrono::system_clock::time_point time, EventTy
 	name(name) {
 }
 
-EventLogEntry::EventLogEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, std::string name)
+EventEntry::EventEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, std::string name)
 :	time(time),
 	type(type),
 	source(source),

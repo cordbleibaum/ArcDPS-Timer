@@ -20,7 +20,7 @@ void Timer::mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, ui
 			const std::chrono::duration<double> duration_dbl = std::chrono::system_clock::now() - state.start_time;
 			const double duration = duration_dbl.count();
 
-			store.dispatch_event(EventLogEntry(calculate_ticktime(ev->time), EventType::start, EventSource::combat));
+			store.dispatch_event(EventEntry(calculate_ticktime(ev->time), EventType::start, EventSource::combat));
 		}
 	}
 }
@@ -44,7 +44,7 @@ void Timer::mod_imgui() {
 			checkDelta(last_position[1], mumble_link->fAvatarPosition[1], 0.1f) ||
 			checkDelta(last_position[2], mumble_link->fAvatarPosition[2], 0.1f)) {
 			log_debug("timer: starting on movement");
-			store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::start, EventSource::movement));
+			store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::start, EventSource::movement));
 		}
 	}
 
@@ -91,7 +91,7 @@ void Timer::map_change(uint32_t map_id) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 			log_debug("timer: preparing on map change");
 			std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
-			store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::prepare, EventSource::other));
+			store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::prepare, EventSource::other));
 		});
 	}
 }
@@ -135,14 +135,14 @@ void Timer::timer_window_content(float width) {
 		if (ImGui::Button(translation.get("ButtonPrepare").c_str(), ImVec2(width, ImGui::GetFontSize() * 1.5f))) {
 			log_debug("timer: preparing manually");
 			std::copy(std::begin(mumble_link->fAvatarPosition), std::end(mumble_link->fAvatarPosition), std::begin(last_position));
-			store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::prepare, EventSource::manual));
+			store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::prepare, EventSource::manual));
 		}
 		ImGui::PopStyleColor();
 
 		ImGui::PushStyleColor(ImGuiCol_Button, settings.start_button_color);
 		if (ImGui::Button(translation.get("ButtonStart").c_str(), ImVec2((width-10)/3, ImGui::GetFontSize() * 1.5f))) {
 			log_debug("timer: starting manually");
-			store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::start, EventSource::manual));
+			store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::start, EventSource::manual));
 		}
 		ImGui::PopStyleColor();
 
@@ -150,7 +150,7 @@ void Timer::timer_window_content(float width) {
 		ImGui::SameLine(0, 5);
 		if (ImGui::Button(translation.get("TextStop").c_str(), ImVec2((width - 10) / 3, ImGui::GetFontSize() * 1.5f))) {
 			log_debug("timer: stopping manually");
-			store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::stop, EventSource::manual));
+			store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::stop, EventSource::manual));
 		}
 		ImGui::PopStyleColor();
 
@@ -158,7 +158,7 @@ void Timer::timer_window_content(float width) {
 		ImGui::SameLine(0, 5);
 		if (ImGui::Button(translation.get("TextReset").c_str(), ImVec2((width - 10) / 3, ImGui::GetFontSize() * 1.5f))) {
 			log_debug("timer: resetting manually");
-			store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::reset, EventSource::manual));
+			store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::reset, EventSource::manual));
 		}
 		ImGui::PopStyleColor();
 	}
@@ -233,14 +233,14 @@ void Timer::segment_window_content() {
 	if (!settings.hide_segment_buttons) {
 		ImGui::PushStyleColor(ImGuiCol_Button, settings.segment_button_color);
 		if (ImGui::Button(translation.get("ButtonSegment").c_str())) {
-			store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::segment, EventSource::manual));
+			store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::segment, EventSource::manual));
 		}
 		ImGui::PopStyleColor();
 		
 		ImGui::PushStyleColor(ImGuiCol_Button, settings.clear_button_color);
 		ImGui::SameLine(0, 5);
 		if (ImGui::Button(translation.get("ButtonClearSegments").c_str())) {
-			store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::segment_clear, EventSource::manual));
+			store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::segment_clear, EventSource::manual));
 		}
 		ImGui::PopStyleColor();
 	}
@@ -250,7 +250,7 @@ void Timer::history_window_content() {
 	const std::vector<HistoryEntry> history = store.get_history();
 
 	if (ImGui::Button(translation.get("ButtonClearHistory").c_str())) {
-		store.dispatch_event(EventLogEntry(std::chrono::system_clock::now(), EventType::history_clear, EventSource::manual));
+		store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::history_clear, EventSource::manual));
 	}
 
 	ImGui::BeginChild("history_entries");

@@ -81,11 +81,11 @@ struct HistoryEntry {
 	std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
 };
 
-struct EventLogEntry {
-	EventLogEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source);
-	EventLogEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, boost::uuids::uuid uuid);
-	EventLogEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, boost::uuids::uuid uuid, std::string name);
-	EventLogEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, std::string name);
+struct EventEntry {
+	EventEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source);
+	EventEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, boost::uuids::uuid uuid);
+	EventEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, boost::uuids::uuid uuid, std::string name);
+	EventEntry(std::chrono::system_clock::time_point time, EventType type, EventSource source, std::string name);
 
 	std::chrono::system_clock::time_point time;
 	EventType type;
@@ -99,7 +99,7 @@ struct EventLogEntry {
 class EventStore {
 public:
 	EventStore(API& api);
-	void dispatch_event(EventLogEntry entry);
+	void dispatch_event(EventEntry entry);
 	TimerState get_timer_state();
 	std::vector<HistoryEntry> get_history();
 	std::vector<TimeSegment> get_segments();
@@ -109,13 +109,14 @@ private:
 	API& api;
 
 	std::shared_mutex log_mutex;
-	std::vector<EventLogEntry> entries;
+	std::vector<EventEntry> entries;
 	std::vector<HistoryEntry> history;
+	std::vector<TimeSegment> segments;
 
 	TimerState state;
 
 	void reevaluate_state();
 	void sync(const nlohmann::json& data);
-	void add_event(EventLogEntry entry);
+	void add_event(EventEntry entry);
 	std::string format_time(std::chrono::system_clock::time_point time);
 };
