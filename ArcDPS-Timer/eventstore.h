@@ -11,7 +11,7 @@
 #include <boost/signals2.hpp>
 #include <nlohmann/json.hpp>
 
-#include "uuid.h"
+#include "uuid-json.h"
 
 #include "api.h"
 

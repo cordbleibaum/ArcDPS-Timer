@@ -187,10 +187,11 @@
     <ClInclude Include="arcdps-extension\Widgets.h" />
     <ClInclude Include="arcdps.h" />
     <ClInclude Include="bosskill_recognition.h" />
-    <ClInclude Include="eigen.h" />
+    <ClInclude Include="eigen-json.h" />
     <ClInclude Include="eventstore.h" />
     <ClInclude Include="grouptracker.h" />
     <ClInclude Include="hash-library\crc32.h" />
+    <ClInclude Include="imgui-json.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_internal.h" />
     <ClInclude Include="lang.h" />
@@ -203,7 +204,7 @@
     <ClInclude Include="timer.h" />
     <ClInclude Include="trigger_region.h" />
     <ClInclude Include="util.h" />
-    <ClInclude Include="uuid.h" />
+    <ClInclude Include="uuid-json.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api.cpp" />
@@ -215,6 +216,7 @@
     <ClCompile Include="arcdps-extension\Widgets.cpp" />
     <ClCompile Include="arcdps.cpp" />
     <ClCompile Include="bosskill_recognition.cpp" />
+    <ClCompile Include="chrono-json.h" />
     <ClCompile Include="eventstore.cpp" />
     <ClCompile Include="grouptracker.cpp" />
     <ClCompile Include="hash-library\crc32.cpp" />

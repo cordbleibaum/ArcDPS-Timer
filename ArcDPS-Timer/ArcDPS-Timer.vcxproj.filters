@@ -99,10 +99,13 @@
     <ClInclude Include="eventstore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="uuid.h">
+    <ClInclude Include="uuid-json.h">
       <Filter>Library Integration Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="eigen.h">
+    <ClInclude Include="eigen-json.h">
+      <Filter>Library Integration Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui-json.h">
       <Filter>Library Integration Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -190,6 +193,9 @@
     </ClCompile>
     <ClCompile Include="eventstore.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="chrono-json.h">
+      <Filter>Library Integration Header Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

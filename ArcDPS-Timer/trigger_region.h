@@ -9,8 +9,8 @@
 #include <nlohmann/json.hpp>
 #include <boost/signals2.hpp>
 
-#include "uuid.h"
-#include "eigen.h"
+#include "uuid-json.h"
+#include "eigen-json.h"
 
 #include "lang.h"
 #include "mumble_link.h"
