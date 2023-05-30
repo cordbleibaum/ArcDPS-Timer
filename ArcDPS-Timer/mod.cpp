@@ -83,7 +83,7 @@ arcdps_exports* mod_init() {
 	mod_options_signal.connect(std::bind(&Settings::mod_options, std::ref(settings)));
 
 	trigger_watcher.trigger_signal.connect([&](std::string name, boost::uuids::uuid uuid) {
-		store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::segment, EventSource::combat, uuid));
+		store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::segment, EventSource::combat, uuid, name));
 	});
 
 	bosskill.bosskill_signal.connect([&](const auto& time) {

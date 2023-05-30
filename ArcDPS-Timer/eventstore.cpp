@@ -182,6 +182,7 @@ void EventStore::reevaluate_state() {
 					current_segment.end = entry.time;
 					current_segment.shortest_time = std::chrono::duration_cast<std::chrono::milliseconds>(entry.time - start);
 					current_segment.shortest_duration = std::chrono::duration_cast<std::chrono::milliseconds>(entry.time - segment);
+					current_segment.name = entry.name.value_or("");
 
 					segment = entry.time;
 				}
