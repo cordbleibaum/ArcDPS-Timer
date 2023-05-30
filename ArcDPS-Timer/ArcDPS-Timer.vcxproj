@@ -194,6 +194,7 @@
     <ClInclude Include="imgui-json.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_internal.h" />
+    <ClInclude Include="keybind-json.h" />
     <ClInclude Include="lang.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="maptracker.h" />

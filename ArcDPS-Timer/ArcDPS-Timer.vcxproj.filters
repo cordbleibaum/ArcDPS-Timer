@@ -108,6 +108,9 @@
     <ClInclude Include="imgui-json.h">
       <Filter>Library Integration Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="keybind-json.h">
+      <Filter>Library Integration Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mod.cpp">
