@@ -10,12 +10,8 @@
 #include "eventstore.h"
 
 #include <chrono>
-#include <set>
-#include <thread>
-#include <mutex>
 #include <array>
 #include <vector>
-#include <shared_mutex>
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;

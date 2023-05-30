@@ -196,7 +196,6 @@
     <ClInclude Include="imgui\imgui_internal.h" />
     <ClInclude Include="keybind-json.h" />
     <ClInclude Include="lang.h" />
-    <ClInclude Include="log.h" />
     <ClInclude Include="maptracker.h" />
     <ClInclude Include="mod.h" />
     <ClInclude Include="mumble_link.h" />
@@ -226,7 +225,6 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="lang.cpp" />
-    <ClCompile Include="log.cpp" />
     <ClCompile Include="maptracker.cpp" />
     <ClCompile Include="mumble_link.cpp" />
     <ClCompile Include="ntp.cpp" />

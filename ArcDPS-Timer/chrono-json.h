@@ -9,5 +9,9 @@ namespace nlohmann {
 		static void to_json(json& j, const std::chrono::time_point<Clock, Duration>& tp) {
 			j = std::format("{:%FT%T}", std::chrono::floor<std::chrono::milliseconds>(tp));
 		}
+
+		static void from_json(const json& j, std::chrono::time_point<Clock, Duration>& tp) {
+			throw std::runtime_error("not implemented");
+		}
 	};
 };

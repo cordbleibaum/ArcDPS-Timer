@@ -21,7 +21,6 @@
 #include "lang.h"
 #include "maptracker.h"
 #include "util.h"
-#include "log.h"
 #include "api.h"
 #include "bosskill_recognition.h"
 #include "eventstore.h"
@@ -36,9 +35,8 @@ Settings settings("addons/arcdps/timer.json", translation, keybind_handler, map_
 TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
 API api(settings, mumble_link, map_tracker, group_tracker, "http://18.192.87.148:5001/");
-EventStore store(api);
+EventStore store(api, settings);
 Timer timer(store, settings, mumble_link, translation, api, map_tracker);
-Logger logger(mumble_link, settings, map_tracker);
 BossKillRecognition bosskill(mumble_link, settings);
 
 std::chrono::system_clock::time_point last_ntp_sync;
@@ -72,11 +70,11 @@ arcdps_exports* mod_init() {
 	});
 
 	map_tracker.map_change_signal.connect(std::bind(&Timer::map_change, std::ref(timer), std::placeholders::_1));
-	map_tracker.map_change_signal.connect(std::bind(&Logger::map_change, std::ref(logger), std::placeholders::_1));
 	map_tracker.map_change_signal.connect(std::bind(&TriggerWatcher::map_change, std::ref(trigger_watcher), std::placeholders::_1));
 	map_tracker.map_change_signal.connect(std::bind(&TriggerEditor::map_change, std::ref(trigger_editor), std::placeholders::_1));
 
 	map_tracker.map_change_signal.connect([&](uint32_t map_id) {
+		store.save_map_log();
 		store.dispatch_event(EventEntry(std::chrono::system_clock::now(), EventType::map_change, EventSource::other, map_tracker.get_map_name()));
 	});
 
@@ -152,7 +150,7 @@ arcdps_exports* mod_init() {
 uintptr_t mod_release() {
 	g_singletonManagerInstance.Shutdown();
 	settings.mod_release();
-	logger.mod_release();
+	store.mod_release();
 	return 0;
 }
 

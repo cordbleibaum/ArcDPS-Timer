@@ -2,11 +2,18 @@
 #include "util.h"
 
 #include <set>
+#include <filesystem>
+#include <fstream>
 
 using json = nlohmann::json;
 
-EventStore::EventStore(API& api) 
-:	api(api) {
+EventStore::EventStore(API& api, const Settings& settings)
+:	api(api),
+	settings(settings) {
+	if (!std::filesystem::exists(logs_directory)) {
+		std::filesystem::create_directory(logs_directory);
+	}
+
 	api.check_serverstatus();
 
 	std::thread status_sync_thread([&]() {
@@ -29,6 +36,11 @@ void EventStore::dispatch_event(EventEntry entry) {
 			add_event(entry);
 		}
 	}
+	else if (entry.type == EventType::map_change) {
+		save_map_log();
+		add_event(entry);
+
+	}
 	else {
 		add_event(entry);
 	}
@@ -48,6 +60,56 @@ std::vector<HistoryEntry> EventStore::get_history() {
 
 std::vector<TimeSegment> EventStore::get_segments() {
 	return segments;
+}
+
+void EventStore::save_log_thread(std::vector<EventEntry> entries) {
+	std::sort(entries.begin(), entries.end(), [](const EventEntry& a, const EventEntry& b) {
+		return a.time < b.time;
+	});
+
+	std::string map_name;
+
+	std::vector<EventEntry> log_entries;
+
+	for (auto it = entries.rbegin(); it != entries.rend(); ++it) {
+		const EventEntry& entry = *it;
+		if (entry.type == EventType::map_change) {
+			map_name = entry.name.value_or("Unknown");
+			break;
+		}
+		else {
+			log_entries.push_back(*it);
+		}
+	}
+
+	std::sort(log_entries.begin(), log_entries.end(), [](const EventEntry& a, const EventEntry& b) {
+		return a.time < b.time;
+	});
+
+	if (log_entries.size() < 1 || !settings.save_logs) {
+		return;
+	}
+
+	const std::string log_path = logs_directory + map_name + "/";
+	if (!std::filesystem::exists(log_path)) {
+		std::filesystem::create_directory(log_path);
+	}
+
+	const json events_json = log_entries;
+	std::string name = std::format("{:%FT%H-%M-%S}", std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now()));
+	std::ofstream o(log_path + name + ".json");
+	o << std::setw(4) << events_json << std::endl;
+}
+
+void EventStore::save_map_log() {
+	std::vector<EventEntry> current_events(entries);
+	defer([&, current_events]() {
+		save_log_thread(current_events);
+	});
+}
+
+void EventStore::mod_release() {
+	save_log_thread(entries);
 }
 
 void EventStore::reevaluate_state() {
