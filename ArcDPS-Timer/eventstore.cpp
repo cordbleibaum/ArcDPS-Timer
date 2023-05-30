@@ -63,12 +63,9 @@ std::vector<TimeSegment> EventStore::get_segments() {
 }
 
 void EventStore::save_log_thread(std::vector<EventEntry> entries) {
-	std::sort(entries.begin(), entries.end(), [](const EventEntry& a, const EventEntry& b) {
-		return a.time < b.time;
-	});
+	std::sort(entries.begin(), entries.end());
 
 	std::string map_name;
-
 	std::vector<EventEntry> log_entries;
 
 	for (auto it = entries.rbegin(); it != entries.rend(); ++it) {
@@ -82,9 +79,7 @@ void EventStore::save_log_thread(std::vector<EventEntry> entries) {
 		}
 	}
 
-	std::sort(log_entries.begin(), log_entries.end(), [](const EventEntry& a, const EventEntry& b) {
-		return a.time < b.time;
-	});
+	std::sort(log_entries.begin(), log_entries.end());
 
 	if (log_entries.size() < 1 || !settings.save_logs) {
 		return;
@@ -113,9 +108,7 @@ void EventStore::mod_release() {
 }
 
 void EventStore::reevaluate_state() {
-	std::sort(entries.begin(), entries.end(), [](const EventEntry& a, const EventEntry& b) {
-		return a.time < b.time;
-	});
+	std::sort(entries.begin(), entries.end());
 
 	TimerStatus status = TimerStatus::stopped;
 	auto start = std::chrono::system_clock::time_point::max();

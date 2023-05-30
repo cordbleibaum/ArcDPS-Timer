@@ -95,6 +95,10 @@ struct EventEntry {
 	std::optional<std::string> name;
 
 	bool is_relevant = true;
+
+	friend bool operator<(const EventEntry& l, const EventEntry& r) {
+		return std::tie(l.time, l.uuid) < std::tie(r.time, r.uuid);
+	}
 };
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EventEntry, time, type, source, uuid)
