@@ -1,11 +1,10 @@
 #include "timer.h"
 #include "util.h"
 
-Timer::Timer(EventStore & store, Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, API& api, MapTracker& map_tracker)
+Timer::Timer(EventStore & store, Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, MapTracker& map_tracker)
 :	settings(settings),
 	mumble_link(mumble_link),
 	translation(translation),
-	api(api),
 	map_tracker(map_tracker),
 	store(store)
 {
@@ -166,9 +165,9 @@ void Timer::timer_window_content(float width) {
 		ImGui::Dummy(ImVec2(160, 0));
 	}
 
-	if (api.server_status == ServerStatus::outofdate) {
+	/*if (api.server_status == ServerStatus::outofdate) {
 		ImGui::TextColored(ImVec4(1, 0, 0, 1), translation.get("TextOutOfDate").c_str());
-	}
+	} TODO: Server status display*/ 
 }
 
 void Timer::segment_window_content() {

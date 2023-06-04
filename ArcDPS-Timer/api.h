@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/asio.hpp>
+
 #include "settings.h"
 #include "mumble_link.h"
 #include "maptracker.h"
@@ -27,5 +29,5 @@ private:
 	GroupTracker& group_tracker;
 
 	const std::string server_url;
-	int update_id = -2;
+	boost::asio::io_context io_context;
 };

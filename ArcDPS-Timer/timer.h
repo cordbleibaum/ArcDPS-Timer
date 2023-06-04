@@ -1,13 +1,12 @@
 #pragma once
 
+#include "eventstore.h"
 #include "arcdps.h"
 #include "settings.h"
 #include "mumble_link.h"
 #include "grouptracker.h"
 #include "maptracker.h"
 #include "lang.h"
-#include "api.h"
-#include "eventstore.h"
 
 #include <chrono>
 #include <array>
@@ -21,7 +20,7 @@ using json = nlohmann::json;
 
 class Timer {
 public:
-	Timer(EventStore& store, Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, API& api, MapTracker& map_tracker);
+	Timer(EventStore& store, Settings& settings, GW2MumbleLink& mumble_link, const Translation& translation, MapTracker& map_tracker);
 	void map_change(uint32_t map_id);
 
 	void mod_combat(cbtevent* ev, ag* src, ag* dst, const char* skillname, uint64_t id);
@@ -32,7 +31,6 @@ private:
 	Settings& settings;
 	GW2MumbleLink& mumble_link;
 	const Translation& translation;
-	API& api;
 	MapTracker& map_tracker;
 	EventStore& store;
 

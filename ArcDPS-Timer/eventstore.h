@@ -8,13 +8,13 @@
 #include <optional>
 #include <shared_mutex>
 
+#include "api.h"
+
 #include <boost/signals2.hpp>
 #include <nlohmann/json.hpp>
 
 #include "uuid-json.h"
 #include "chrono-json.h"
-
-#include "api.h"
 
 enum class EventType {
 	start,

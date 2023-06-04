@@ -1,3 +1,6 @@
+#include "api.h"
+#include "eventstore.h"
+
 #include "mod.h"
 
 #include <string>
@@ -12,8 +15,8 @@
 #include "arcdps-extension/KeyBindHandler.h"
 #include "arcdps-extension/Singleton.h"
 
-#include "mumble_link.h"
 #include "ntp.h"
+#include "mumble_link.h"
 #include "settings.h"
 #include "timer.h"
 #include "grouptracker.h"
@@ -21,9 +24,7 @@
 #include "lang.h"
 #include "maptracker.h"
 #include "util.h"
-#include "api.h"
 #include "bosskill_recognition.h"
-#include "eventstore.h"
 
 Translation translation;
 KeyBindHandler keybind_handler;
@@ -36,7 +37,7 @@ TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
 API api(settings, mumble_link, map_tracker, group_tracker, "http://18.192.87.148:5001/");
 EventStore store(api, settings);
-Timer timer(store, settings, mumble_link, translation, api, map_tracker);
+Timer timer(store, settings, mumble_link, translation, map_tracker);
 BossKillRecognition bosskill(mumble_link, settings);
 
 std::chrono::system_clock::time_point last_ntp_sync;
