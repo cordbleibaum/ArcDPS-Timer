@@ -60,8 +60,8 @@ void BossKillRecognition::mod_combat(cbtevent* ev, ag* src, ag* dst, const char*
 
 			const auto log_duration = std::chrono::system_clock::now() - log_start_time - 3s; // substracting arcdps delay
 			if (log_duration > std::chrono::seconds(settings.get_early_gg_threshold())) {
-				data.lastPlayerX = mumble_link->getMumbleContext()->playerX;
-				data.lastPlayerY = mumble_link->getMumbleContext()->playerY;
+				data.lastPlayerX = mumble_link->fAvatarPosition[0];
+				data.lastPlayerY = mumble_link->fAvatarPosition[2];
 
 				for (const auto& boss : bosses) {
 					bool is_true = true;
@@ -111,10 +111,6 @@ void BossKillRecognition::add_defaults(){
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12906) }); // Thaumanova - Thaumanova Anomaly
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11333) }); // Snowblind - Shaman
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(11402) }); // Aquatic Ruins - Jellyfish Beast
-
-
-
-
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(16617) }); // Chaos - Gladiator
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(20497) }); // Deepstone - The Voice
 	emplace_conditions(timing_last_hit_npc(), { condition_npc_id(12900), condition_map_id(955)}); // Molten Furnace - Engineer

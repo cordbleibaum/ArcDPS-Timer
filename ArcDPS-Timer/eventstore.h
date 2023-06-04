@@ -24,7 +24,8 @@ enum class EventType {
 	segment,
 	segment_clear,
 	map_change,
-	history_clear
+	history_clear,
+	none
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(EventType, {
@@ -35,7 +36,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(EventType, {
 	{EventType::segment, "segment"},
 	{EventType::segment_clear, "segment_clear"},
 	{EventType::map_change, "map_change"},
-	{EventType::history_clear, "history_clear"}
+	{EventType::history_clear, "history_clear"}, 
+	{EventType::none, "none"}
 });
 
 enum class EventSource {

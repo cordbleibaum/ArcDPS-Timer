@@ -150,6 +150,9 @@ void EventStore::reevaluate_state() {
 			segments.clear();
 			segment_index = 0;
 		}
+		else if (entry.type == EventType::none) {
+			entry.is_relevant = false;
+		}
 		else {
 			switch (status) {
 			case TimerStatus::running:

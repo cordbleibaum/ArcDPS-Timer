@@ -6,12 +6,12 @@ This addon aims to make speedrunning in GW2 more convenient by having an easy to
 
 * Group sync for timer (in instances via server IP, otherwise via group member list)
 * Auto start
-* Auto stop (still experimental)
+* Auto stop (experimental)
 * Timing segments
 * Automatic segments
 * Fully keybindable
 * Translation support
-* Logging (still early)
+* Logging
 
 Overall status: beta version, some first testing done, but likely still many bugs
 

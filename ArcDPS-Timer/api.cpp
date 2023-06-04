@@ -1,4 +1,4 @@
-#include "api.h"
+  #include "api.h"
 
 #include <cpr/cpr.h>
 #include <thread>
@@ -39,7 +39,7 @@ void API::check_serverstatus() {
 	else {
 		const auto data = nlohmann::json::parse(response.text);
 
-		constexpr int server_version = 8;
+		constexpr int server_version = 9;
 		if (data["version"] != server_version) {
 			log("timer: out of date version, going offline mode\n");
 			server_status = ServerStatus::outofdate;

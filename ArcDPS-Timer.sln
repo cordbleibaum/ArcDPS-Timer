@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		vcpkg.json = vcpkg.json
 	EndProjectSection
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "ArcDPS-Timer-Server2", "ArcDPS-Timer-Server2\ArcDPS-Timer-Server2.pyproj", "{70D8C31A-F633-47FB-85FA-FB91BD25FC18}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArcDPS-Timer-Server", "ArcDPS-Timer-Server\ArcDPS-Timer-Server.vcxproj", "{7427235A-D3F2-4D33-B791-8D4CD1C397F3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,12 +36,18 @@ Global
 		{C5391DCB-83AD-4EBA-8527-FFDE797D27EC}.Release|x64.Build.0 = Release|x64
 		{C5391DCB-83AD-4EBA-8527-FFDE797D27EC}.Release|x86.ActiveCfg = Release|Win32
 		{C5391DCB-83AD-4EBA-8527-FFDE797D27EC}.Release|x86.Build.0 = Release|Win32
-		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Release|x64.ActiveCfg = Release|Any CPU
-		{70D8C31A-F633-47FB-85FA-FB91BD25FC18}.Release|x86.ActiveCfg = Release|Any CPU
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Debug|Any CPU.Build.0 = Debug|x64
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Debug|x64.ActiveCfg = Debug|x64
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Debug|x64.Build.0 = Debug|x64
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Debug|x86.ActiveCfg = Debug|Win32
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Debug|x86.Build.0 = Debug|Win32
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Release|Any CPU.ActiveCfg = Release|x64
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Release|Any CPU.Build.0 = Release|x64
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Release|x64.ActiveCfg = Release|x64
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Release|x64.Build.0 = Release|x64
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Release|x86.ActiveCfg = Release|Win32
+		{7427235A-D3F2-4D33-B791-8D4CD1C397F3}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
