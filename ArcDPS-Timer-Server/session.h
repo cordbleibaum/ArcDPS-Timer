@@ -15,8 +15,9 @@ public:
 	void send_message(std::string message);
 private:
 	boost::asio::ip::tcp::socket socket;
+	boost::asio::streambuf buffer;
 	std::deque<std::string> message_queue;
-	std::optional<std::weak_ptr<Group>> group;
+	std::optional<std::shared_ptr<Group>> group;
 
 	void receive_command();
 	void send_queued_messages();

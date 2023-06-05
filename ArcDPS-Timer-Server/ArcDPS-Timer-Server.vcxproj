@@ -138,6 +138,7 @@
     <ClCompile Include="session.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="command.h" />
     <ClInclude Include="group.h" />
     <ClInclude Include="receiver.h" />
     <ClInclude Include="server.h" />
