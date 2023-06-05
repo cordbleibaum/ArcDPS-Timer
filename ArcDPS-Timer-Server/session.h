@@ -12,6 +12,7 @@
 class Session : public Receiver, public std::enable_shared_from_this<Session> {
 public:
 	Session(boost::asio::ip::tcp::socket socket);
+	void start();
 	void send_message(std::string message);
 private:
 	boost::asio::ip::tcp::socket socket;

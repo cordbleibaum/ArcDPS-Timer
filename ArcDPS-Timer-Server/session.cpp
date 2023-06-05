@@ -7,6 +7,13 @@ Session::Session(boost::asio::ip::tcp::socket socket)
 :	socket(std::move(socket)) {
 }
 
+void Session::start() {
+	group = Group::get_group("default");
+	group.value()->join(shared_from_this());
+
+	receive_command();
+}
+
 void Session::send_message(std::string message) {
     bool write_in_progress = !message_queue.empty();
     message_queue.push_back(message);
@@ -30,11 +37,14 @@ void Session::receive_command() {
 					// TODO: check schema
 
 					if (command["command"] == "join") {
-						if (group.has_value()) {
-							group.value()->leave(shared_from_this());
-						}
+						auto old_group = group.value();
+
 						group = Group::get_group(command["group"]);
 						group.value()->join(shared_from_this());
+
+						if (old_group != nullptr) {						
+							old_group->leave(shared_from_this());
+						}
 					}
 					else if (command["command"] == "state") {
 						if (group.has_value()) {
@@ -69,6 +79,8 @@ void Session::receive_command() {
 					};
 					send_message(response.dump() + '\n');
 				}
+
+				receive_command();
 			}
 			else {
 				if (group.has_value()) {

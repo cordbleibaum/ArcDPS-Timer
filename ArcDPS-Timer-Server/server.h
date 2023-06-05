@@ -2,6 +2,8 @@
 
 #include <boost/asio.hpp>
 
+#include "session.h"
+
 class Server {
 public:
 	Server(boost::asio::io_context& io_context, boost::asio::ip::tcp::endpoint endpoint);
