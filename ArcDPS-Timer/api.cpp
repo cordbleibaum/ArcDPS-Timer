@@ -36,13 +36,13 @@ void API::post_serverapi(std::string method, nlohmann::json payload) {
 
 void API::start_sync(std::function<void(const nlohmann::json&)> data_function) {
 	try {
-		log_debug("Timer: Connecting to server");
+		log_debug("Timer: connecting to server");
 		boost::asio::ip::tcp::resolver resolver(io_context);
 		boost::asio::ip::tcp::resolver::query query(boost::asio::ip::tcp::v4(), server_url, "5000");
 		boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query);
 		socket = std::make_unique<boost::asio::ip::tcp::socket>(io_context);
 		socket->connect(endpoint);
-		log_debug("Timer: Connected to server");
+		log_debug("Timer: connected to server");
 
 		boost::asio::streambuf request_buffer;
 		std::ostream request_stream(&request_buffer);
@@ -68,12 +68,12 @@ void API::start_sync(std::function<void(const nlohmann::json&)> data_function) {
 		}
 		catch ([[maybe_unused]] json::parse_error& e) {
 			server_status = ServerStatus::offline;
-			log("Timer: Error getting server status");
+			log("Timer: error getting server status");
 		}
 	}
 	catch ([[maybe_unused]] boost::system::system_error& e) {
 		server_status = ServerStatus::offline;
-		log("Timer: Could not connect to server");
+		log("Timer: could not connect to server");
 	}
 
 	sync(data_function);
@@ -114,7 +114,7 @@ void API::sync(std::function<void(const nlohmann::json&)> data_function) {
 				}
 			} catch ([[maybe_unused]] json::parse_error& e) {
 				server_status = ServerStatus::offline;
-				log("Timer: Error synchronizing with server");
+				log("Timer: error reading server response");
 			}
 			sync(data_function);
 		}
