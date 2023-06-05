@@ -35,7 +35,7 @@ MapTracker map_tracker(mumble_link);
 Settings settings("addons/arcdps/timer.json", translation, keybind_handler, map_tracker, mumble_link);
 TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
-API api(settings, mumble_link, map_tracker, group_tracker, "http://18.192.87.148:5001/");
+API api(settings, mumble_link, map_tracker, group_tracker, "127.0.0.1");
 EventStore store(api, settings);
 Timer timer(store, settings, mumble_link, translation, map_tracker);
 BossKillRecognition bosskill(mumble_link, settings);
@@ -143,6 +143,8 @@ arcdps_exports* mod_init() {
 	segment_subscriber.Key = settings.segment_key;
 	segment_subscriber.Flags = KeyBindHandler::SubscriberFlags_None;
 	settings.segment_key_handler = keybind_handler.Subscribe(segment_subscriber);
+
+	store.start_sync();
 
 	log_debug("timer: done mod_init");
 	return &arc_exports;

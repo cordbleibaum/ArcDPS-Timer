@@ -114,6 +114,7 @@ public:
 	std::vector<TimeSegment> get_segments();
 	void save_map_log();
 	void mod_release();
+	void start_sync();
 
 	double clock_offset = 0;
 private:

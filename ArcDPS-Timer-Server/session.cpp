@@ -1,5 +1,6 @@
 #include "session.h"
 
+#include <iostream>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -15,12 +16,11 @@ void Session::start() {
 }
 
 void Session::send_message(std::string message) {
-    bool write_in_progress = !message_queue.empty();
-    message_queue.push_back(message);
-    if (!write_in_progress)
-    {
-        send_queued_messages();
-    }
+	json data = {
+		{"status", "state"},
+		{"data", json::parse(message)}
+	};
+    send_data(data);
 }
 
 void Session::receive_command() {
@@ -44,27 +44,41 @@ void Session::receive_command() {
 						if (old_group != nullptr) {
 							old_group->leave(shared_from_this());
 						}
+
+						json response = {
+							{"status", "ok"}
+						};
+						send_data(response);
 					}
 					else if (command["command"] == "state") {
 						if (group.has_value()) {
 							group.value()->send_message(command["data"]);
-						}
+						};
 					}
 					else if (command["command"] == "leave") {
 						if (group.has_value()) {
 							group.value()->leave(shared_from_this());
 						}
 						group = std::nullopt;
+
+						json response = {
+							{"status", "ok"}
+						};
+						send_data(response);
 					}
 					else if (command["command"] == "version") {
 						json response = {
 							{"status", "ok"},
 							{"version", 10}
 						};
-						send_message(response.dump() + '\n');
+						send_data(response);
 					}
 					else {
-						send_message("Invalid command\n");
+						json response = {
+							{"status", "error"},
+							{"message", "Invalid command"}
+						};
+						send_data(response.dump());
 
 						if (group.has_value()) {
 							group.value()->leave(shared_from_this());
@@ -78,7 +92,12 @@ void Session::receive_command() {
 						{"status", "error"},
 						{"message", "Invalid JSON"}
 					};
-					send_message(response.dump() + '\n');
+					send_data(response.dump());
+					std::cout << "Error: " << e.what() << std::endl;
+
+					if (group.has_value()) {
+						group.value()->leave(shared_from_this());
+					}
 				}
 			}
 			else {
@@ -108,4 +127,12 @@ void Session::send_queued_messages() {
 			}
 		}
     );
+}
+
+void Session::send_data(std::string data) {
+	bool write_in_progress = !message_queue.empty();
+	message_queue.push_back(data + '\n');
+	if (!write_in_progress) {
+		send_queued_messages();
+	}
 }

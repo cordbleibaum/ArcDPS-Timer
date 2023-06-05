@@ -22,4 +22,5 @@ private:
 
 	void receive_command();
 	void send_queued_messages();
+	void send_data(std::string data);
 };

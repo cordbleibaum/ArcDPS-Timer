@@ -13,13 +13,6 @@ EventStore::EventStore(API& api, const Settings& settings)
 	if (!std::filesystem::exists(logs_directory)) {
 		std::filesystem::create_directory(logs_directory);
 	}
-
-	api.check_serverstatus();
-
-	std::thread status_sync_thread([&]() {
-		api.sync(std::bind(&EventStore::sync, this, std::placeholders::_1));
-	});
-	status_sync_thread.detach();
 }
 
 void EventStore::dispatch_event(EventEntry entry) {
@@ -105,6 +98,10 @@ void EventStore::save_map_log() {
 
 void EventStore::mod_release() {
 	save_log_thread(entries);
+}
+
+void EventStore::start_sync() {
+	api.start_sync(std::bind(&EventStore::sync, this, std::placeholders::_1));
 }
 
 void EventStore::reevaluate_state() {

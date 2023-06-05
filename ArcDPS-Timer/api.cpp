@@ -1,9 +1,10 @@
   #include "api.h"
 
-#include <cpr/cpr.h>
 #include <thread>
 
 #include "arcdps.h"
+
+using json = nlohmann::json;
 
 API::API(const Settings& settings, GW2MumbleLink& mumble_link, MapTracker& map_tracker, GroupTracker& group_tracker, std::string server_url)
 :   server_url(server_url),
@@ -14,14 +15,68 @@ API::API(const Settings& settings, GW2MumbleLink& mumble_link, MapTracker& map_t
 }
 
 void API::post_serverapi(std::string method, nlohmann::json payload) {
+	if (server_status != ServerStatus::online || socket.get() == nullptr) {
+		return;
+	}
+
 	std::thread thread([&, method, payload]() {
-		// TODO
+		boost::asio::streambuf request_buffer;
+		std::ostream request_stream(&request_buffer);
+
+		json request = {
+			{"command", "state"},
+			{"data", payload}
+		};
+
+		request_stream << request.dump() << '\n';
+		boost::asio::write(*socket, request_buffer);
 	});
 	thread.detach();
 }
 
-void API::check_serverstatus() {
-	// TODO
+void API::start_sync(std::function<void(const nlohmann::json&)> data_function) {
+	try {
+		log_debug("Timer: Connecting to server");
+		boost::asio::ip::tcp::resolver resolver(io_context);
+		boost::asio::ip::tcp::resolver::query query(boost::asio::ip::tcp::v4(), server_url, "5000");
+		boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query);
+		socket = std::make_unique<boost::asio::ip::tcp::socket>(io_context);
+		socket->connect(endpoint);
+		log_debug("Timer: Connected to server");
+
+		boost::asio::streambuf request_buffer;
+		std::ostream request_stream(&request_buffer);
+		json request = {
+			{"command", "version"}
+		};
+		request_stream << request.dump() << '\n';
+		boost::asio::write(*socket, request_buffer);
+
+		boost::asio::read_until(*socket, receive_buffer, '\n');
+		std::istream response_stream(&receive_buffer);
+		std::string response_string;
+		std::getline(response_stream, response_string);
+
+		try {
+			json response = json::parse(response_string);
+			if (response["version"] != 10) {
+				server_status = ServerStatus::outofdate;
+			}
+			else {
+				server_status = ServerStatus::online;
+			}
+		}
+		catch ([[maybe_unused]] json::parse_error& e) {
+			server_status = ServerStatus::offline;
+			log("Timer: Error getting server status");
+		}
+	}
+	catch ([[maybe_unused]] boost::system::system_error& e) {
+		server_status = ServerStatus::offline;
+		log("Timer: Could not connect to server");
+	}
+
+	sync(data_function);
 }
 
 std::string API::get_id() const {
@@ -35,7 +90,33 @@ std::string API::get_id() const {
 }
 
 void API::sync(std::function<void(const nlohmann::json&)> data_function) {
-	while (true) {
-		// TODO
+	if (server_status != ServerStatus::online || socket.get() == nullptr) {
+		return;
 	}
+
+	boost::asio::async_read_until(*socket, receive_buffer, '\n',
+		[this, data_function](boost::system::error_code ec, std::size_t length) {
+			if (ec) {
+				server_status = ServerStatus::offline;
+				return;
+			}
+
+			std::istream response_stream(&receive_buffer);
+			std::string response_string;
+			std::getline(response_stream, response_string);
+			try {
+				json response = json::parse(response_string);
+				if (response["status"] == "state") {
+					data_function(response["data"]);
+				}
+				else if (response["status"] == "error") {
+					server_status = ServerStatus::offline;
+				}
+			} catch ([[maybe_unused]] json::parse_error& e) {
+				server_status = ServerStatus::offline;
+				log("Timer: Error synchronizing with server");
+			}
+			sync(data_function);
+		}
+	);
 }
