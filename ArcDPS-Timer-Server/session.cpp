@@ -47,6 +47,13 @@ void Session::receive_command() {
 						}
 						group = std::nullopt;
 					}
+					else if (command["command"] == "version") {
+						json response = {
+							{"status", "ok"},
+							{"version", 10}
+						};
+						send_message(response.dump() + '\n');
+					}
 					else {
 						send_message("Invalid command\n");
 					
@@ -56,7 +63,11 @@ void Session::receive_command() {
 					}
 
 				} catch (json::parse_error& e) {
-					send_message("Invalid JSON\n");
+					json response = {
+						{"status", "error"},
+						{"message", "Invalid JSON"}
+					};
+					send_message(response.dump() + '\n');
 				}
 			}
 			else {
@@ -81,8 +92,7 @@ void Session::send_queued_messages() {
 			}
 			else {
                 if (group.has_value()) {
-                    auto group_ptr = group.value().lock();
-                    group_ptr->leave(shared_from_this());
+					group.value()->leave(shared_from_this());
                 }
 			}
 		}

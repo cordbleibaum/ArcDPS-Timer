@@ -1,5 +1,7 @@
 #include "group.h"
 
+std::map<std::string, std::shared_ptr<Group>> Group::groups;
+
 void Group::join(std::shared_ptr<Receiver> receiver) {
 	receivers.insert(receiver);
 }

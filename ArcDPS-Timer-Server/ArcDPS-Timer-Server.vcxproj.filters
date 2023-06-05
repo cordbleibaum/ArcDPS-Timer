@@ -41,8 +41,5 @@
     <ClInclude Include="receiver.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="command.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
