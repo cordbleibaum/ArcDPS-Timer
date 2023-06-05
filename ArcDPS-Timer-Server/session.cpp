@@ -27,57 +27,62 @@ void Session::receive_command() {
 	boost::asio::async_read_until(socket, buffer, '\n', 
 		[this](boost::system::error_code ec, std::size_t length) {
 			if (!ec) {
+				// TODO: check if there is more than one line in the buffer
 				std::istream is(&buffer);
 				std::string command_string;
-				std::getline(is, command_string);
 
-				try {
-					json command = json::parse(command_string);
+				while (std::getline(is, command_string)) {
+					try {
+						json command = json::parse(command_string);
 
-					// TODO: check schema
+						// TODO: check schema
 
-					if (command["command"] == "join") {
-						auto old_group = group.value();
+						if (command["command"] == "join") {
+							auto old_group = group.value();
 
-						group = Group::get_group(command["group"]);
-						group.value()->join(shared_from_this());
+							group = Group::get_group(command["group"]);
+							group.value()->join(shared_from_this());
 
-						if (old_group != nullptr) {						
-							old_group->leave(shared_from_this());
+							if (old_group != nullptr) {
+								old_group->leave(shared_from_this());
+							}
 						}
-					}
-					else if (command["command"] == "state") {
-						if (group.has_value()) {
-							group.value()->send_message(command["data"]);
+						else if (command["command"] == "state") {
+							if (group.has_value()) {
+								group.value()->send_message(command["data"]);
+							}
 						}
-					}
-					else if (command["command"] == "leave") {
-						if (group.has_value()) {
-							group.value()->leave(shared_from_this());
+						else if (command["command"] == "leave") {
+							if (group.has_value()) {
+								group.value()->leave(shared_from_this());
+							}
+							group = std::nullopt;
 						}
-						group = std::nullopt;
+						else if (command["command"] == "version") {
+							json response = {
+								{"status", "ok"},
+								{"version", 10}
+							};
+							send_message(response.dump() + '\n');
+						}
+						else {
+							send_message("Invalid command\n");
+
+							if (group.has_value()) {
+								group.value()->leave(shared_from_this());
+							}
+						}
+
 					}
-					else if (command["command"] == "version") {
+					catch (json::parse_error& e) {
 						json response = {
-							{"status", "ok"},
-							{"version", 10}
+							{"status", "error"},
+							{"message", "Invalid JSON"}
 						};
 						send_message(response.dump() + '\n');
-					}
-					else {
-						send_message("Invalid command\n");
-					
-						if (group.has_value()) {
-							group.value()->leave(shared_from_this());
-						}
-					}
 
-				} catch (json::parse_error& e) {
-					json response = {
-						{"status", "error"},
-						{"message", "Invalid JSON"}
-					};
-					send_message(response.dump() + '\n');
+						return;
+					}
 				}
 
 				receive_command();
