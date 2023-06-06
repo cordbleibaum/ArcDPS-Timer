@@ -35,7 +35,7 @@ MapTracker map_tracker(mumble_link);
 Settings settings("addons/arcdps/timer.json", translation, keybind_handler, map_tracker, mumble_link);
 TriggerWatcher trigger_watcher(mumble_link);
 TriggerEditor trigger_editor(translation, mumble_link, trigger_watcher.regions);
-API api(settings, mumble_link, map_tracker, group_tracker, "127.0.0.1");
+API api(settings, mumble_link, map_tracker, group_tracker, "157.245.26.211");
 EventStore store(api, settings);
 Timer timer(store, settings, mumble_link, translation, map_tracker);
 BossKillRecognition bosskill(mumble_link, settings);
