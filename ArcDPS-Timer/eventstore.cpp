@@ -194,6 +194,7 @@ void EventStore::reevaluate_state() {
 				if (entry.type == EventType::start) {
 					start = entry.time;
 					segment = entry.time;
+					segment_index = 0;
 					status = TimerStatus::running;
 					was_prepared = false;
 
@@ -214,6 +215,7 @@ void EventStore::reevaluate_state() {
 				if (entry.type == EventType::start) {
 					start = entry.time;
 					segment = entry.time;
+					segment_index = 0;
 					status = TimerStatus::running;
 					was_prepared = true;
 
@@ -250,14 +252,12 @@ void EventStore::reevaluate_state() {
 void EventStore::sync(const nlohmann::json& data) {
 	std::lock_guard<std::shared_mutex> lock(log_mutex);
 
-	for (auto& entry : data) {
-		entries.push_back(EventEntry(
-			std::chrono::system_clock::time_point(std::chrono::milliseconds(entry["time"].get<int64_t>())),
-			entry["type"].get<EventType>(),
-			entry["source"].get<EventSource>(),
-			entry["uuid"].get<boost::uuids::uuid>()
-		));
-	}
+	entries.push_back(EventEntry(
+		std::chrono::system_clock::time_point(std::chrono::milliseconds(data["time"].get<int64_t>())),
+		data["type"].get<EventType>(),
+		data["source"].get<EventSource>(),
+		data["uuid"].get<boost::uuids::uuid>()
+	));
 
 	reevaluate_state();
 }

@@ -1,8 +1,10 @@
 #include "session.h"
 
 #include <iostream>
+#include <nlohmann/json-schema.hpp>
 
 using json = nlohmann::json;
+using nlohmann::json_schema::json_validator;
 
 Session::Session(boost::asio::ip::tcp::socket socket)
 :	socket(std::move(socket)) {
@@ -38,6 +40,8 @@ void Session::receive_command() {
 
 					bool valid = is_valid(command);
 					if (!valid) {
+						std:: cout << "Error: invalid command" << std::endl;
+
 						json response = {
 							{"status", "error"},
 							{"message", "Invalid command"}
@@ -134,44 +138,77 @@ void Session::send_data(std::string data) {
 }
 
 bool Session::is_valid(nlohmann::json input) {
-	if (!input.is_object()) {
+	static json person_schema = R"(
+	{
+		"$schema": "http://json-schema.org/draft-07/schema#",
+		"type": "object",
+		"properties": {
+			"command": {
+				"type": "string",
+				"enum": [
+					"join",
+					"version",
+					"state"
+				]
+			},
+			"group": {
+				"type": "string"
+			},
+			"data": {
+				"type": "object",
+				"properties": {
+					"source": {
+						"type": "string",
+						"enum": [
+							"maunal",
+							"combat",
+							"movement",
+							"other"
+						]
+					},
+					"type": {
+						"type": "string",
+						"enum": [
+							"start",
+							"stop",
+							"reset",
+							"prepare",
+							"segment",
+							"none",
+							"map_change",
+							"history_clear"
+						]
+					},
+					"uuid": {
+						"type": "string"
+					},
+					"time": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"source",
+					"type",
+					"uuid",
+					"time"
+				]
+			}
+		},
+		"required": [
+			"command"
+		],
+		"title": "command_schema"
+	}
+	)"_json;
+
+	json_validator validator;
+
+	try {
+		validator.set_root_schema(person_schema);
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Command schema validation failed: " << e.what() << "\n";
 		return false;
-	}
-
-	if (!input.contains("command")) {
-		return false;
-	}
-
-	if (!input["command"].is_string()) {
-		return false;
-	}
-
-	if (input["command"] != "join" && input["command"] != "state") {
-		return false;
-	}
-
-	if (input["command"] == "join") {
-		if (!input.contains("group")) {
-			return false;
-		}
-
-		if (!input["group"].is_string()) {
-			return false;
-		}
-
-		if (input["group"] == "") {
-			return false;
-		}
-
-		if (input["group"].size() > 64) {
-			return false;
-		}
-	}
-
-	if (input["command"] == "state") {
-		if (!input.contains("data")) {
-			return false;
-		}
 	}
 
 	return true;

@@ -15,6 +15,10 @@ void Group::leave(std::shared_ptr<Receiver> receiver) {
 }
 
 void Group::send_message(std::string message) {
+	if (name == "default") {
+		return;
+	}
+
 	for (auto receiver : receivers) {
 		receiver->send_message(message);
 	}

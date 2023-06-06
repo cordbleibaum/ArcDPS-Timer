@@ -96,8 +96,13 @@ void API::mod_imgui() {
 	}
 
 	try {
-		if (id != get_id()) {
-			id = get_id();
+		std::string new_id = get_id();
+		if (new_id == "") {
+			new_id = "default";
+		}
+
+		if (id != new_id) {
+			id = new_id;
 
 			boost::asio::streambuf request_buffer;
 			std::ostream request_stream(&request_buffer);
