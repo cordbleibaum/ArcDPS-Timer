@@ -6,8 +6,7 @@
       "cpr",
       "nlohmann-json",
       "eigen3",
-      "boost",
-      "json-schema-validator"
+      "boost"
     ]
   }
   
