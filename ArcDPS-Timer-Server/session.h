@@ -5,6 +5,7 @@
 #include <memory>
 #include <optional>
 #include <boost/asio.hpp>
+#include <nlohmann/json.hpp>
 
 #include "receiver.h"
 #include "group.h"
@@ -23,4 +24,5 @@ private:
 	void receive_command();
 	void send_queued_messages();
 	void send_data(std::string data);
+	bool is_valid(nlohmann::json input);
 };

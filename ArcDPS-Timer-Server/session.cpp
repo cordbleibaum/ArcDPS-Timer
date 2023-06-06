@@ -1,7 +1,7 @@
 #include "session.h"
 
 #include <iostream>
-#include <nlohmann/json.hpp>
+
 using json = nlohmann::json;
 
 Session::Session(boost::asio::ip::tcp::socket socket)
@@ -36,7 +36,20 @@ void Session::receive_command() {
 
 					std::cout << "Received command: " << command["command"] << std::endl;
 
-					// TODO: check schema
+					bool valid = is_valid(command);
+					if (!valid) {
+						json response = {
+							{"status", "error"},
+							{"message", "Invalid command"}
+						};
+						send_data(response.dump());
+
+						if (group.has_value()) {
+							group.value()->leave(shared_from_this());
+						}
+					
+						return;
+					}
 
 					if (command["command"] == "join") {
 						auto old_group = group;
@@ -58,34 +71,12 @@ void Session::receive_command() {
 							group.value()->send_message(command["data"].dump());
 						};
 					}
-					else if (command["command"] == "leave") {
-						if (group.has_value()) {
-							group.value()->leave(shared_from_this());
-						}
-						group = std::nullopt;
-
-						json response = {
-							{"status", "ok"}
-						};
-						send_data(response.dump());
-					}
 					else if (command["command"] == "version") {
 						json response = {
 							{"status", "ok"},
 							{"version", 10}
 						};
 						send_data(response.dump());
-					}
-					else {
-						json response = {
-							{"status", "error"},
-							{"message", "Invalid command"}
-						};
-						send_data(response.dump());
-
-						if (group.has_value()) {
-							group.value()->leave(shared_from_this());
-						}
 					}
 
 					receive_command();	
@@ -140,4 +131,48 @@ void Session::send_data(std::string data) {
 	if (!write_in_progress) {
 		send_queued_messages();
 	}
+}
+
+bool Session::is_valid(nlohmann::json input) {
+	if (!input.is_object()) {
+		return false;
+	}
+
+	if (!input.contains("command")) {
+		return false;
+	}
+
+	if (!input["command"].is_string()) {
+		return false;
+	}
+
+	if (input["command"] != "join" && input["command"] != "state") {
+		return false;
+	}
+
+	if (input["command"] == "join") {
+		if (!input.contains("group")) {
+			return false;
+		}
+
+		if (!input["group"].is_string()) {
+			return false;
+		}
+
+		if (input["group"] == "") {
+			return false;
+		}
+
+		if (input["group"].size() > 64) {
+			return false;
+		}
+	}
+
+	if (input["command"] == "state") {
+		if (!input.contains("data")) {
+			return false;
+		}
+	}
+
+	return true;
 }
