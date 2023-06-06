@@ -45,4 +45,7 @@
   <ItemGroup>
     <None Include="vcpkg.json" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
 </Project>
