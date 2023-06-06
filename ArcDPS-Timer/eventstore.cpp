@@ -166,8 +166,11 @@ void EventStore::reevaluate_state() {
 					current_segment.is_set = true;
 					current_segment.start = segment;
 					current_segment.end = stop;
-					current_segment.shortest_time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-					current_segment.shortest_duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - segment);
+
+					std::chrono::system_clock::duration time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+					std::chrono::system_clock::duration duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - segment);
+					current_segment.shortest_time = std::min(current_segment.shortest_time, time);
+					current_segment.shortest_duration = std::min(current_segment.shortest_duration, duration);
 
 					segment = entry.time;
 				}
@@ -180,8 +183,12 @@ void EventStore::reevaluate_state() {
 					current_segment.is_set = true;
 					current_segment.start = segment;
 					current_segment.end = entry.time;
-					current_segment.shortest_time = std::chrono::duration_cast<std::chrono::milliseconds>(entry.time - start);
-					current_segment.shortest_duration = std::chrono::duration_cast<std::chrono::milliseconds>(entry.time - segment);
+
+					std::chrono::system_clock::duration time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+					std::chrono::system_clock::duration duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - segment);
+					current_segment.shortest_time = std::min(current_segment.shortest_time, time);
+					current_segment.shortest_duration = std::min(current_segment.shortest_duration, duration);
+
 					current_segment.name = entry.name.value_or("");
 
 					segment = entry.time;
