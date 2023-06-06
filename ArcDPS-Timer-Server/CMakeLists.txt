@@ -10,5 +10,5 @@ if (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif ()
 
-add_executable(arcdps-timer-server ArcDPS-Timer-Server/main.cpp ArcDPS-Timer-Server/group.cpp ArcDPS-Timer-Server/server.cpp ArcDPS-Timer-Server/session.cpp)
+add_executable(arcdps-timer-server main.cpp group.cpp server.cpp session.cpp)
 target_link_libraries(arcdps-timer-server PRIVATE nlohmann_json_schema_validator nlohmann_json::nlohmann_json)
