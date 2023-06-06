@@ -194,6 +194,8 @@ uintptr_t mod_imgui(uint32_t not_charsel_or_loading) {
 	timer.mod_imgui();
 	trigger_editor.mod_imgui();
 
+	api.mod_imgui();
+
 	return 0;
 }
 

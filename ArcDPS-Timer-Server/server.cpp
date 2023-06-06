@@ -11,6 +11,7 @@ void Server::accept_connection() {
 	acceptor.async_accept(
         [this](boost::system::error_code ec, boost::asio::ip::tcp::socket socket) {
             if (!ec) {
+                std::cout << "Accepted connection" << std::endl;
                 auto session = std::make_shared<Session>(std::move(socket));
                 session->start();
             }

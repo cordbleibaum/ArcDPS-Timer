@@ -20,39 +20,42 @@ void Session::send_message(std::string message) {
 		{"status", "state"},
 		{"data", json::parse(message)}
 	};
-    send_data(data);
+    send_data(data.dump());
 }
 
 void Session::receive_command() {
 	boost::asio::async_read_until(socket, buffer, '\n', 
 		[this](boost::system::error_code ec, std::size_t length) {
 			if (!ec) {
-				std::istream is(&buffer);
+				std::istream istream(&buffer);
 				std::string command_string;
+				std::getline(istream, command_string);
 
 				try {
 					json command = json::parse(command_string);
 
+					std::cout << "Received command: " << command["command"] << std::endl;
+
 					// TODO: check schema
 
 					if (command["command"] == "join") {
-						auto old_group = group.value();
+						auto old_group = group;
 
 						group = Group::get_group(command["group"]);
 						group.value()->join(shared_from_this());
 
-						if (old_group != nullptr) {
-							old_group->leave(shared_from_this());
+						if (old_group.has_value() && old_group.value() != group.value()) {
+							old_group.value()->leave(shared_from_this());
 						}
 
 						json response = {
 							{"status", "ok"}
 						};
-						send_data(response);
+						send_data(response.dump());
 					}
 					else if (command["command"] == "state") {
 						if (group.has_value()) {
-							group.value()->send_message(command["data"]);
+							group.value()->send_message(command["data"].dump());
 						};
 					}
 					else if (command["command"] == "leave") {
@@ -64,14 +67,14 @@ void Session::receive_command() {
 						json response = {
 							{"status", "ok"}
 						};
-						send_data(response);
+						send_data(response.dump());
 					}
 					else if (command["command"] == "version") {
 						json response = {
 							{"status", "ok"},
 							{"version", 10}
 						};
-						send_data(response);
+						send_data(response.dump());
 					}
 					else {
 						json response = {
@@ -88,12 +91,14 @@ void Session::receive_command() {
 					receive_command();	
 				}
 				catch (json::parse_error& e) {
+					std::cout << command_string << std::endl;
+					std::cout << "Error: " << e.what() << std::endl;
+
 					json response = {
 						{"status", "error"},
 						{"message", "Invalid JSON"}
 					};
 					send_data(response.dump());
-					std::cout << "Error: " << e.what() << std::endl;
 
 					if (group.has_value()) {
 						group.value()->leave(shared_from_this());

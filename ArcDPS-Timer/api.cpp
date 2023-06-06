@@ -11,7 +11,8 @@ API::API(const Settings& settings, GW2MumbleLink& mumble_link, MapTracker& map_t
 	settings(settings),
 	mumble_link(mumble_link),
 	map_tracker(map_tracker),
-	group_tracker(group_tracker) {
+	group_tracker(group_tracker),
+	id("default") {
 }
 
 void API::post_serverapi(std::string method, nlohmann::json payload) {
@@ -87,6 +88,37 @@ std::string API::get_id() const {
 		return map_tracker.get_instance_id();
 	}
 	return group_tracker.get_group_id();
+}
+
+void API::mod_imgui() {
+	if (server_status != ServerStatus::online || socket.get() == nullptr) {
+		return;
+	}
+
+	try {
+		if (id != get_id()) {
+			id = get_id();
+
+			boost::asio::streambuf request_buffer;
+			std::ostream request_stream(&request_buffer);
+			json request = {
+				{"command", "join"},
+				{"group", id}
+			};
+			request_stream << request.dump() << '\n';
+			boost::asio::write(*socket, request_buffer);
+		}
+	}
+	catch ([[maybe_unused]] boost::system::system_error& e) {
+		server_status = ServerStatus::offline;
+		log("Timer: failed to update group");
+	}
+}
+
+API::~API() {
+	boost::asio::post(io_context, [this]() { 
+		socket->close(); 
+	});
 }
 
 void API::sync(std::function<void(const nlohmann::json&)> data_function) {

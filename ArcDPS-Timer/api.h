@@ -19,6 +19,8 @@ public:
 	void post_serverapi(std::string method, nlohmann::json payload = nlohmann::json::object());
 	void start_sync(std::function<void(const nlohmann::json&)> data_function);
 	std::string get_id() const;
+	void mod_imgui();
+	~API();
 
 	ServerStatus server_status = ServerStatus::initializing;
 	int server_version = 10;
@@ -27,6 +29,8 @@ private:
 	GW2MumbleLink& mumble_link;
 	MapTracker& map_tracker;
 	GroupTracker& group_tracker;
+
+	std::string id;
 
 	const std::string server_url;
 	boost::asio::io_context io_context;

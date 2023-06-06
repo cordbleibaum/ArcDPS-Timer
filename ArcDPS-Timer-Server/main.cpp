@@ -14,6 +14,6 @@ int main() {
         io_context.run();
     }
     catch (std::exception& e) {
-		std::cerr << "Eception: " << e.what() << std::endl;
+		std::cerr << "Unhandled exception: " << e.what() << std::endl;
 	}
 }
