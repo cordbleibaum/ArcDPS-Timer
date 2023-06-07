@@ -56,3 +56,6 @@ This project is licensed with the MIT License.
 
 ### Eigen
 [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page) is a linear algrebra library under MPL2 license. It is included via vcpkg
+
+### JSON Schema Validator
+[JSON Schema Validator](https://github.com/pboettch/json-schema-validator) is a json schema validator under MIT license. It is included via vcpkg
