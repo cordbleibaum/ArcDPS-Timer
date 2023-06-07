@@ -130,6 +130,10 @@ void EventStore::reevaluate_state() {
 		if (entry.type == EventType::map_change) {
 			current_map = entry.name.value_or("Unknown");
 			segment_index = 0;
+
+			start = entry.time;
+			stop = entry.time;
+			status = TimerStatus::stopped;
 		}
 		else if (entry.type == EventType::reset) {
 			start = entry.time;
@@ -271,6 +275,7 @@ void EventStore::sync(const nlohmann::json& data) {
 
 void EventStore::add_event(EventEntry entry) {
 	std::lock_guard<std::shared_mutex> lock(log_mutex);
+
 	entries.push_back(entry);
 	reevaluate_state();
 

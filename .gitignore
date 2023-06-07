@@ -367,3 +367,4 @@ FodyWeavers.xsd
 
 build
 /ArcDPS-Timer-Server/vcpkg_installed
+/ArcDPS-Timer/vcpkg_installed/
