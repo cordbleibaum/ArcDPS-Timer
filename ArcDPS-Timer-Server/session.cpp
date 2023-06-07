@@ -26,8 +26,9 @@ void Session::send_message(std::string message) {
 }
 
 void Session::receive_command() {
+	auto self(shared_from_this()); // keep Session alive while async operations are running
 	boost::asio::async_read_until(socket, buffer, '\n', 
-		[this](boost::system::error_code ec, std::size_t length) {
+		[this, self](boost::system::error_code ec, std::size_t length) {
 			if (!ec) {
 				std::istream istream(&buffer);
 				std::string command_string;
@@ -110,10 +111,11 @@ void Session::receive_command() {
 }
 
 void Session::send_queued_messages() {
+	auto self(shared_from_this()); // keep Session alive while async operations are running
     boost::asio::async_write(
         socket,
         boost::asio::buffer(message_queue.front().data(), message_queue.front().length()),
-        [this](boost::system::error_code ec, std::size_t) {
+        [this, self](boost::system::error_code ec, std::size_t) {
 			if (!ec) {
 				message_queue.pop_front();
 				if (!message_queue.empty()) {

@@ -32,7 +32,6 @@ void EventStore::dispatch_event(EventEntry entry) {
 	else if (entry.type == EventType::map_change) {
 		save_map_log();
 		add_event(entry);
-
 	}
 	else {
 		add_event(entry);
